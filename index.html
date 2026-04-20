@@ -805,6 +805,7 @@ function sortedActiveTasks(listId, activeTasks) {
 
 /* ── Session ── */
 function jwtPayload(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch { return {}; } }
+function isTokenExpired(t) { const p = jwtPayload(t); return !p.exp || Date.now()/1000 > p.exp; }
 function saveSession(s) {
   if (s.access_token && !s.user?.id) {
     const p = jwtPayload(s.access_token);
@@ -830,6 +831,7 @@ async function authPost(path, body) {
 }
 async function db(path, opts={}) {
   const r = await fetch(`${SB}/rest/v1${path}`, { ...opts, headers:{...authHdr(),...opts.headers} });
+  if (r.status === 401) { clearSession(); showAuth(); throw new Error('Oturum süresi doldu'); }
   if (!r.ok) { const e=await r.json().catch(()=>({})); throw new Error(e.message||`HTTP ${r.status}`); }
   const t = await r.text(); return t ? JSON.parse(t) : null;
 }
@@ -1641,9 +1643,14 @@ window.onunhandledrejection = (e) => {
     if (handleConfirmation()) { await initApp(); return; }
     const stored = localStorage.getItem('sb_session');
     if (stored) {
-      saveSession(JSON.parse(stored));
-      await initApp();
-      return;
+      const parsed = JSON.parse(stored);
+      if (isTokenExpired(parsed.access_token)) {
+        clearSession();
+      } else {
+        saveSession(parsed);
+        await initApp();
+        return;
+      }
     }
   } catch(e) {
     console.error('Init error:', e);
