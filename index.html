@@ -423,6 +423,57 @@
       border: 1px solid #fde68a;
     }
 
+    .due-tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+    }
+
+    .due-tag.future  { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    .due-tag.today   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+    .due-tag.overdue { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+    .datetime-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .datetime-row input[type="datetime-local"] {
+      flex: 1;
+      padding: 9px 12px;
+      border: 2px solid #e8ecf4;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      outline: none;
+      background: #fff;
+      color: #333;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .datetime-row input[type="datetime-local"]:focus { border-color: #4f6ef7; }
+
+    .datetime-row .clear-date {
+      padding: 8px 12px;
+      border: 2px solid #e8ecf4;
+      border-radius: 10px;
+      background: #fff;
+      color: #aaa;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .datetime-row .clear-date:hover { border-color: #fca5a5; color: #dc2626; background: #fff5f5; }
+
     .task-text {
       width: 100%;
       font-size: 0.95rem;
@@ -593,6 +644,10 @@
     <div class="add-row">
       <input type="text" id="taskInput" placeholder="Yeni görev ekle..." />
       <button onclick="addTask()">+ Ekle</button>
+    </div>
+    <div class="datetime-row">
+      <input type="datetime-local" id="taskDue" title="Bitiş tarihi ve saati (isteğe bağlı)" />
+      <button class="clear-date" onclick="document.getElementById('taskDue').value=''">✕ Tarih</button>
     </div>
     <div class="cat-picker" id="catPicker"></div>
 
@@ -941,15 +996,17 @@ async function loadTasks() {
 }
 
 async function addTask() {
-  const input = document.getElementById('taskInput');
-  const text  = input.value.trim();
+  const input   = document.getElementById('taskInput');
+  const dueInput = document.getElementById('taskDue');
+  const text    = input.value.trim();
   if (!text) return;
-  input.value = '';
+  const due_at = dueInput.value ? new Date(dueInput.value).toISOString() : null;
+  input.value    = '';
+  dueInput.value = '';
   try {
-    const [task] = await db('/todos', {
-      method: 'POST',
-      body: JSON.stringify({ text, done: false, category: selectedCat })
-    });
+    const payload = { text, done: false, category: selectedCat };
+    if (due_at) payload.due_at = due_at;
+    const [task] = await db('/todos', { method: 'POST', body: JSON.stringify(payload) });
     tasks.unshift(task);
     render();
   } catch (e) { alert('Görev eklenemedi: ' + e.message); }
@@ -1032,6 +1089,14 @@ function render() {
     meta.appendChild(tag);
     if (!task.done) meta.appendChild(xpTag);
 
+    if (task.due_at) {
+      const due = formatDue(task.due_at);
+      const dueEl = document.createElement('span');
+      dueEl.className = `due-tag ${due.cls}`;
+      dueEl.textContent = due.label;
+      meta.appendChild(dueEl);
+    }
+
     const textarea = document.createElement('textarea');
     textarea.className  = 'task-text';
     textarea.value      = task.text;
@@ -1076,6 +1141,23 @@ function setFilter(f, btn) {
 }
 
 /* ── Animations ──────────────────────────────────────────── */
+function formatDue(isoStr) {
+  if (!isoStr) return null;
+  const d     = new Date(isoStr);
+  const now   = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dDay  = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const diff  = dDay - today;
+
+  const timeStr = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  const dateStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+
+  if (diff < 0)       return { label: `⏰ ${dateStr} ${timeStr}`, cls: 'overdue' };
+  if (diff === 0)     return { label: `⏰ Bugün ${timeStr}`,       cls: 'today'   };
+  if (diff === 86400000) return { label: `📅 Yarın ${timeStr}`,   cls: 'future'  };
+  return               { label: `📅 ${dateStr} ${timeStr}`,       cls: 'future'  };
+}
+
 function showXpFloat(el, xp) {
   const f = document.createElement('div');
   f.className = 'xp-float';
