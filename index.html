@@ -1386,6 +1386,15 @@ function renderTaskCard(task, isDone, container) {
   titleInput.type      = 'text';
   if (task.done) titleInput.disabled = true;
   titleInput.addEventListener('change', () => scheduleUpdate(task, { text: titleInput.value }));
+  titleInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.shiftKey && !task.done) {
+      e.preventDefault();
+      detail.classList.add('open');
+      expandBtn.classList.add('open');
+      subInputRow.classList.add('open');
+      subInput.focus();
+    }
+  });
 
   titleRow.appendChild(titleInput);
 
