@@ -3,13 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>To Do</title>
+  <title>Yapılacaklar</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -20,18 +16,130 @@
       padding: 40px 16px;
     }
 
-    .container {
-      width: 100%;
-      max-width: 520px;
-    }
+    .container { width: 100%; max-width: 520px; }
 
     h1 {
       text-align: center;
       font-size: 2rem;
       color: #1a1a2e;
-      margin-bottom: 24px;
+      margin-bottom: 8px;
       letter-spacing: -0.5px;
     }
+
+    /* ── Auth ── */
+    #authBox {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin-top: 16px;
+    }
+
+    #authBox h2 {
+      text-align: center;
+      color: #1a1a2e;
+      margin-bottom: 24px;
+      font-size: 1.3rem;
+    }
+
+    .field { margin-bottom: 16px; }
+
+    .field label {
+      display: block;
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 2px solid #dde1ea;
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .field input:focus { border-color: #4f6ef7; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      background: #4f6ef7;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 4px;
+    }
+
+    .btn-primary:hover { background: #3a58e2; }
+    .btn-primary:disabled { background: #a0aee0; cursor: not-allowed; }
+
+    .auth-switch {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .auth-switch a {
+      color: #4f6ef7;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .auth-switch a:hover { text-decoration: underline; }
+
+    .msg {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .msg.error { background: #fde8e8; color: #c53030; display: block; }
+    .msg.success { background: #e6f4ea; color: #276749; display: block; }
+    .msg.info { background: #ebf4ff; color: #2b6cb0; display: block; }
+
+    /* ── App ── */
+    #appBox { display: none; }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .user-email {
+      font-size: 0.8rem;
+      color: #888;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 220px;
+    }
+
+    .btn-logout {
+      padding: 6px 14px;
+      background: #f0f2f5;
+      border: 1px solid #dde1ea;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: #555;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-logout:hover { background: #e2e6ef; }
 
     .input-row {
       display: flex;
@@ -50,9 +158,7 @@
       background: #fff;
     }
 
-    .input-row input:focus {
-      border-color: #4f6ef7;
-    }
+    .input-row input:focus { border-color: #4f6ef7; }
 
     .input-row button {
       padding: 12px 20px;
@@ -66,9 +172,7 @@
       white-space: nowrap;
     }
 
-    .input-row button:hover {
-      background: #3a58e2;
-    }
+    .input-row button:hover { background: #3a58e2; }
 
     .filters {
       display: flex;
@@ -94,11 +198,7 @@
       font-weight: 600;
     }
 
-    .task-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+    .task-list { display: flex; flex-direction: column; gap: 10px; }
 
     .task-item {
       display: flex;
@@ -111,9 +211,7 @@
       transition: opacity 0.2s;
     }
 
-    .task-item.done {
-      opacity: 0.55;
-    }
+    .task-item.done { opacity: 0.55; }
 
     .task-item input[type="checkbox"] {
       width: 20px;
@@ -140,21 +238,10 @@
       line-height: 1.4;
     }
 
-    .task-item.done .task-text {
-      text-decoration: line-through;
-      color: #888;
-    }
+    .task-item.done .task-text { text-decoration: line-through; color: #888; }
+    .task-text:focus { border-color: #4f6ef7; background: #f7f8ff; }
 
-    .task-text:focus {
-      border-color: #4f6ef7;
-      background: #f7f8ff;
-    }
-
-    .task-actions {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
+    .task-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
     .btn-icon {
       width: 32px;
@@ -169,39 +256,45 @@
       transition: background 0.2s;
     }
 
-    .btn-delete {
-      background: #fde8e8;
-      color: #e53e3e;
-    }
+    .btn-delete { background: #fde8e8; color: #e53e3e; }
+    .btn-delete:hover { background: #f8b4b4; }
 
-    .btn-delete:hover {
-      background: #f8b4b4;
-    }
-
-    .empty {
-      text-align: center;
-      color: #aaa;
-      padding: 40px 0;
-      font-size: 0.95rem;
-    }
-
-    .count {
-      text-align: right;
-      font-size: 0.8rem;
-      color: #888;
-      margin-bottom: 10px;
-    }
-
-    .loading {
-      text-align: center;
-      color: #aaa;
-      padding: 40px 0;
-    }
+    .count { text-align: right; font-size: 0.8rem; color: #888; margin-bottom: 10px; }
+    .empty { text-align: center; color: #aaa; padding: 40px 0; font-size: 0.95rem; }
+    .loading { text-align: center; color: #aaa; padding: 40px 0; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Yapılacaklar</h1>
+<div class="container">
+  <h1>Yapılacaklar</h1>
+
+  <!-- Auth Box -->
+  <div id="authBox">
+    <h2 id="authTitle">Giriş Yap</h2>
+    <div id="authMsg" class="msg"></div>
+
+    <div class="field">
+      <label>E-posta</label>
+      <input type="email" id="authEmail" placeholder="ornek@mail.com" autocomplete="email" />
+    </div>
+    <div class="field">
+      <label>Şifre</label>
+      <input type="password" id="authPassword" placeholder="En az 6 karakter" autocomplete="current-password" />
+    </div>
+
+    <button class="btn-primary" id="authBtn" onclick="submitAuth()">Giriş Yap</button>
+
+    <div class="auth-switch">
+      Hesabın yok mu? <a onclick="toggleMode()">Kayıt Ol</a>
+    </div>
+  </div>
+
+  <!-- App Box -->
+  <div id="appBox">
+    <div class="topbar">
+      <span class="user-email" id="userEmail"></span>
+      <button class="btn-logout" onclick="logout()">Çıkış Yap</button>
+    </div>
 
     <div class="input-row">
       <input type="text" id="taskInput" placeholder="Yeni görev ekle..." />
@@ -217,156 +310,302 @@
     <div class="count" id="count"></div>
     <div class="task-list" id="taskList"></div>
     <div class="empty" id="empty" style="display:none">Görev yok.</div>
-    <div class="loading" id="loading">Yükleniyor...</div>
+    <div class="loading" id="loadingIndicator" style="display:none">Yükleniyor...</div>
   </div>
+</div>
 
-  <script>
-    const SUPABASE_URL = 'https://uzkscrrqyxftbtwkiyra.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6a3NjcnJxeXhmdGJ0d2tpeXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDkxNDMsImV4cCI6MjA5MjI4NTE0M30.wA7g4SVacghNunC0nt6ZP3SgHZ6U6LAWu3ggUrypBxE';
-    const HEADERS = {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
+<script>
+  const SB = 'https://uzkscrrqyxftbtwkiyra.supabase.co';
+  const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6a3NjcnJxeXhmdGJ0d2tpeXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDkxNDMsImV4cCI6MjA5MjI4NTE0M30.wA7g4SVacghNunC0nt6ZP3SgHZ6U6LAWu3ggUrypBxE';
+
+  let session = null;
+  let tasks = [];
+  let filter = 'all';
+  let editTimers = {};
+  let isRegisterMode = false;
+
+  // ── Session helpers ──────────────────────────────────────────────
+  function saveSession(s) {
+    session = s;
+    localStorage.setItem('sb_session', JSON.stringify(s));
+  }
+
+  function clearSession() {
+    session = null;
+    localStorage.removeItem('sb_session');
+  }
+
+  function authHeaders() {
+    return {
+      'apikey': ANON,
+      'Authorization': `Bearer ${session.access_token}`,
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     };
+  }
 
-    let tasks = [];
-    let filter = 'all';
-    let editTimers = {};
+  // ── REST helpers ──────────────────────────────────────────────────
+  async function authPost(path, body) {
+    const res = await fetch(`${SB}/auth/v1${path}`, {
+      method: 'POST',
+      headers: { 'apikey': ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || data.error || 'Hata oluştu');
+    return data;
+  }
 
-    async function api(path, options = {}) {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
-        ...options,
-        headers: { ...HEADERS, ...options.headers }
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const text = await res.text();
-      return text ? JSON.parse(text) : null;
+  async function dbFetch(path, options = {}) {
+    const res = await fetch(`${SB}/rest/v1${path}`, {
+      ...options,
+      headers: { ...authHeaders(), ...options.headers }
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Veritabanı hatası');
     }
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }
 
-    async function loadTasks() {
-      document.getElementById('loading').style.display = 'block';
-      tasks = await api('/todos?order=created_at.desc');
-      document.getElementById('loading').style.display = 'none';
+  // ── Auth UI ───────────────────────────────────────────────────────
+  function setMsg(text, type) {
+    const el = document.getElementById('authMsg');
+    el.className = `msg ${type}`;
+    el.textContent = text;
+  }
+
+  function toggleMode() {
+    isRegisterMode = !isRegisterMode;
+    document.getElementById('authTitle').textContent = isRegisterMode ? 'Kayıt Ol' : 'Giriş Yap';
+    document.getElementById('authBtn').textContent = isRegisterMode ? 'Kayıt Ol' : 'Giriş Yap';
+    document.querySelector('.auth-switch').innerHTML = isRegisterMode
+      ? 'Zaten hesabın var mı? <a onclick="toggleMode()">Giriş Yap</a>'
+      : 'Hesabın yok mu? <a onclick="toggleMode()">Kayıt Ol</a>';
+    document.getElementById('authMsg').className = 'msg';
+    document.getElementById('authMsg').textContent = '';
+  }
+
+  async function submitAuth() {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const btn = document.getElementById('authBtn');
+
+    if (!email || !password) { setMsg('E-posta ve şifre giriniz.', 'error'); return; }
+    if (password.length < 6) { setMsg('Şifre en az 6 karakter olmalı.', 'error'); return; }
+
+    btn.disabled = true;
+
+    try {
+      if (isRegisterMode) {
+        await authPost('/signup', { email, password });
+        setMsg('Kayıt başarılı! E-postanıza gelen onay bağlantısına tıklayın.', 'success');
+        document.getElementById('authPassword').value = '';
+      } else {
+        const data = await authPost('/token?grant_type=password', { email, password });
+        saveSession(data);
+        showApp();
+      }
+    } catch (e) {
+      setMsg(e.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function logout() {
+    clearSession();
+    showAuth();
+  }
+
+  // ── View switching ────────────────────────────────────────────────
+  function showAuth() {
+    document.getElementById('authBox').style.display = 'block';
+    document.getElementById('appBox').style.display = 'none';
+  }
+
+  function showApp() {
+    document.getElementById('authBox').style.display = 'none';
+    document.getElementById('appBox').style.display = 'block';
+    document.getElementById('userEmail').textContent = session.user?.email || '';
+    loadTasks();
+  }
+
+  // ── Handle email confirmation redirect ───────────────────────────
+  function handleEmailConfirmation() {
+    const hash = window.location.hash.substring(1);
+    if (!hash) return false;
+
+    const params = Object.fromEntries(new URLSearchParams(hash));
+
+    if (params.access_token && (params.type === 'signup' || params.type === 'recovery')) {
+      saveSession({
+        access_token: params.access_token,
+        refresh_token: params.refresh_token,
+        user: { email: params.email || '' }
+      });
+      // Clean URL
+      history.replaceState(null, '', window.location.pathname);
+      return true;
+    }
+    return false;
+  }
+
+  // ── Todo operations ───────────────────────────────────────────────
+  async function loadTasks() {
+    document.getElementById('loadingIndicator').style.display = 'block';
+    try {
+      tasks = await dbFetch('/todos?order=created_at.desc&select=*');
+    } catch (e) {
+      console.error(e);
+    } finally {
+      document.getElementById('loadingIndicator').style.display = 'none';
       render();
     }
+  }
 
-    async function addTask() {
-      const input = document.getElementById('taskInput');
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = '';
-      const [task] = await api('/todos', {
+  async function addTask() {
+    const input = document.getElementById('taskInput');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    try {
+      const [task] = await dbFetch('/todos', {
         method: 'POST',
-        body: JSON.stringify({ text, done: false })
+        body: JSON.stringify({ text, done: false, user_id: session.user?.id || undefined })
       });
       tasks.unshift(task);
       render();
+    } catch (e) {
+      alert('Görev eklenemedi: ' + e.message);
     }
+  }
 
-    async function toggleTask(task) {
-      await api(`/todos?id=eq.${task.id}`, {
+  async function toggleTask(task) {
+    try {
+      await dbFetch(`/todos?id=eq.${task.id}`, {
         method: 'PATCH',
         body: JSON.stringify({ done: !task.done })
       });
       task.done = !task.done;
       render();
-    }
+    } catch (e) { console.error(e); }
+  }
 
-    async function deleteTask(id) {
-      await api(`/todos?id=eq.${id}`, { method: 'DELETE' });
+  async function deleteTask(id) {
+    try {
+      await dbFetch(`/todos?id=eq.${id}`, { method: 'DELETE', headers: { Prefer: '' } });
       tasks = tasks.filter(t => t.id !== id);
       render();
-    }
+    } catch (e) { console.error(e); }
+  }
 
-    function scheduleUpdate(task, text) {
-      clearTimeout(editTimers[task.id]);
-      editTimers[task.id] = setTimeout(async () => {
-        await api(`/todos?id=eq.${task.id}`, {
+  function scheduleUpdate(task, text) {
+    clearTimeout(editTimers[task.id]);
+    editTimers[task.id] = setTimeout(async () => {
+      try {
+        await dbFetch(`/todos?id=eq.${task.id}`, {
           method: 'PATCH',
           body: JSON.stringify({ text })
         });
         task.text = text;
-      }, 600);
-    }
+      } catch (e) { console.error(e); }
+    }, 600);
+  }
 
-    function render() {
-      const list = document.getElementById('taskList');
-      const empty = document.getElementById('empty');
-      const count = document.getElementById('count');
+  // ── Render ────────────────────────────────────────────────────────
+  function render() {
+    const list = document.getElementById('taskList');
+    const empty = document.getElementById('empty');
+    const count = document.getElementById('count');
 
-      const visible = tasks.filter(t =>
-        filter === 'all' ? true :
-        filter === 'done' ? t.done :
-        !t.done
-      );
+    const visible = tasks.filter(t =>
+      filter === 'all' ? true : filter === 'done' ? t.done : !t.done
+    );
 
-      const remaining = tasks.filter(t => !t.done).length;
-      count.textContent = `${remaining} görev kaldı`;
-      list.innerHTML = '';
+    count.textContent = `${tasks.filter(t => !t.done).length} görev kaldı`;
+    list.innerHTML = '';
 
-      if (visible.length === 0) {
-        empty.style.display = 'block';
-      } else {
-        empty.style.display = 'none';
-        visible.forEach(task => {
-          const item = document.createElement('div');
-          item.className = 'task-item' + (task.done ? ' done' : '');
+    if (visible.length === 0) {
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      visible.forEach(task => {
+        const item = document.createElement('div');
+        item.className = 'task-item' + (task.done ? ' done' : '');
 
-          const cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.checked = task.done;
-          cb.addEventListener('change', () => toggleTask(task));
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = task.done;
+        cb.addEventListener('change', () => toggleTask(task));
 
-          const textarea = document.createElement('textarea');
-          textarea.className = 'task-text';
-          textarea.value = task.text;
-          textarea.rows = 1;
-          textarea.spellcheck = false;
-          textarea.addEventListener('input', () => {
-            textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
-            scheduleUpdate(task, textarea.value);
-          });
-          textarea.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              textarea.blur();
-            }
-          });
-
-          const delBtn = document.createElement('button');
-          delBtn.className = 'btn-icon btn-delete';
-          delBtn.title = 'Sil';
-          delBtn.innerHTML = '&#10005;';
-          delBtn.addEventListener('click', () => deleteTask(task.id));
-
-          const actions = document.createElement('div');
-          actions.className = 'task-actions';
-          actions.appendChild(delBtn);
-
-          item.appendChild(cb);
-          item.appendChild(textarea);
-          item.appendChild(actions);
-          list.appendChild(item);
-
+        const textarea = document.createElement('textarea');
+        textarea.className = 'task-text';
+        textarea.value = task.text;
+        textarea.rows = 1;
+        textarea.spellcheck = false;
+        textarea.addEventListener('input', () => {
+          textarea.style.height = 'auto';
           textarea.style.height = textarea.scrollHeight + 'px';
+          scheduleUpdate(task, textarea.value);
         });
-      }
+        textarea.addEventListener('keydown', e => {
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textarea.blur(); }
+        });
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn-icon btn-delete';
+        delBtn.title = 'Sil';
+        delBtn.innerHTML = '&#10005;';
+        delBtn.addEventListener('click', () => deleteTask(task.id));
+
+        const actions = document.createElement('div');
+        actions.className = 'task-actions';
+        actions.appendChild(delBtn);
+
+        item.appendChild(cb);
+        item.appendChild(textarea);
+        item.appendChild(actions);
+        list.appendChild(item);
+
+        textarea.style.height = textarea.scrollHeight + 'px';
+      });
+    }
+  }
+
+  function setFilter(f, btn) {
+    filter = f;
+    document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  }
+
+  document.getElementById('taskInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTask();
+  });
+
+  // ── Boot ──────────────────────────────────────────────────────────
+  (function init() {
+    // 1. Email confirmation callback
+    if (handleEmailConfirmation()) {
+      showApp();
+      return;
     }
 
-    function setFilter(f, btn) {
-      filter = f;
-      document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      render();
+    // 2. Restore session from localStorage
+    const stored = localStorage.getItem('sb_session');
+    if (stored) {
+      try {
+        session = JSON.parse(stored);
+        showApp();
+        return;
+      } catch (_) {}
     }
 
-    document.getElementById('taskInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') addTask();
-    });
-
-    loadTasks();
-  </script>
+    // 3. Show login
+    showAuth();
+  })();
+</script>
 </body>
 </html>
