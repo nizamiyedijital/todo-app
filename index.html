@@ -667,6 +667,172 @@
 
     .empty { text-align: center; color: #ccc; padding: 40px 0; font-size: 0.9rem; }
     .loading-wrap { text-align: center; color: #ccc; padding: 32px 0; font-size: 0.9rem; }
+
+    /* ── Calendar icon button ─────────────────── */
+    .btn-cal {
+      width: 32px; height: 32px;
+      border: 1.5px solid #e0e4ef;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: border-color 0.18s, background 0.18s;
+      flex-shrink: 0;
+    }
+    .btn-cal:hover, .btn-cal.has-date { border-color: #4f6ef7; background: #f0f3ff; }
+
+    .due-selected-label {
+      font-size: 0.78rem; color: #4f6ef7; font-weight: 500;
+      white-space: nowrap; cursor: pointer;
+    }
+
+    /* ── Date-Time Picker ────────────────────── */
+    .dtp-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      display: none;
+    }
+    .dtp-overlay.open { display: block; }
+
+    .dtp-box {
+      position: fixed;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.16);
+      z-index: 201;
+      display: none;
+      overflow: hidden;
+      width: 336px;
+    }
+    .dtp-box.open { display: flex; flex-direction: column; }
+
+    .dtp-body { display: flex; }
+
+    /* Calendar side */
+    .dtp-cal { flex: 1; padding: 16px 14px 12px; border-right: 1px solid #f0f2f9; }
+
+    .dtp-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .dtp-nav-btn {
+      width: 28px; height: 28px;
+      border: none; background: transparent;
+      cursor: pointer; font-size: 1.1rem; color: #666;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .dtp-nav-btn:hover { background: #f0f2f9; }
+
+    .dtp-month-label { font-size: 0.88rem; font-weight: 600; color: #1a1a2e; }
+
+    .dtp-dow {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      margin-bottom: 4px;
+    }
+    .dtp-dow span {
+      text-align: center; font-size: 0.68rem; font-weight: 600;
+      color: #bbb; padding: 2px 0;
+    }
+
+    .dtp-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+    }
+
+    .dtp-day {
+      aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; color: #333;
+      border: none; background: transparent;
+      border-radius: 50%; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .dtp-day:hover   { background: #f0f3ff; color: #4f6ef7; }
+    .dtp-day.today   { font-weight: 700; color: #4f6ef7; }
+    .dtp-day.selected { background: #4f6ef7; color: #fff !important; font-weight: 700; }
+    .dtp-day.other   { color: #ddd; }
+    .dtp-day.empty   { cursor: default; }
+
+    /* Time side */
+    .dtp-time {
+      width: 100px; padding: 16px 10px 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+
+    .dtp-time-label {
+      font-size: 0.72rem; font-weight: 600; color: #bbb;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .dtp-drums { display: flex; align-items: center; gap: 4px; }
+
+    .dtp-drum {
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+      width: 38px;
+    }
+
+    .dtp-drum-arrow {
+      width: 34px; height: 28px;
+      border: none; background: transparent;
+      cursor: pointer; color: #aaa; font-size: 0.75rem;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+    }
+    .dtp-drum-arrow:hover { background: #f0f3ff; color: #4f6ef7; }
+
+    .dtp-drum-window {
+      height: 76px; width: 38px;
+      overflow: hidden; position: relative;
+    }
+
+    .dtp-drum-list {
+      display: flex; flex-direction: column;
+      transition: transform 0.18s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .dtp-drum-item {
+      height: 28px; width: 38px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; color: #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: color 0.15s, font-size 0.15s, font-weight 0.15s;
+      flex-shrink: 0;
+    }
+
+    .dtp-drum-item.active {
+      color: #1a1a2e; font-size: 1.2rem; font-weight: 700;
+    }
+
+    .dtp-drum-sep { font-size: 1.3rem; font-weight: 700; color: #aaa; padding-bottom: 2px; }
+
+    /* Footer */
+    .dtp-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 14px;
+      border-top: 1px solid #f0f2f9;
+    }
+
+    .dtp-btn-clear {
+      font-size: 0.82rem; color: #aaa; background: none;
+      border: 1.5px solid #e8ecf4; border-radius: 8px;
+      padding: 6px 14px; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .dtp-btn-clear:hover { border-color: #fca5a5; color: #dc2626; }
+
+    .dtp-btn-ok {
+      font-size: 0.82rem; color: #fff;
+      background: #4f6ef7; border: none; border-radius: 8px;
+      padding: 6px 20px; cursor: pointer; font-weight: 600;
+      transition: background 0.15s;
+    }
+    .dtp-btn-ok:hover { background: #3a58e2; }
   </style>
 </head>
 <body>
@@ -741,7 +907,8 @@
       <div class="add-detail" id="addDetail">
         <textarea id="addNotes" placeholder="Notlar" rows="2"></textarea>
         <div class="add-detail-row">
-          <input type="datetime-local" id="addDue" step="300" />
+          <button class="btn-cal" id="addDueBtn" onclick="dtpOpen(this, null, v => { addDueValue = v; renderAddDueLabel(); })" title="Bitiş tarihi seç">📅</button>
+          <span class="due-selected-label" id="addDueLabel" onclick="document.getElementById('addDueBtn').click()"></span>
           <button class="cancel-add" onclick="closeAddDetail()">İptal</button>
         </div>
       </div>
@@ -772,6 +939,46 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Date-Time Picker -->
+<div class="dtp-overlay" id="dtpOverlay" onclick="dtpClose()"></div>
+<div class="dtp-box" id="dtpBox">
+  <div class="dtp-body">
+    <!-- Calendar -->
+    <div class="dtp-cal">
+      <div class="dtp-nav">
+        <button class="dtp-nav-btn" onclick="dtpPrevMonth()">‹</button>
+        <span class="dtp-month-label" id="dtpMonthLabel"></span>
+        <button class="dtp-nav-btn" onclick="dtpNextMonth()">›</button>
+      </div>
+      <div class="dtp-dow">
+        <span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span>Ct</span><span>Pa</span>
+      </div>
+      <div class="dtp-grid" id="dtpGrid"></div>
+    </div>
+    <!-- Time -->
+    <div class="dtp-time">
+      <div class="dtp-time-label">Saat</div>
+      <div class="dtp-drums">
+        <div class="dtp-drum">
+          <button class="dtp-drum-arrow" onclick="dtpChangeHour(-1)">▲</button>
+          <div class="dtp-drum-window"><div class="dtp-drum-list" id="dtpHourList"></div></div>
+          <button class="dtp-drum-arrow" onclick="dtpChangeHour(1)">▼</button>
+        </div>
+        <div class="dtp-drum-sep">:</div>
+        <div class="dtp-drum">
+          <button class="dtp-drum-arrow" onclick="dtpChangeMin(-1)">▲</button>
+          <div class="dtp-drum-window"><div class="dtp-drum-list" id="dtpMinList"></div></div>
+          <button class="dtp-drum-arrow" onclick="dtpChangeMin(1)">▼</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="dtp-footer">
+    <button class="dtp-btn-clear" onclick="dtpClear()">Temizle</button>
+    <button class="dtp-btn-ok" onclick="dtpConfirm()">Tamam</button>
+  </div>
+</div>
 
 <script>
 const SB      = 'https://uzkscrrqyxftbtwkiyra.supabase.co';
@@ -807,13 +1014,14 @@ function levelFromXP(xp) {
 
 /* ─── State ─────────────────────────────── */
 let session  = null;
-let tasks    = [];   // all tasks (root + subtasks)
+let tasks    = [];
 let stats    = { xp: 0, streak: 0, last_activity_date: null, completed_count: 0, badges: [] };
 let activeList   = 'all';
 let showDone     = false;
 let doneListOpen = false;
 let editTimers   = {};
 let isRegisterMode = false;
+let addDueValue  = ''; // ISO string for add form due date
 
 /* ─── Session ───────────────────────────── */
 function jwtPayload(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch { return {}; } }
@@ -1011,18 +1219,32 @@ async function loadTasks() {
 }
 
 /* ─── CRUD ───────────────────────────────── */
+function renderAddDueLabel() {
+  const el  = document.getElementById('addDueLabel');
+  const btn = document.getElementById('addDueBtn');
+  if (addDueValue) {
+    const d   = new Date(addDueValue);
+    el.textContent = d.toLocaleDateString('tr-TR', { day:'numeric', month:'short' }) + ' ' +
+                     d.toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
+    btn.classList.add('has-date');
+  } else {
+    el.textContent = '';
+    btn.classList.remove('has-date');
+  }
+}
+
 async function addTask() {
-  const input    = document.getElementById('taskInput');
-  const notesEl  = document.getElementById('addNotes');
-  const dueEl    = document.getElementById('addDue');
-  const text     = input.value.trim();
+  const input   = document.getElementById('taskInput');
+  const notesEl = document.getElementById('addNotes');
+  const text    = input.value.trim();
   if (!text) { input.focus(); return; }
-  const payload  = { text, done: false, category: activeList === 'all' ? 'genel' : activeList, sort_order: Date.now() };
+  const payload = { text, done: false, category: activeList === 'all' ? 'genel' : activeList, sort_order: Date.now() };
   if (notesEl.value.trim()) payload.notes  = notesEl.value.trim();
-  if (dueEl.value)          payload.due_at = new Date(dueEl.value).toISOString();
+  if (addDueValue)          payload.due_at = addDueValue;
   input.value   = '';
   notesEl.value = '';
-  dueEl.value   = '';
+  addDueValue   = '';
+  renderAddDueLabel();
   closeAddDetail();
   try {
     const [t] = await db('/todos', { method: 'POST', body: JSON.stringify(payload) });
@@ -1236,21 +1458,24 @@ function renderTaskCard(task, isDone, container) {
 
   const dueRow = document.createElement('div');
   dueRow.className = 'detail-due-row';
-  dueRow.innerHTML = `<label>📅 Bitiş:</label>`;
 
-  const dueInput = document.createElement('input');
-  dueInput.type  = 'datetime-local';
-  dueInput.step  = '300';
-  dueInput.value = toLocalDT(task.due_at);
-  dueInput.addEventListener('change', () => updateDue(task, dueInput.value));
+  const dueCalBtn = document.createElement('button');
+  dueCalBtn.className = 'btn-cal' + (task.due_at ? ' has-date' : '');
+  dueCalBtn.title     = 'Bitiş tarihi seç';
+  dueCalBtn.textContent = '📅';
+  dueCalBtn.onclick   = () => dtpOpen(dueCalBtn, task.due_at, async v => {
+    await updateDue(task, v);
+    dueCalBtn.classList.toggle('has-date', !!v);
+    dueLabelSpan.textContent = v ? fmtDueShort(v) : '';
+  });
 
-  const clearDue = document.createElement('button');
-  clearDue.className   = 'btn-clear-due';
-  clearDue.textContent = '✕ Temizle';
-  clearDue.onclick     = () => { dueInput.value = ''; updateDue(task, ''); };
+  const dueLabelSpan = document.createElement('span');
+  dueLabelSpan.className   = 'due-selected-label';
+  dueLabelSpan.textContent = task.due_at ? fmtDueShort(task.due_at) : '';
+  dueLabelSpan.onclick     = () => dueCalBtn.click();
 
-  dueRow.appendChild(dueInput);
-  dueRow.appendChild(clearDue);
+  dueRow.appendChild(dueCalBtn);
+  dueRow.appendChild(dueLabelSpan);
 
   /* Subtasks */
   const subList = document.createElement('div');
@@ -1347,6 +1572,133 @@ function showToast(msg) {
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ─── Short due label ────────────────────── */
+function fmtDueShort(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('tr-TR', { day:'numeric', month:'short' }) + ' ' +
+         d.toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit' });
+}
+
+/* ─── Date-Time Picker ────────────────────── */
+const MINS = [0,5,10,15,20,25,30,35,40,45,50,55];
+const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+let dtp = {
+  year: 0, month: 0, day: 0,   // calendar state
+  hour: 9, minIdx: 0,           // minIdx = index in MINS
+  cb: null, anchor: null
+};
+
+function dtpOpen(anchor, currentISO, callback) {
+  dtp.cb     = callback;
+  dtp.anchor = anchor;
+
+  const now = currentISO ? new Date(currentISO) : new Date();
+  dtp.year  = now.getFullYear();
+  dtp.month = now.getMonth();
+  dtp.day   = currentISO ? now.getDate() : 0;
+  dtp.hour  = currentISO ? now.getHours() : 9;
+  const rawMin = currentISO ? now.getMinutes() : 0;
+  dtp.minIdx = MINS.reduce((best, m, i) => Math.abs(m - rawMin) < Math.abs(MINS[best] - rawMin) ? i : best, 0);
+
+  dtpRenderCal();
+  dtpRenderDrums();
+
+  const box = document.getElementById('dtpBox');
+  box.classList.add('open');
+  document.getElementById('dtpOverlay').classList.add('open');
+
+  // Position near anchor
+  const rect = anchor.getBoundingClientRect();
+  const vw   = window.innerWidth;
+  const vh   = window.innerHeight;
+  const bw   = 336, bh = 320;
+  let left = rect.left;
+  let top  = rect.bottom + 6;
+  if (left + bw > vw - 8) left = vw - bw - 8;
+  if (top  + bh > vh - 8) top  = rect.top - bh - 6;
+  box.style.left = left + 'px';
+  box.style.top  = top  + 'px';
+}
+
+function dtpClose() {
+  document.getElementById('dtpBox').classList.remove('open');
+  document.getElementById('dtpOverlay').classList.remove('open');
+}
+
+function dtpClear()   { dtp.cb && dtp.cb(''); dtpClose(); }
+
+function dtpConfirm() {
+  if (!dtp.day) { showToast('Bir gün seçin'); return; }
+  const d = new Date(dtp.year, dtp.month, dtp.day, dtp.hour, MINS[dtp.minIdx]);
+  dtp.cb && dtp.cb(d.toISOString());
+  dtpClose();
+}
+
+function dtpPrevMonth() { dtp.month--; if (dtp.month < 0)  { dtp.month = 11; dtp.year--; } dtpRenderCal(); }
+function dtpNextMonth() { dtp.month++; if (dtp.month > 11) { dtp.month = 0;  dtp.year++; } dtpRenderCal(); }
+
+function dtpRenderCal() {
+  document.getElementById('dtpMonthLabel').textContent = `${TR_MONTHS[dtp.month]} ${dtp.year}`;
+  const grid    = document.getElementById('dtpGrid');
+  grid.innerHTML = '';
+  const today   = new Date();
+  const first   = new Date(dtp.year, dtp.month, 1);
+  const last    = new Date(dtp.year, dtp.month + 1, 0);
+  // Monday-based offset
+  let startDow  = first.getDay(); // 0=Sun
+  startDow      = startDow === 0 ? 6 : startDow - 1; // convert to Mon=0
+
+  for (let i = 0; i < startDow; i++) {
+    const el = document.createElement('button');
+    el.className = 'dtp-day empty'; el.disabled = true; grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= last.getDate(); d++) {
+    const btn = document.createElement('button');
+    btn.className = 'dtp-day';
+    btn.textContent = d;
+    const isToday = d === today.getDate() && dtp.month === today.getMonth() && dtp.year === today.getFullYear();
+    const isSel   = d === dtp.day;
+    if (isToday && !isSel) btn.classList.add('today');
+    if (isSel)             btn.classList.add('selected');
+    btn.onclick = () => { dtp.day = d; dtpRenderCal(); };
+    grid.appendChild(btn);
+  }
+}
+
+function dtpChangeHour(dir) {
+  dtp.hour = (dtp.hour + dir + 24) % 24;
+  dtpRenderDrums();
+}
+
+function dtpChangeMin(dir) {
+  dtp.minIdx = (dtp.minIdx + dir + MINS.length) % MINS.length;
+  dtpRenderDrums();
+}
+
+function dtpRenderDrums() {
+  dtpFillDrum('dtpHourList', Array.from({length:24},(_,i)=>String(i).padStart(2,'0')), dtp.hour, dtpChangeHour);
+  dtpFillDrum('dtpMinList',  MINS.map(m=>String(m).padStart(2,'0')), dtp.minIdx, dtpChangeMin);
+}
+
+function dtpFillDrum(listId, items, activeIdx, changeFn) {
+  const list = document.getElementById(listId);
+  // Show 5 items: active-2 to active+2, centred on active (index 2 = y:28px*2=56px offset)
+  list.innerHTML = '';
+  [-2,-1,0,1,2].forEach(offset => {
+    const idx  = (activeIdx + offset + items.length) % items.length;
+    const el   = document.createElement('div');
+    el.className   = 'dtp-drum-item' + (offset === 0 ? ' active' : '');
+    el.textContent = items[idx];
+    el.onclick     = () => { if (offset !== 0) changeFn(offset); };
+    list.appendChild(el);
+  });
+  // Centre active item (index 2) in 76px window: offset = -2 * 28 = -56
+  list.style.transform = 'translateY(-56px)';
 }
 
 /* ─── Email confirmation ──────────────────── */
