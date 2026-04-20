@@ -345,6 +345,8 @@
   }
 
   // ── REST helpers ──────────────────────────────────────────────────
+  const APP_URL = 'https://nizamiyedijital.github.io/todo-app';
+
   async function authPost(path, body) {
     const res = await fetch(`${SB}/auth/v1${path}`, {
       method: 'POST',
@@ -399,7 +401,7 @@
 
     try {
       if (isRegisterMode) {
-        await authPost('/signup', { email, password });
+        await authPost(`/signup?redirect_to=${encodeURIComponent(APP_URL)}`, { email, password });
         setMsg('Kayıt başarılı! E-postanıza gelen onay bağlantısına tıklayın.', 'success');
         document.getElementById('authPassword').value = '';
       } else {
