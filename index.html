@@ -1289,7 +1289,7 @@ function renderStats() {
 let pendingSubtaskFocus = null;
 
 function render() {
-  renderStats();
+  try { renderStats(); } catch(e) { console.error('renderStats:', e); }
   if (!activeListId) return;
 
   const roots  = tasks.filter(t=>!t.parent_id && t.category===activeListId);
@@ -1627,10 +1627,27 @@ function handleConfirmation() {
 }
 
 /* ── Boot ── */
+window.onerror = (msg, src, line, col, err) => {
+  console.error('Global error:', msg, 'line:', line, err);
+  showAuth();
+};
+window.onunhandledrejection = (e) => {
+  console.error('Unhandled rejection:', e.reason);
+  showAuth();
+};
+
 (async function init(){
-  if(handleConfirmation()){await initApp();return;}
-  const stored=localStorage.getItem('sb_session');
-  if(stored){try{saveSession(JSON.parse(stored));await initApp();return;}catch(_){}}
+  try {
+    if (handleConfirmation()) { await initApp(); return; }
+    const stored = localStorage.getItem('sb_session');
+    if (stored) {
+      saveSession(JSON.parse(stored));
+      await initApp();
+      return;
+    }
+  } catch(e) {
+    console.error('Init error:', e);
+  }
   showAuth();
 })();
 </script>
