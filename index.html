@@ -741,7 +741,7 @@
       <div class="add-detail" id="addDetail">
         <textarea id="addNotes" placeholder="Notlar" rows="2"></textarea>
         <div class="add-detail-row">
-          <input type="datetime-local" id="addDue" />
+          <input type="datetime-local" id="addDue" step="300" />
           <button class="cancel-add" onclick="closeAddDetail()">İptal</button>
         </div>
       </div>
@@ -1240,6 +1240,7 @@ function renderTaskCard(task, isDone, container) {
 
   const dueInput = document.createElement('input');
   dueInput.type  = 'datetime-local';
+  dueInput.step  = '300';
   dueInput.value = toLocalDT(task.due_at);
   dueInput.addEventListener('change', () => updateDue(task, dueInput.value));
 
