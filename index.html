@@ -191,6 +191,12 @@
       color: #888;
       margin-bottom: 10px;
     }
+
+    .loading {
+      text-align: center;
+      color: #aaa;
+      padding: 40px 0;
+    }
   </style>
 </head>
 <body>
@@ -211,14 +217,77 @@
     <div class="count" id="count"></div>
     <div class="task-list" id="taskList"></div>
     <div class="empty" id="empty" style="display:none">Görev yok.</div>
+    <div class="loading" id="loading">Yükleniyor...</div>
   </div>
 
   <script>
-    let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    let filter = 'all';
+    const SUPABASE_URL = 'https://uzkscrrqyxftbtwkiyra.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6a3NjcnJxeXhmdGJ0d2tpeXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDkxNDMsImV4cCI6MjA5MjI4NTE0M30.wA7g4SVacghNunC0nt6ZP3SgHZ6U6LAWu3ggUrypBxE';
+    const HEADERS = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    };
 
-    function save() {
-      localStorage.setItem('tasks', JSON.stringify(tasks));
+    let tasks = [];
+    let filter = 'all';
+    let editTimers = {};
+
+    async function api(path, options = {}) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+        ...options,
+        headers: { ...HEADERS, ...options.headers }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const text = await res.text();
+      return text ? JSON.parse(text) : null;
+    }
+
+    async function loadTasks() {
+      document.getElementById('loading').style.display = 'block';
+      tasks = await api('/todos?order=created_at.desc');
+      document.getElementById('loading').style.display = 'none';
+      render();
+    }
+
+    async function addTask() {
+      const input = document.getElementById('taskInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      const [task] = await api('/todos', {
+        method: 'POST',
+        body: JSON.stringify({ text, done: false })
+      });
+      tasks.unshift(task);
+      render();
+    }
+
+    async function toggleTask(task) {
+      await api(`/todos?id=eq.${task.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ done: !task.done })
+      });
+      task.done = !task.done;
+      render();
+    }
+
+    async function deleteTask(id) {
+      await api(`/todos?id=eq.${id}`, { method: 'DELETE' });
+      tasks = tasks.filter(t => t.id !== id);
+      render();
+    }
+
+    function scheduleUpdate(task, text) {
+      clearTimeout(editTimers[task.id]);
+      editTimers[task.id] = setTimeout(async () => {
+        await api(`/todos?id=eq.${task.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ text })
+        });
+        task.text = text;
+      }, 600);
     }
 
     function render() {
@@ -234,7 +303,6 @@
 
       const remaining = tasks.filter(t => !t.done).length;
       count.textContent = `${remaining} görev kaldı`;
-
       list.innerHTML = '';
 
       if (visible.length === 0) {
@@ -248,11 +316,7 @@
           const cb = document.createElement('input');
           cb.type = 'checkbox';
           cb.checked = task.done;
-          cb.addEventListener('change', () => {
-            task.done = cb.checked;
-            save();
-            render();
-          });
+          cb.addEventListener('change', () => toggleTask(task));
 
           const textarea = document.createElement('textarea');
           textarea.className = 'task-text';
@@ -262,8 +326,7 @@
           textarea.addEventListener('input', () => {
             textarea.style.height = 'auto';
             textarea.style.height = textarea.scrollHeight + 'px';
-            task.text = textarea.value;
-            save();
+            scheduleUpdate(task, textarea.value);
           });
           textarea.addEventListener('keydown', e => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -276,11 +339,7 @@
           delBtn.className = 'btn-icon btn-delete';
           delBtn.title = 'Sil';
           delBtn.innerHTML = '&#10005;';
-          delBtn.addEventListener('click', () => {
-            tasks = tasks.filter(t => t.id !== task.id);
-            save();
-            render();
-          });
+          delBtn.addEventListener('click', () => deleteTask(task.id));
 
           const actions = document.createElement('div');
           actions.className = 'task-actions';
@@ -296,16 +355,6 @@
       }
     }
 
-    function addTask() {
-      const input = document.getElementById('taskInput');
-      const text = input.value.trim();
-      if (!text) return;
-      tasks.unshift({ id: Date.now(), text, done: false });
-      input.value = '';
-      save();
-      render();
-    }
-
     function setFilter(f, btn) {
       filter = f;
       document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
@@ -317,7 +366,7 @@
       if (e.key === 'Enter') addTask();
     });
 
-    render();
+    loadTasks();
   </script>
 </body>
 </html>
