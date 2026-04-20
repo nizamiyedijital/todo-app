@@ -1430,13 +1430,11 @@ function buildTaskCard(task, isDone) {
       if (!subInput.value.trim()) return;
       const tid = task.id;
       addSubtask(tid, subInput.value).then(()=>{
-        // render() rebuilds DOM; find the new card and reopen subtask input
         const newCard = document.querySelector(`[data-task-id="${tid}"]`);
         if (newCard) {
-          const newInputRow = newCard.querySelector('.subtask-input-row');
-          const newInput    = newCard.querySelector('.subtask-input-row input');
-          if (newInputRow) newInputRow.classList.add('open');
-          if (newInput)    newInput.focus();
+          newCard.querySelector('.task-detail')?.classList.add('open');
+          newCard.querySelector('.subtask-input-row')?.classList.add('open');
+          newCard.querySelector('.subtask-input-row input')?.focus();
         }
       });
     } else if (e.key==='Enter') {
