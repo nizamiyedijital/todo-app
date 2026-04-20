@@ -325,7 +325,16 @@
   let isRegisterMode = false;
 
   // ── Session helpers ──────────────────────────────────────────────
+  function jwtPayload(token) {
+    try { return JSON.parse(atob(token.split('.')[1])); } catch { return {}; }
+  }
+
   function saveSession(s) {
+    // Ensure user.id is always populated from the JWT sub claim
+    if (s.access_token && (!s.user?.id)) {
+      const payload = jwtPayload(s.access_token);
+      s.user = { ...(s.user || {}), id: payload.sub, email: s.user?.email || payload.email || '' };
+    }
     session = s;
     localStorage.setItem('sb_session', JSON.stringify(s));
   }
@@ -442,12 +451,12 @@
     const params = Object.fromEntries(new URLSearchParams(hash));
 
     if (params.access_token && (params.type === 'signup' || params.type === 'recovery')) {
+      const payload = jwtPayload(params.access_token);
       saveSession({
         access_token: params.access_token,
         refresh_token: params.refresh_token,
-        user: { email: params.email || '' }
+        user: { id: payload.sub, email: payload.email || '' }
       });
-      // Clean URL
       history.replaceState(null, '', window.location.pathname);
       return true;
     }
@@ -475,7 +484,7 @@
     try {
       const [task] = await dbFetch('/todos', {
         method: 'POST',
-        body: JSON.stringify({ text, done: false, user_id: session.user?.id || undefined })
+        body: JSON.stringify({ text, done: false })
       });
       tasks.unshift(task);
       render();
