@@ -272,55 +272,58 @@
 
     /* ── Task card ── */
     .task-card {
-      background:#fff; border-radius:11px;
-      margin-bottom:3px;
+      background:#fff; border-radius:10px;
+      margin-bottom:2px;
       transition:box-shadow .15s;
+      border-left:3px solid transparent;
     }
-    .task-card:hover { box-shadow:0 2px 8px rgba(0,0,0,0.07); }
+    .task-card:hover { box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+    .task-card.prio-p1 { border-left-color:#dc2626; }
+    .task-card.prio-p2 { border-left-color:#ca8a04; }
+    .task-card.prio-p3 { border-left-color:#ea580c; }
+    .task-card.prio-p4 { border-left-color:#94a3b8; }
     .task-row {
-      display:flex; align-items:flex-start; gap:10px;
-      padding:10px 11px 10px 13px;
+      display:flex; align-items:center; gap:9px;
+      padding:7px 10px 7px 11px;
     }
     .task-check {
-      width:19px; height:19px; flex-shrink:0; margin-top:2px;
+      width:17px; height:17px; flex-shrink:0;
       border:2px solid #d0d5e8; border-radius:50%; cursor:pointer;
       display:flex; align-items:center; justify-content:center;
       transition:all .18s; background:transparent;
     }
     .task-check:hover { border-color:#4f6ef7; }
     .task-check.checked { background:#4f6ef7; border-color:#4f6ef7; }
-    .task-check.checked::after { content:'✓'; color:#fff; font-size:.65rem; font-weight:700; }
-    .task-body { flex:1; min-width:0; }
+    .task-check.checked::after { content:'✓'; color:#fff; font-size:.6rem; font-weight:700; }
+    .task-body { flex:1; min-width:0; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .task-title {
-      font-size:.92rem; color:#1a1a2e; border:none; outline:none;
-      background:transparent; font-family:inherit; width:100%; padding:0;
-      line-height:1.4;
+      font-size:.83rem; color:#1a1a2e; border:none; outline:none;
+      background:transparent; font-family:inherit; padding:0;
+      line-height:1.3; flex:1; min-width:120px;
     }
     .task-done .task-title { text-decoration:line-through; color:#bbb; }
-    .task-tags {
-      display:flex; align-items:center; gap:5px; margin-top:4px; flex-wrap:wrap;
+    .task-meta {
+      display:flex; align-items:center; gap:4px; flex-shrink:0;
     }
     .due-tag {
-      font-size:.67rem; font-weight:600; padding:2px 7px; border-radius:7px;
-      display:inline-flex; align-items:center;
+      font-size:.63rem; font-weight:500; padding:1px 5px; border-radius:5px;
+      display:inline-flex; align-items:center; white-space:nowrap;
     }
-    .due-tag.future  { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; }
-    .due-tag.today   { background:#fff7ed; color:#c2410c; border:1px solid #fed7aa; }
-    .due-tag.overdue { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+    .due-tag.future  { background:#eff6ff; color:#3b82f6; }
+    .due-tag.today   { background:#fff7ed; color:#c2410c; }
+    .due-tag.overdue { background:#fef2f2; color:#dc2626; }
     .subtask-badge {
-      font-size:.67rem; font-weight:600; color:#888;
-      background:#f4f5f9; border-radius:7px; padding:2px 7px;
+      font-size:.63rem; color:#aaa;
+      background:#f4f5f9; border-radius:5px; padding:1px 5px;
     }
-
-    /* Priority badge on card */
-    .priority-badge {
-      font-size:.66rem; font-weight:700; padding:2px 7px; border-radius:7px;
-      display:inline-flex; align-items:center; gap:3px; white-space:nowrap;
+    /* Priority dot on card — shown in .task-meta */
+    .prio-dot {
+      width:7px; height:7px; border-radius:50%; flex-shrink:0; display:inline-block;
     }
-    .priority-badge.p1 { background:#fff1f1; color:#dc2626; border:1px solid #fca5a5; }
-    .priority-badge.p2 { background:#fefce8; color:#ca8a04; border:1px solid #fde047; }
-    .priority-badge.p3 { background:#fff7ed; color:#ea580c; border:1px solid #fdba74; }
-    .priority-badge.p4 { background:#f4f5f9; color:#94a3b8; border:1px solid #e2e8f0; }
+    .prio-dot.p1 { background:#dc2626; }
+    .prio-dot.p2 { background:#ca8a04; }
+    .prio-dot.p3 { background:#ea580c; }
+    .prio-dot.p4 { background:#94a3b8; }
 
     /* Priority picker in detail */
     .priority-row {
@@ -354,7 +357,7 @@
     /* ── Task detail ── */
     .task-detail {
       display:none; flex-direction:column; gap:9px;
-      padding:0 13px 12px 42px; border-top:1px solid #f5f6fa;
+      padding:0 12px 12px 37px; border-top:1px solid #f5f6fa;
     }
     .task-detail.open { display:flex; padding-top:10px; }
     .detail-notes {
@@ -1325,7 +1328,7 @@ function buildTaskCard(task, isDone) {
   const due      = formatDue(task.due_at);
 
   const card = document.createElement('div');
-  card.className = 'task-card'+(isDone?' task-done':'');
+  card.className = 'task-card'+(isDone?' task-done':'')+(task.priority?' prio-'+task.priority:'');
   card.dataset.taskId = task.id;
 
   const row = document.createElement('div');
@@ -1353,26 +1356,26 @@ function buildTaskCard(task, isDone) {
     }
   });
 
-  const tagsRow = document.createElement('div');
-  tagsRow.className = 'task-tags';
+  const meta = document.createElement('div');
+  meta.className = 'task-meta';
   if (due) {
     const d = document.createElement('span');
     d.className=`due-tag ${due.cls}`; d.textContent=due.label;
-    tagsRow.appendChild(d);
+    meta.appendChild(d);
   }
   if (subs.length>0) {
     const sb = document.createElement('span');
-    sb.className='subtask-badge'; sb.textContent=`${subsDone}/${subs.length} alt görev`;
-    tagsRow.appendChild(sb);
+    sb.className='subtask-badge'; sb.textContent=`${subsDone}/${subs.length}`;
+    meta.appendChild(sb);
   }
   if (task.priority && PRIORITIES[task.priority]) {
-    const pb = document.createElement('span');
-    pb.className=`priority-badge ${task.priority}`;
-    pb.textContent=PRIORITIES[task.priority].short;
-    tagsRow.appendChild(pb);
+    const dot = document.createElement('span');
+    dot.className=`prio-dot ${task.priority}`;
+    dot.title=PRIORITIES[task.priority].label;
+    meta.appendChild(dot);
   }
   body.appendChild(titleInput);
-  if (tagsRow.children.length) body.appendChild(tagsRow);
+  if (meta.children.length) body.appendChild(meta);
 
   const side = document.createElement('div');
   side.className = 'task-side';
@@ -1540,10 +1543,10 @@ function formatDue(iso) {
   const diff=dDay-today;
   const time=d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
   const date=d.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});
-  if(diff<0)          return{label:`⏰ ${date} ${time}`,cls:'overdue'};
-  if(diff===0)        return{label:`⏰ Bugün ${time}`,  cls:'today'  };
-  if(diff===86400000) return{label:`📅 Yarın ${time}`,  cls:'future' };
-  return                   {label:`📅 ${date} ${time}`, cls:'future' };
+  if(diff<0)          return{label:`${date} ${time}`, cls:'overdue'};
+  if(diff===0)        return{label:`Bugün ${time}`,   cls:'today'  };
+  if(diff===86400000) return{label:`Yarın ${time}`,   cls:'future' };
+  return                   {label:`${date} ${time}`,  cls:'future' };
 }
 
 /* ── Date-Time Picker ── */
