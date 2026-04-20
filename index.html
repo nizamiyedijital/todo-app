@@ -1444,6 +1444,7 @@ function buildTaskCard(task, isDone) {
       pendingSubtaskFocus = task.id;
       addSubtask(task.id, subInput.value);
     } else if (e.key==='Enter') {
+      if (!subInput.value.trim()) { subCxl.click(); return; }
       subOk.click();
     } else if (e.key==='Escape') {
       subCxl.click();
