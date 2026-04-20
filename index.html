@@ -1283,6 +1283,8 @@ function renderStats() {
 }
 
 /* ── Render tasks ── */
+let pendingSubtaskFocus = null;
+
 function render() {
   renderStats();
   if (!activeListId) return;
@@ -1303,6 +1305,17 @@ function render() {
   const doneList = document.getElementById('doneList');
   doneList.innerHTML='';
   if (showDone) done.forEach(t=>doneList.appendChild(buildTaskCard(t,true)));
+
+  if (pendingSubtaskFocus) {
+    const tid = pendingSubtaskFocus;
+    pendingSubtaskFocus = null;
+    const card = document.querySelector(`[data-task-id="${tid}"]`);
+    if (card) {
+      card.querySelector('.task-detail')?.classList.add('open');
+      card.querySelector('.subtask-input-row')?.classList.add('open');
+      card.querySelector('.subtask-input-row input')?.focus();
+    }
+  }
 }
 
 /* ── Build task card ── */
@@ -1428,15 +1441,8 @@ function buildTaskCard(task, isDone) {
     if (e.key==='Enter' && e.shiftKey) {
       e.preventDefault();
       if (!subInput.value.trim()) return;
-      const tid = task.id;
-      addSubtask(tid, subInput.value).then(()=>{
-        const newCard = document.querySelector(`[data-task-id="${tid}"]`);
-        if (newCard) {
-          newCard.querySelector('.task-detail')?.classList.add('open');
-          newCard.querySelector('.subtask-input-row')?.classList.add('open');
-          newCard.querySelector('.subtask-input-row input')?.focus();
-        }
-      });
+      pendingSubtaskFocus = task.id;
+      addSubtask(task.id, subInput.value);
     } else if (e.key==='Enter') {
       subOk.click();
     } else if (e.key==='Escape') {
