@@ -1348,7 +1348,17 @@ function buildTaskCard(task, isDone) {
   subCxl.className='sub-cxl'; subCxl.textContent='İptal';
   subOk.onclick =async()=>{ if(!subInput.value.trim())return; await addSubtask(task.id,subInput.value); subInput.value=''; subInputRow.classList.remove('open'); };
   subCxl.onclick=()=>{ subInput.value=''; subInputRow.classList.remove('open'); };
-  subInput.addEventListener('keydown',e=>{ if(e.key==='Enter')subOk.click(); if(e.key==='Escape')subCxl.click(); });
+  subInput.addEventListener('keydown', e=>{
+    if (e.key==='Enter' && e.shiftKey) {
+      e.preventDefault();
+      if (!subInput.value.trim()) return;
+      addSubtask(task.id, subInput.value).then(()=>{ subInput.value=''; subInput.focus(); });
+    } else if (e.key==='Enter') {
+      subOk.click();
+    } else if (e.key==='Escape') {
+      subCxl.click();
+    }
+  });
   subInputRow.appendChild(subInput); subInputRow.appendChild(subOk); subInputRow.appendChild(subCxl);
 
   const addSubBtn = document.createElement('button');
