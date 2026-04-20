@@ -8,69 +8,56 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f8f9fa;
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 32px 16px 60px;
+      padding: 28px 16px 80px;
     }
 
-    .container { width: 100%; max-width: 560px; }
+    .container { width: 100%; max-width: 600px; }
 
-    /* ── Auth ── */
+    /* ── Auth ────────────────────────────────── */
     #authBox {
       background: #fff;
       border-radius: 20px;
-      padding: 36px 32px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.09);
-      margin-top: 20px;
+      padding: 40px 36px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      margin-top: 24px;
     }
 
     #authBox h1 {
       text-align: center;
-      font-size: 1.8rem;
+      font-size: 1.7rem;
       color: #1a1a2e;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
-    #authBox .subtitle {
+    .subtitle {
       text-align: center;
-      color: #999;
-      font-size: 0.85rem;
-      margin-bottom: 28px;
+      color: #aaa;
+      font-size: 0.83rem;
+      margin-bottom: 30px;
     }
 
-    #authBox h2 {
-      text-align: center;
-      color: #1a1a2e;
-      margin-bottom: 20px;
-      font-size: 1.2rem;
-      font-weight: 600;
-    }
+    #authBox h2 { text-align: center; color: #333; margin-bottom: 22px; font-size: 1.15rem; }
 
     .field { margin-bottom: 14px; }
 
-    .field label {
-      display: block;
-      font-size: 0.82rem;
-      color: #555;
-      margin-bottom: 5px;
-      font-weight: 500;
-    }
+    .field label { display: block; font-size: 0.82rem; color: #666; margin-bottom: 5px; font-weight: 500; }
 
     .field input {
       width: 100%;
       padding: 11px 14px;
-      border: 2px solid #e8ecf4;
+      border: 1.5px solid #e0e4ef;
       border-radius: 10px;
       font-size: 0.95rem;
       outline: none;
       transition: border-color 0.2s;
-      background: #fafbff;
     }
 
-    .field input:focus { border-color: #4f6ef7; background: #fff; }
+    .field input:focus { border-color: #4f6ef7; }
 
     .btn-primary {
       width: 100%;
@@ -82,504 +69,610 @@
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
       margin-top: 6px;
-      letter-spacing: 0.3px;
+      transition: opacity 0.2s, transform 0.1s;
     }
 
-    .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
-    .btn-primary:active { transform: translateY(0); }
-    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+    .btn-primary:hover   { opacity: 0.9; transform: translateY(-1px); }
+    .btn-primary:active  { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-    .auth-switch {
-      text-align: center;
-      margin-top: 16px;
-      font-size: 0.88rem;
-      color: #777;
-    }
+    .auth-switch { text-align: center; margin-top: 16px; font-size: 0.88rem; color: #888; }
+    .auth-switch a { color: #4f6ef7; cursor: pointer; font-weight: 600; }
 
-    .auth-switch a {
-      color: #4f6ef7;
-      cursor: pointer;
-      font-weight: 600;
-      text-decoration: none;
-    }
-
-    .msg {
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 0.88rem;
-      margin-bottom: 16px;
-      display: none;
-    }
-
+    .msg { padding: 10px 14px; border-radius: 10px; font-size: 0.87rem; margin-bottom: 14px; display: none; }
     .msg.error   { background: #fff0f0; color: #c53030; border: 1px solid #fcc; display: block; }
     .msg.success { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; display: block; }
 
-    /* ── App ── */
+    /* ── App ─────────────────────────────────── */
     #appBox { display: none; }
 
     .topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
-      padding-top: 4px;
+      margin-bottom: 18px;
     }
 
-    .app-title { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; }
+    .app-title { font-size: 1.4rem; font-weight: 700; color: #1a1a2e; }
 
     .btn-logout {
       padding: 7px 16px;
-      background: #fff;
-      border: 1.5px solid #e2e8f0;
+      background: transparent;
+      border: 1.5px solid #dde1ea;
       border-radius: 20px;
       font-size: 0.82rem;
       cursor: pointer;
-      color: #666;
-      transition: all 0.2s;
+      color: #777;
+      transition: all 0.18s;
     }
 
-    .btn-logout:hover { background: #f7f8fc; border-color: #c8d0e0; }
+    .btn-logout:hover { background: #f4f5f9; }
 
-    /* ── Stats Panel ── */
+    /* ── Stats Panel ─────────────────────────── */
     .stats-panel {
       background: linear-gradient(135deg, #4f6ef7 0%, #7c3aed 100%);
-      border-radius: 20px;
-      padding: 20px 24px;
+      border-radius: 18px;
+      padding: 18px 22px;
       color: #fff;
-      margin-bottom: 16px;
-      box-shadow: 0 6px 24px rgba(79,110,247,0.35);
+      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(79,110,247,0.3);
     }
 
-    .stats-top {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 14px;
-    }
+    .stats-top { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
 
     .level-badge {
-      width: 60px;
-      height: 60px;
-      background: rgba(255,255,255,0.2);
+      width: 56px; height: 56px;
+      background: rgba(255,255,255,0.18);
       border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid rgba(255,255,255,0.4);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      border: 2px solid rgba(255,255,255,0.35);
       flex-shrink: 0;
     }
 
-    .level-label { font-size: 0.6rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
-    .level-num { font-size: 1.5rem; font-weight: 800; line-height: 1; }
+    .level-label { font-size: 0.58rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .level-num   { font-size: 1.45rem; font-weight: 800; line-height: 1; }
 
     .stats-info { flex: 1; }
+    .stats-row  { display: flex; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
+    .stat-item  { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; opacity: 0.95; }
+    .stat-item strong { font-weight: 700; font-size: 0.95rem; }
 
-    .stats-row {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 6px;
-    }
+    .xp-label { display: flex; justify-content: space-between; font-size: 0.73rem; opacity: 0.78; margin-bottom: 4px; }
+    .xp-bar   { height: 7px; background: rgba(255,255,255,0.22); border-radius: 4px; overflow: hidden; }
+    .xp-fill  { height: 100%; background: #fff; border-radius: 4px; transition: width 0.7s cubic-bezier(0.34,1.56,0.64,1); }
 
-    .stat-item { display: flex; align-items: center; gap: 5px; font-size: 0.88rem; opacity: 0.95; }
-    .stat-item strong { font-weight: 700; font-size: 1rem; }
-
-    .xp-bar-wrap { position: relative; }
-    .xp-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      opacity: 0.8;
-      margin-bottom: 4px;
-    }
-
-    .xp-bar {
-      height: 8px;
-      background: rgba(255,255,255,0.25);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .xp-fill {
-      height: 100%;
-      background: #fff;
-      border-radius: 4px;
-      transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
-    }
-
-    /* ── Badges ── */
+    /* ── Badges ──────────────────────────────── */
     .badges-row {
       background: #fff;
       border-radius: 14px;
-      padding: 14px 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
 
-    .badges-title {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 10px;
-    }
-
-    .badges-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .badges-title { font-size: 0.75rem; font-weight: 600; color: #bbb; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 9px; }
+    .badges-list  { display: flex; flex-wrap: wrap; gap: 7px; }
 
     .badge-pill {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 5px 11px;
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 10px;
       border-radius: 20px;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 500;
+      cursor: default;
       transition: transform 0.15s;
+      user-select: none;
     }
 
-    .badge-pill:hover { transform: scale(1.05); }
+    .badge-pill:hover  { transform: scale(1.06); }
     .badge-pill.earned { background: #fef9c3; color: #92400e; border: 1px solid #fde68a; }
-    .badge-pill.locked { background: #f7f8fc; color: #ccc; border: 1px solid #eee; filter: grayscale(1); }
+    .badge-pill.locked { background: #f7f8fc; color: #ddd;    border: 1px solid #eee; filter: grayscale(1); }
 
-    /* ── Category Filter ── */
-    .cat-filter {
+    /* ── List Tabs (categories) ──────────────── */
+    .list-tabs {
       display: flex;
-      gap: 7px;
+      gap: 0;
       margin-bottom: 16px;
+      border-bottom: 2px solid #e8ecf4;
       overflow-x: auto;
-      padding-bottom: 2px;
       scrollbar-width: none;
     }
 
-    .cat-filter::-webkit-scrollbar { display: none; }
+    .list-tabs::-webkit-scrollbar { display: none; }
 
-    .cat-btn {
+    .list-tab {
+      padding: 9px 16px;
+      border: none;
+      background: transparent;
+      font-size: 0.88rem;
+      cursor: pointer;
+      color: #888;
+      font-weight: 500;
+      white-space: nowrap;
+      border-bottom: 2.5px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.18s, border-color 0.18s;
       display: flex;
       align-items: center;
       gap: 5px;
-      padding: 7px 14px;
-      border-radius: 20px;
-      border: 2px solid #e8ecf4;
+    }
+
+    .list-tab:hover { color: #555; }
+
+    .list-tab.active {
+      color: #4f6ef7;
+      border-bottom-color: #4f6ef7;
+      font-weight: 600;
+    }
+
+    .tab-count {
+      background: #eef0fb;
+      color: #4f6ef7;
+      border-radius: 10px;
+      padding: 1px 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    /* ── Add Task ────────────────────────────── */
+    .add-task-wrap {
       background: #fff;
-      font-size: 0.83rem;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.18s;
-      font-weight: 500;
-      color: #555;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      overflow: hidden;
     }
 
-    .cat-btn:hover { border-color: #c8d0e0; background: #f7f8fc; }
-    .cat-btn.active { color: #fff; border-color: transparent; }
-
-    /* ── Add Task ── */
-    .add-row {
+    .add-task-row {
       display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
+      align-items: center;
+      gap: 0;
+      padding: 4px 8px 4px 16px;
     }
 
-    .add-row input {
+    .add-icon { font-size: 1.2rem; color: #4f6ef7; margin-right: 10px; user-select: none; }
+
+    .add-task-row input {
       flex: 1;
-      padding: 12px 16px;
-      border: 2px solid #e8ecf4;
-      border-radius: 12px;
+      padding: 13px 0;
+      border: none;
       font-size: 0.95rem;
       outline: none;
-      transition: border-color 0.2s;
-      background: #fff;
+      background: transparent;
+      color: #333;
     }
 
-    .add-row input:focus { border-color: #4f6ef7; }
+    .add-task-row input::placeholder { color: #bbb; }
 
-    .add-row button {
-      padding: 12px 20px;
+    .btn-add {
+      padding: 8px 18px;
       background: #4f6ef7;
       color: #fff;
       border: none;
-      border-radius: 12px;
-      font-size: 0.95rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
+      transition: background 0.18s;
       white-space: nowrap;
     }
 
-    .add-row button:hover { background: #3a58e2; transform: translateY(-1px); }
-    .add-row button:active { transform: translateY(0); }
+    .btn-add:hover { background: #3a58e2; }
 
-    /* Category picker for add form */
-    .cat-picker {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
+    .add-detail {
+      display: none;
+      padding: 0 16px 14px 46px;
+      gap: 8px;
+      flex-direction: column;
     }
 
-    .cat-pick-btn {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 5px 12px;
-      border-radius: 20px;
-      border: 2px solid #e8ecf4;
-      background: #fff;
-      font-size: 0.8rem;
-      cursor: pointer;
-      font-weight: 500;
-      color: #555;
-      transition: all 0.15s;
+    .add-detail.open { display: flex; }
+
+    .add-detail textarea {
+      width: 100%;
+      border: 1.5px solid #e8ecf4;
+      border-radius: 9px;
+      padding: 9px 12px;
+      font-size: 0.87rem;
+      font-family: inherit;
+      outline: none;
+      resize: none;
+      color: #444;
+      transition: border-color 0.2s;
+      line-height: 1.5;
     }
 
-    .cat-pick-btn:hover { border-color: #c8d0e0; }
-    .cat-pick-btn.selected { color: #fff; border-color: transparent; }
+    .add-detail textarea:focus { border-color: #4f6ef7; }
 
-    /* ── Filters ── */
-    .filters {
-      display: flex;
-      gap: 7px;
-      margin-bottom: 14px;
-    }
-
-    .filters button {
-      flex: 1;
-      padding: 8px;
-      border: 2px solid #e8ecf4;
-      border-radius: 10px;
-      background: #fff;
-      color: #666;
-      font-size: 0.83rem;
-      cursor: pointer;
-      transition: all 0.18s;
-      font-weight: 500;
-    }
-
-    .filters button.active {
-      border-color: #4f6ef7;
-      color: #4f6ef7;
-      background: #f0f3ff;
-      font-weight: 600;
-    }
-
-    /* ── Task List ── */
-    .task-list { display: flex; flex-direction: column; gap: 9px; }
-
-    .task-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 11px;
-      background: #fff;
-      border-radius: 14px;
-      padding: 14px 16px;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.06);
-      transition: opacity 0.25s, transform 0.15s;
-      position: relative;
-      overflow: visible;
-    }
-
-    .task-item:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.09); }
-    .task-item.done { opacity: 0.5; }
-
-    .task-item input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      accent-color: #4f6ef7;
-      cursor: pointer;
-      flex-shrink: 0;
-      margin-top: 3px;
-    }
-
-    .task-body { flex: 1; min-width: 0; }
-
-    .task-meta {
+    .add-detail-row {
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 4px;
+      flex-wrap: wrap;
     }
 
-    .cat-tag {
-      display: inline-flex;
+    .add-detail input[type="datetime-local"] {
+      padding: 7px 10px;
+      border: 1.5px solid #e8ecf4;
+      border-radius: 9px;
+      font-size: 0.83rem;
+      font-family: inherit;
+      outline: none;
+      color: #444;
+      transition: border-color 0.2s;
+    }
+
+    .add-detail input[type="datetime-local"]:focus { border-color: #4f6ef7; }
+
+    .add-detail-row .cancel-add {
+      margin-left: auto;
+      padding: 7px 14px;
+      border: 1.5px solid #e8ecf4;
+      border-radius: 9px;
+      background: #fff;
+      font-size: 0.83rem;
+      cursor: pointer;
+      color: #888;
+    }
+
+    /* ── Toolbar ─────────────────────────────── */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 3px;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 0.72rem;
+      margin-bottom: 10px;
+    }
+
+    .task-count { font-size: 0.8rem; color: #bbb; }
+
+    .btn-toggle-done {
+      padding: 5px 12px;
+      background: transparent;
+      border: 1.5px solid #e8ecf4;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      color: #888;
+      transition: all 0.18s;
+    }
+
+    .btn-toggle-done:hover { background: #f4f5f9; }
+
+    /* ── Task List ───────────────────────────── */
+    .task-list { display: flex; flex-direction: column; gap: 2px; }
+
+    .task-card {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: box-shadow 0.18s;
+    }
+
+    .task-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+
+    .task-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px 12px 16px;
+      cursor: default;
+    }
+
+    .task-check {
+      width: 20px; height: 20px;
+      border: 2px solid #d0d5e8;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.18s;
+      background: transparent;
+      position: relative;
+    }
+
+    .task-check:hover { border-color: #4f6ef7; }
+    .task-check.checked { background: #4f6ef7; border-color: #4f6ef7; }
+    .task-check.checked::after { content: '✓'; color: #fff; font-size: 0.72rem; font-weight: 700; }
+
+    .task-main { flex: 1; min-width: 0; }
+
+    .task-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+
+    .task-title {
+      font-size: 0.95rem;
+      color: #1a1a2e;
+      cursor: text;
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: inherit;
+      line-height: 1.4;
+      padding: 0;
+    }
+
+    .task-title:focus { color: #000; }
+    .task-done .task-title { text-decoration: line-through; color: #bbb; }
+
+    .task-tags { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+
+    .cat-tag {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 7px;
+      border-radius: 8px;
+      font-size: 0.69rem;
       font-weight: 600;
       color: #fff;
-      white-space: nowrap;
     }
 
     .xp-tag {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: #f59e0b;
-      background: #fffbeb;
-      padding: 2px 7px;
-      border-radius: 10px;
+      font-size: 0.69rem; font-weight: 600;
+      color: #d97706; background: #fffbeb;
+      padding: 2px 6px; border-radius: 8px;
       border: 1px solid #fde68a;
     }
 
     .due-tag {
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 10px;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      white-space: nowrap;
+      font-size: 0.69rem; font-weight: 600;
+      padding: 2px 7px; border-radius: 8px;
+      display: inline-flex; align-items: center; gap: 3px;
     }
 
     .due-tag.future  { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
     .due-tag.today   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
     .due-tag.overdue { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 
-    .datetime-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
+    .subtask-summary { font-size: 0.75rem; color: #aaa; display: flex; align-items: center; gap: 4px; }
+    .subtask-progress { color: #4f6ef7; font-weight: 600; }
+
+    .task-side { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+    .btn-expand {
+      width: 28px; height: 28px;
+      border: none; background: transparent;
+      cursor: pointer; color: #ccc;
+      font-size: 0.8rem;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px;
+      transition: all 0.18s;
     }
 
-    .datetime-row input[type="datetime-local"] {
-      flex: 1;
+    .btn-expand:hover { background: #f4f5f9; color: #888; }
+    .btn-expand.open  { color: #4f6ef7; transform: rotate(180deg); }
+
+    .btn-del-task {
+      width: 28px; height: 28px;
+      border: none; background: transparent;
+      cursor: pointer; color: #ddd;
+      font-size: 0.85rem;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px;
+      transition: all 0.18s;
+      opacity: 0;
+    }
+
+    .task-card:hover .btn-del-task { opacity: 1; }
+    .btn-del-task:hover { background: #fff0f0; color: #e53e3e; }
+
+    /* ── Task Detail (expanded) ──────────────── */
+    .task-detail {
+      display: none;
+      padding: 0 14px 14px 46px;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid #f4f5f9;
+    }
+
+    .task-detail.open { display: flex; padding-top: 12px; }
+
+    .detail-notes {
+      width: 100%;
+      border: 1.5px solid #e8ecf4;
+      border-radius: 9px;
       padding: 9px 12px;
-      border: 2px solid #e8ecf4;
-      border-radius: 10px;
-      font-size: 0.88rem;
-      outline: none;
-      background: #fff;
-      color: #333;
+      font-size: 0.87rem;
       font-family: inherit;
+      outline: none;
+      resize: none;
+      color: #555;
+      line-height: 1.5;
+      transition: border-color 0.2s;
+      min-height: 56px;
+    }
+
+    .detail-notes::placeholder { color: #ccc; }
+    .detail-notes:focus { border-color: #4f6ef7; }
+
+    .detail-due-row {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+
+    .detail-due-row label { font-size: 0.78rem; color: #aaa; font-weight: 500; }
+
+    .detail-due-row input[type="datetime-local"] {
+      padding: 6px 10px;
+      border: 1.5px solid #e8ecf4;
+      border-radius: 9px;
+      font-size: 0.82rem;
+      font-family: inherit;
+      outline: none;
+      color: #444;
       transition: border-color 0.2s;
     }
 
-    .datetime-row input[type="datetime-local"]:focus { border-color: #4f6ef7; }
+    .detail-due-row input[type="datetime-local"]:focus { border-color: #4f6ef7; }
 
-    .datetime-row .clear-date {
-      padding: 8px 12px;
-      border: 2px solid #e8ecf4;
-      border-radius: 10px;
-      background: #fff;
-      color: #aaa;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
+    .btn-clear-due {
+      font-size: 0.75rem; color: #ccc; cursor: pointer; border: none; background: none;
+      transition: color 0.15s;
     }
 
-    .datetime-row .clear-date:hover { border-color: #fca5a5; color: #dc2626; background: #fff5f5; }
+    .btn-clear-due:hover { color: #e53e3e; }
 
-    .task-text {
-      width: 100%;
-      font-size: 0.95rem;
-      color: #1a1a2e;
-      word-break: break-word;
-      border: 2px solid transparent;
-      border-radius: 6px;
-      padding: 3px 5px;
-      outline: none;
-      transition: border-color 0.2s, background 0.2s;
-      background: transparent;
-      font-family: inherit;
-      resize: none;
-      line-height: 1.45;
-    }
+    /* ── Subtasks ────────────────────────────── */
+    .subtasks-list { display: flex; flex-direction: column; gap: 4px; }
 
-    .task-item.done .task-text { text-decoration: line-through; color: #aaa; }
-    .task-text:focus { border-color: #4f6ef7; background: #f7f8ff; }
-
-    .task-actions { display: flex; gap: 6px; flex-shrink: 0; padding-top: 2px; }
-
-    .btn-del {
-      width: 30px;
-      height: 30px;
-      border: none;
+    .subtask-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 10px;
       border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      background: #fff0f0;
-      color: #e53e3e;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.18s;
+      background: #f8f9fc;
+      transition: background 0.15s;
     }
 
-    .btn-del:hover { background: #fed7d7; }
+    .subtask-row:hover { background: #f0f2fb; }
 
-    /* ── XP Float Animation ── */
-    .xp-float {
-      position: absolute;
-      left: 14px;
-      top: 6px;
+    .sub-check {
+      width: 16px; height: 16px;
+      border: 2px solid #d0d5e8;
+      border-radius: 50%;
+      flex-shrink: 0;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .sub-check:hover { border-color: #4f6ef7; }
+    .sub-check.checked { background: #4f6ef7; border-color: #4f6ef7; }
+    .sub-check.checked::after { content: '✓'; color: #fff; font-size: 0.6rem; font-weight: 700; }
+
+    .sub-text {
+      flex: 1;
+      font-size: 0.88rem;
+      color: #333;
+      border: none; outline: none; background: transparent;
+      font-family: inherit;
+      padding: 0;
+    }
+
+    .sub-text.done-text { text-decoration: line-through; color: #bbb; }
+
+    .btn-del-sub {
+      width: 22px; height: 22px;
+      border: none; background: transparent;
+      cursor: pointer; color: #ccc; font-size: 0.78rem;
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+      opacity: 0;
+    }
+
+    .subtask-row:hover .btn-del-sub { opacity: 1; }
+    .btn-del-sub:hover { background: #fff0f0; color: #e53e3e; }
+
+    .add-subtask-row {
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .btn-add-subtask {
+      font-size: 0.82rem; color: #4f6ef7; background: none; border: none;
+      cursor: pointer; padding: 4px 0;
+      display: flex; align-items: center; gap: 4px;
+      font-weight: 500;
+      transition: opacity 0.15s;
+    }
+
+    .btn-add-subtask:hover { opacity: 0.75; }
+
+    .subtask-input-row {
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .subtask-input-row.open { display: flex; }
+
+    .subtask-input-row input {
+      flex: 1;
+      padding: 7px 10px;
+      border: 1.5px solid #e8ecf4;
+      border-radius: 8px;
+      font-size: 0.87rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .subtask-input-row input:focus { border-color: #4f6ef7; }
+
+    .subtask-input-row button {
+      padding: 7px 12px;
+      background: #4f6ef7; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 0.83rem; font-weight: 600;
+      cursor: pointer;
+    }
+
+    .subtask-input-row .cancel-sub {
+      background: transparent; color: #aaa;
+      border: 1.5px solid #e8ecf4;
+    }
+
+    /* ── Completed section ───────────────────── */
+    .done-section { margin-top: 8px; }
+
+    .done-toggle {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #888;
       font-size: 0.85rem;
-      font-weight: 700;
-      color: #f59e0b;
+      font-weight: 500;
+      width: 100%;
+      text-align: left;
+      border-radius: 10px;
+      transition: background 0.15s;
+    }
+
+    .done-toggle:hover { background: #f0f2f9; }
+    .done-toggle .chevron { font-size: 0.7rem; transition: transform 0.2s; }
+    .done-toggle.open .chevron { transform: rotate(90deg); }
+    .done-count { background: #e8ecf4; border-radius: 10px; padding: 1px 7px; font-size: 0.75rem; }
+
+    .done-list { display: flex; flex-direction: column; gap: 2px; }
+
+    /* ── XP Float ────────────────────────────── */
+    .xp-float {
+      position: absolute; left: 14px; top: 4px;
+      font-size: 0.82rem; font-weight: 700; color: #f59e0b;
       pointer-events: none;
-      animation: floatUp 1.2s ease-out forwards;
+      animation: floatUp 1.3s ease-out forwards;
       z-index: 10;
     }
 
     @keyframes floatUp {
       0%   { opacity: 1; transform: translateY(0) scale(1); }
-      60%  { opacity: 1; transform: translateY(-28px) scale(1.2); }
-      100% { opacity: 0; transform: translateY(-52px) scale(0.9); }
+      60%  { opacity: 1; transform: translateY(-26px) scale(1.2); }
+      100% { opacity: 0; transform: translateY(-50px) scale(0.9); }
     }
 
-    /* ── Badge Toast ── */
+    /* ── Toast ───────────────────────────────── */
     .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
+      position: fixed; bottom: 24px; left: 50%;
       transform: translateX(-50%) translateY(80px);
-      background: #1a1a2e;
-      color: #fff;
-      padding: 12px 22px;
-      border-radius: 14px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      background: #1a1a2e; color: #fff;
+      padding: 11px 22px; border-radius: 14px;
+      font-size: 0.88rem; font-weight: 500;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
       transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s;
-      opacity: 0;
-      z-index: 100;
-      white-space: nowrap;
+      opacity: 0; z-index: 100; white-space: nowrap;
     }
 
-    .toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    /* ── Misc ── */
-    .count { text-align: right; font-size: 0.8rem; color: #aaa; margin-bottom: 10px; }
-    .empty { text-align: center; color: #ccc; padding: 40px 0; font-size: 0.92rem; }
-    .loading-wrap { text-align: center; color: #ccc; padding: 32px 0; }
-
-    .level-up-msg {
-      text-align: center;
-      font-weight: 700;
-      color: #4f6ef7;
-      font-size: 1rem;
-      padding: 8px;
-      animation: pop 0.5s ease;
-    }
-
-    @keyframes pop {
-      0%   { transform: scale(0.8); opacity: 0; }
-      70%  { transform: scale(1.1); opacity: 1; }
-      100% { transform: scale(1);   opacity: 1; }
-    }
+    .empty { text-align: center; color: #ccc; padding: 40px 0; font-size: 0.9rem; }
+    .loading-wrap { text-align: center; color: #ccc; padding: 32px 0; font-size: 0.9rem; }
   </style>
 </head>
 <body>
 <div class="container">
 
-  <!-- Auth -->
+  <!-- ── Auth ── -->
   <div id="authBox">
     <h1>✅ Yapılacaklar</h1>
     <p class="subtitle">Görevleri tamamla, XP kazan, seviye atla!</p>
@@ -594,12 +687,10 @@
       <input type="password" id="authPassword" placeholder="En az 6 karakter" autocomplete="current-password" />
     </div>
     <button class="btn-primary" id="authBtn" onclick="submitAuth()">Giriş Yap</button>
-    <div class="auth-switch">
-      Hesabın yok mu? <a onclick="toggleMode()">Kayıt Ol</a>
-    </div>
+    <div class="auth-switch">Hesabın yok mu? <a onclick="toggleMode()">Kayıt Ol</a></div>
   </div>
 
-  <!-- App -->
+  <!-- ── App ── -->
   <div id="appBox">
 
     <div class="topbar">
@@ -617,13 +708,13 @@
         <div class="stats-info">
           <div class="stats-row">
             <div class="stat-item">⚡ <strong id="statXP">0</strong> XP</div>
-            <div class="stat-item">🔥 <strong id="statStreak">0</strong> Gün Seri</div>
+            <div class="stat-item">🔥 <strong id="statStreak">0</strong> Gün</div>
             <div class="stat-item">✅ <strong id="statDone">0</strong> Tamamlandı</div>
           </div>
-          <div class="xp-bar-wrap">
+          <div>
             <div class="xp-label">
               <span id="xpBarLabel">0 / 100 XP</span>
-              <span id="xpNextLabel">Sonraki seviye</span>
+              <span>Sonraki seviye</span>
             </div>
             <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
           </div>
@@ -637,44 +728,58 @@
       <div class="badges-list" id="badgesList"></div>
     </div>
 
-    <!-- Category filter -->
-    <div class="cat-filter" id="catFilter"></div>
+    <!-- List Tabs -->
+    <div class="list-tabs" id="listTabs"></div>
 
-    <!-- Add task -->
-    <div class="add-row">
-      <input type="text" id="taskInput" placeholder="Yeni görev ekle..." />
-      <button onclick="addTask()">+ Ekle</button>
-    </div>
-    <div class="datetime-row">
-      <input type="datetime-local" id="taskDue" title="Bitiş tarihi ve saati (isteğe bağlı)" />
-      <button class="clear-date" onclick="document.getElementById('taskDue').value=''">✕ Tarih</button>
-    </div>
-    <div class="cat-picker" id="catPicker"></div>
-
-    <!-- Done/active filter -->
-    <div class="filters">
-      <button class="active" onclick="setFilter('all', this)">Tümü</button>
-      <button onclick="setFilter('active', this)">Aktif</button>
-      <button onclick="setFilter('done', this)">Tamamlanan</button>
+    <!-- Add Task -->
+    <div class="add-task-wrap" id="addTaskWrap">
+      <div class="add-task-row">
+        <span class="add-icon">+</span>
+        <input type="text" id="taskInput" placeholder="Görev ekle" />
+        <button class="btn-add" onclick="addTask()">Ekle</button>
+      </div>
+      <div class="add-detail" id="addDetail">
+        <textarea id="addNotes" placeholder="Notlar" rows="2"></textarea>
+        <div class="add-detail-row">
+          <input type="datetime-local" id="addDue" />
+          <button class="cancel-add" onclick="closeAddDetail()">İptal</button>
+        </div>
+      </div>
     </div>
 
-    <div class="count" id="count"></div>
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <span class="task-count" id="taskCount"></span>
+      <button class="btn-toggle-done" id="btnToggleDone" onclick="toggleShowDone()">Tamamlananları Göster</button>
+    </div>
+
+    <!-- Active Tasks -->
     <div class="task-list" id="taskList"></div>
     <div class="empty" id="empty" style="display:none">Görev yok.</div>
     <div class="loading-wrap" id="loadingWrap">Yükleniyor...</div>
-  </div>
 
+    <!-- Completed Tasks -->
+    <div class="done-section" id="doneSection" style="display:none">
+      <button class="done-toggle" id="doneToggle" onclick="toggleDoneList()">
+        <span class="chevron">▶</span>
+        Tamamlananlar
+        <span class="done-count" id="doneCount">0</span>
+      </button>
+      <div class="done-list" id="doneList" style="display:none"></div>
+    </div>
+
+  </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-const SB   = 'https://uzkscrrqyxftbtwkiyra.supabase.co';
-const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6a3NjcnJxeXhmdGJ0d2tpeXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDkxNDMsImV4cCI6MjA5MjI4NTE0M30.wA7g4SVacghNunC0nt6ZP3SgHZ6U6LAWu3ggUrypBxE';
+const SB      = 'https://uzkscrrqyxftbtwkiyra.supabase.co';
+const ANON    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6a3NjcnJxeXhmdGJ0d2tpeXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDkxNDMsImV4cCI6MjA5MjI4NTE0M30.wA7g4SVacghNunC0nt6ZP3SgHZ6U6LAWu3ggUrypBxE';
 const APP_URL = 'https://nizamiyedijital.github.io/todo-app';
 
 const CATEGORIES = [
+  { id: 'all',      label: 'Tümü',     icon: '',   color: '#4f6ef7', xp: 0  },
   { id: 'genel',    label: 'Genel',    icon: '📋', color: '#718096', xp: 10 },
   { id: 'iş',       label: 'İş',       icon: '💼', color: '#3b82f6', xp: 15 },
   { id: 'sağlık',   label: 'Sağlık',   icon: '🏃', color: '#22c55e', xp: 20 },
@@ -683,36 +788,40 @@ const CATEGORIES = [
 ];
 
 const BADGES = [
-  { id: 'first_task',  icon: '🌱', label: 'İlk Adım',       check: (s) => s.completed_count >= 1 },
-  { id: 'tasks_5',     icon: '⚡', label: 'Hızlı Başlangıç', check: (s) => s.completed_count >= 5 },
-  { id: 'tasks_25',    icon: '🏆', label: 'Azimli',          check: (s) => s.completed_count >= 25 },
-  { id: 'tasks_100',   icon: '👑', label: 'Uzman',           check: (s) => s.completed_count >= 100 },
-  { id: 'streak_3',    icon: '🔥', label: '3 Günlük Seri',   check: (s) => s.streak >= 3 },
-  { id: 'streak_7',    icon: '💫', label: '7 Günlük Seri',   check: (s) => s.streak >= 7 },
-  { id: 'health_10',   icon: '💪', label: 'Sağlıklı Yaşam',  check: (s, c) => (c?.['sağlık'] || 0) >= 10 },
-  { id: 'academic_10', icon: '📖', label: 'Akademisyen',     check: (s, c) => (c?.['akademik'] || 0) >= 10 },
+  { id: 'first_task',  icon: '🌱', label: 'İlk Adım',        check: (s)    => s.completed_count >= 1  },
+  { id: 'tasks_5',     icon: '⚡', label: 'Hızlı Başlangıç', check: (s)    => s.completed_count >= 5  },
+  { id: 'tasks_25',    icon: '🏆', label: 'Azimli',           check: (s)    => s.completed_count >= 25 },
+  { id: 'tasks_100',   icon: '👑', label: 'Uzman',            check: (s)    => s.completed_count >= 100},
+  { id: 'streak_3',    icon: '🔥', label: '3 Günlük Seri',    check: (s)    => s.streak >= 3 },
+  { id: 'streak_7',    icon: '💫', label: '7 Günlük Seri',    check: (s)    => s.streak >= 7 },
+  { id: 'health_10',   icon: '💪', label: 'Sağlıklı Yaşam',   check: (s, c) => (c?.['sağlık']   || 0) >= 10 },
+  { id: 'academic_10', icon: '📖', label: 'Akademisyen',      check: (s, c) => (c?.['akademik'] || 0) >= 10 },
 ];
 
-function catByID(id) { return CATEGORIES.find(c => c.id === id) || CATEGORIES[0]; }
-function xpForLevel(lvl) { return lvl * 100; }
-function levelFromXP(xp) { let l = 1, t = 0; while (t + xpForLevel(l) <= xp) { t += xpForLevel(l); l++; } return { level: l, xpInLevel: xp - t, xpNeeded: xpForLevel(l) }; }
+function catByID(id) { return CATEGORIES.find(c => c.id === id) || CATEGORIES[1]; }
+function levelFromXP(xp) {
+  let l = 1, t = 0;
+  while (t + l * 100 <= xp) { t += l * 100; l++; }
+  return { level: l, xpInLevel: xp - t, xpNeeded: l * 100 };
+}
 
-let session = null;
-let tasks   = [];
-let stats   = { xp: 0, streak: 0, last_activity_date: null, completed_count: 0, badges: [] };
-let filter  = 'all';
-let catFilter = 'all';
-let selectedCat = 'genel';
-let editTimers  = {};
+/* ─── State ─────────────────────────────── */
+let session  = null;
+let tasks    = [];   // all tasks (root + subtasks)
+let stats    = { xp: 0, streak: 0, last_activity_date: null, completed_count: 0, badges: [] };
+let activeList   = 'all';
+let showDone     = false;
+let doneListOpen = false;
+let editTimers   = {};
 let isRegisterMode = false;
 
-/* ── Session ──────────────────────────────────────────────── */
+/* ─── Session ───────────────────────────── */
 function jwtPayload(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch { return {}; } }
 
 function saveSession(s) {
   if (s.access_token && !s.user?.id) {
     const p = jwtPayload(s.access_token);
-    s.user = { ...(s.user || {}), id: p.sub, email: s.user?.email || p.email || '' };
+    s.user  = { ...(s.user || {}), id: p.sub, email: s.user?.email || p.email || '' };
   }
   session = s;
   localStorage.setItem('sb_session', JSON.stringify(s));
@@ -721,245 +830,152 @@ function saveSession(s) {
 function clearSession() { session = null; localStorage.removeItem('sb_session'); }
 
 function authHeaders(extra = {}) {
-  return {
-    'apikey': ANON,
-    'Authorization': `Bearer ${session.access_token}`,
-    'Content-Type': 'application/json',
-    'Prefer': 'return=representation',
-    ...extra
-  };
+  return { apikey: ANON, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json', Prefer: 'return=representation', ...extra };
 }
 
-/* ── API ──────────────────────────────────────────────────── */
+/* ─── API ────────────────────────────────── */
 async function authPost(path, body) {
-  const res = await fetch(`${SB}/auth/v1${path}`, {
-    method: 'POST',
-    headers: { apikey: ANON, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  const d = await res.json();
-  if (!res.ok) throw new Error(d.error_description || d.msg || d.error || 'Hata oluştu');
+  const r = await fetch(`${SB}/auth/v1${path}`, { method: 'POST', headers: { apikey: ANON, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error_description || d.msg || d.error || 'Hata');
   return d;
 }
 
 async function db(path, options = {}) {
-  const res = await fetch(`${SB}/rest/v1${path}`, {
-    ...options,
-    headers: { ...authHeaders(), ...options.headers }
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `HTTP ${res.status}`);
-  }
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  const r = await fetch(`${SB}/rest/v1${path}`, { ...options, headers: { ...authHeaders(), ...options.headers } });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.message || `HTTP ${r.status}`); }
+  const t = await r.text();
+  return t ? JSON.parse(t) : null;
 }
 
-/* ── Stats ────────────────────────────────────────────────── */
+/* ─── Stats ──────────────────────────────── */
 async function loadStats() {
   const rows = await db(`/user_stats?user_id=eq.${session.user.id}&select=*`);
-  if (rows && rows.length > 0) {
-    stats = rows[0];
-    stats.badges = stats.badges || [];
-  }
+  if (rows?.length) { stats = rows[0]; stats.badges = stats.badges || []; }
 }
 
 async function saveStats(patch) {
   Object.assign(stats, patch);
-  await db('/user_stats', {
-    method: 'POST',
-    body: JSON.stringify({ user_id: session.user.id, ...stats }),
-    headers: { Prefer: 'resolution=merge-duplicates,return=representation' }
-  });
+  await db('/user_stats', { method: 'POST', body: JSON.stringify({ user_id: session.user.id, ...stats }), headers: { Prefer: 'resolution=merge-duplicates,return=representation' } });
 }
 
-async function getCategoryCounts() {
-  const rows = await db(`/todos?user_id=eq.${session.user.id}&done=eq.true&select=category`);
-  const counts = {};
-  (rows || []).forEach(r => { counts[r.category] = (counts[r.category] || 0) + 1; });
-  return counts;
+async function getCatCounts() {
+  const rows = await db(`/todos?user_id=eq.${session.user.id}&done=eq.true&parent_id=is.null&select=category`);
+  const c = {};
+  (rows || []).forEach(r => { c[r.category] = (c[r.category] || 0) + 1; });
+  return c;
 }
 
-function computeStreak(lastDate) {
-  if (!lastDate) return 1;
-  const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  if (lastDate === today)      return stats.streak;
-  if (lastDate === yesterday)  return stats.streak + 1;
+function computeStreak(last) {
+  if (!last) return 1;
+  const today = now0(); const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+  if (last === today)     return stats.streak;
+  if (last === yesterday) return stats.streak + 1;
   return 1;
 }
 
-async function onTaskCompleted(task) {
-  const cat  = catByID(task.category);
-  const xpGain = cat.xp;
+function now0() { return new Date().toISOString().slice(0,10); }
+
+async function onComplete(task, cardEl) {
+  const cat    = catByID(task.category);
+  const xpGain = task.parent_id ? 5 : cat.xp;
   const newXP  = stats.xp + xpGain;
-  const today  = new Date().toISOString().slice(0, 10);
-  const newStreak = computeStreak(stats.last_activity_date);
-  const newCount  = stats.completed_count + 1;
+  const today  = now0();
+  const streak = computeStreak(stats.last_activity_date);
+  const count  = stats.completed_count + (task.parent_id ? 0 : 1);
+  const prevLvl = levelFromXP(stats.xp).level;
+  const nextLvl = levelFromXP(newXP).level;
 
-  const prevLevel = levelFromXP(stats.xp).level;
-  const nextLevel = levelFromXP(newXP).level;
-
-  await saveStats({
-    xp: newXP,
-    streak: newStreak,
-    last_activity_date: today,
-    completed_count: newCount,
-  });
-
+  await saveStats({ xp: newXP, streak, last_activity_date: today, completed_count: count });
   renderStats();
+  showXpFloat(cardEl, xpGain);
+  if (nextLvl > prevLvl) showToast(`🎉 Seviye Atladın! Seviye ${nextLvl}'e ulaştın!`);
 
-  if (nextLevel > prevLevel) {
-    showToast(`🎉 Seviye Atladın! Seviye ${nextLevel}'e ulaştın!`);
-  }
-
-  const catCounts = await getCategoryCounts();
-  const newBadges = checkBadges(catCounts);
-  if (newBadges.length > 0) {
-    const updated = [...new Set([...stats.badges, ...newBadges])];
-    await saveStats({ badges: updated });
-    newBadges.forEach(bid => {
+  const catCounts  = await getCatCounts();
+  const newBadges  = BADGES.filter(b => !stats.badges.includes(b.id) && b.check(stats, catCounts)).map(b => b.id);
+  if (newBadges.length) {
+    await saveStats({ badges: [...new Set([...stats.badges, ...newBadges])] });
+    newBadges.forEach((bid,i) => {
       const b = BADGES.find(x => x.id === bid);
-      if (b) setTimeout(() => showToast(`${b.icon} Rozet Kazandın: ${b.label}!`), 600);
+      if (b) setTimeout(() => showToast(`${b.icon} Rozet: ${b.label}!`), 700 + i * 800);
     });
     renderBadges();
   }
-
-  return xpGain;
 }
 
-function checkBadges(catCounts) {
-  const newOnes = [];
-  for (const b of BADGES) {
-    if (!stats.badges.includes(b.id) && b.check(stats, catCounts)) {
-      newOnes.push(b.id);
-    }
-  }
-  return newOnes;
-}
-
-/* ── Auth UI ──────────────────────────────────────────────── */
-function setMsg(text, type) {
-  const el = document.getElementById('authMsg');
-  el.className = `msg ${type}`;
-  el.textContent = text;
-}
+/* ─── Auth UI ────────────────────────────── */
+function setMsg(txt, type) { const e = document.getElementById('authMsg'); e.className = `msg ${type}`; e.textContent = txt; }
 
 function toggleMode() {
   isRegisterMode = !isRegisterMode;
-  document.getElementById('authTitle').textContent    = isRegisterMode ? 'Kayıt Ol' : 'Giriş Yap';
-  document.getElementById('authBtn').textContent      = isRegisterMode ? 'Kayıt Ol' : 'Giriş Yap';
-  document.querySelector('.auth-switch').innerHTML    = isRegisterMode
+  document.getElementById('authTitle').textContent = isRegisterMode ? 'Kayıt Ol' : 'Giriş Yap';
+  document.getElementById('authBtn').textContent   = isRegisterMode ? 'Kayıt Ol' : 'Giriş Yap';
+  document.querySelector('.auth-switch').innerHTML = isRegisterMode
     ? 'Zaten hesabın var mı? <a onclick="toggleMode()">Giriş Yap</a>'
     : 'Hesabın yok mu? <a onclick="toggleMode()">Kayıt Ol</a>';
   document.getElementById('authMsg').className = 'msg';
 }
 
 async function submitAuth() {
-  const email    = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
-  const btn      = document.getElementById('authBtn');
-  if (!email || !password) { setMsg('E-posta ve şifre giriniz.', 'error'); return; }
-  if (password.length < 6) { setMsg('Şifre en az 6 karakter olmalı.', 'error'); return; }
+  const email = document.getElementById('authEmail').value.trim();
+  const pass  = document.getElementById('authPassword').value;
+  const btn   = document.getElementById('authBtn');
+  if (!email || !pass) { setMsg('E-posta ve şifre giriniz.', 'error'); return; }
+  if (pass.length < 6) { setMsg('Şifre en az 6 karakter olmalı.', 'error'); return; }
   btn.disabled = true;
   try {
     if (isRegisterMode) {
-      await authPost(`/signup?redirect_to=${encodeURIComponent(APP_URL)}`, { email, password });
+      await authPost(`/signup?redirect_to=${encodeURIComponent(APP_URL)}`, { email, password: pass });
       setMsg('Kayıt başarılı! E-postanıza gelen onay bağlantısına tıklayın.', 'success');
       document.getElementById('authPassword').value = '';
     } else {
-      const data = await authPost('/token?grant_type=password', { email, password });
-      saveSession(data);
+      saveSession(await authPost('/token?grant_type=password', { email, password: pass }));
       await initApp();
     }
-  } catch (e) {
-    setMsg(e.message, 'error');
-  } finally {
-    btn.disabled = false;
-  }
+  } catch(e) { setMsg(e.message, 'error'); }
+  finally    { btn.disabled = false; }
 }
 
 function logout() { clearSession(); showAuth(); }
 
-/* ── View ─────────────────────────────────────────────────── */
-function showAuth() {
-  document.getElementById('authBox').style.display  = 'block';
-  document.getElementById('appBox').style.display   = 'none';
-}
+function showAuth() { document.getElementById('authBox').style.display = 'block'; document.getElementById('appBox').style.display = 'none'; }
 
 async function initApp() {
-  document.getElementById('authBox').style.display  = 'none';
-  document.getElementById('appBox').style.display   = 'block';
-  buildCatUI();
+  document.getElementById('authBox').style.display = 'none';
+  document.getElementById('appBox').style.display  = 'block';
+  buildListTabs();
   await Promise.all([loadStats(), loadTasks()]);
   renderStats();
   renderBadges();
 }
 
-/* ── Category UI ─────────────────────────────────────────── */
-function buildCatUI() {
-  // Filter bar
-  const cf = document.getElementById('catFilter');
-  cf.innerHTML = '';
-  const allBtn = document.createElement('button');
-  allBtn.className = 'cat-btn active';
-  allBtn.textContent = '📋 Tümü';
-  allBtn.onclick = () => { catFilter = 'all'; setActiveCatBtn(allBtn, cf); render(); };
-  cf.appendChild(allBtn);
-
+/* ─── List Tabs ──────────────────────────── */
+function buildListTabs() {
+  const wrap = document.getElementById('listTabs');
+  wrap.innerHTML = '';
   CATEGORIES.forEach(cat => {
-    const b = document.createElement('button');
-    b.className = 'cat-btn';
-    b.innerHTML = `${cat.icon} ${cat.label}`;
-    b.style.setProperty('--cat-color', cat.color);
-    b.dataset.catId = cat.id;
-    b.onclick = () => { catFilter = cat.id; setActiveCatBtn(b, cf); render(); };
-    cf.appendChild(b);
+    const btn = document.createElement('button');
+    btn.className   = 'list-tab' + (cat.id === activeList ? ' active' : '');
+    btn.dataset.id  = cat.id;
+    const icon      = cat.icon ? `${cat.icon} ` : '';
+    btn.innerHTML   = `${icon}${cat.label} <span class="tab-count" id="tabCount_${cat.id}">0</span>`;
+    btn.onclick     = () => { activeList = cat.id; document.querySelectorAll('.list-tab').forEach(b => b.classList.toggle('active', b.dataset.id === cat.id)); render(); };
+    wrap.appendChild(btn);
   });
+}
 
-  // Picker (add form)
-  const cp = document.getElementById('catPicker');
-  cp.innerHTML = '';
+function updateTabCounts() {
+  const roots = tasks.filter(t => !t.parent_id);
   CATEGORIES.forEach(cat => {
-    const b = document.createElement('button');
-    b.className = 'cat-pick-btn' + (cat.id === selectedCat ? ' selected' : '');
-    b.style.background = cat.id === selectedCat ? cat.color : '';
-    b.style.borderColor = cat.id === selectedCat ? cat.color : '';
-    b.innerHTML = `${cat.icon} ${cat.label} <small style="opacity:.7">+${cat.xp}XP</small>`;
-    b.dataset.catId = cat.id;
-    b.onclick = () => selectCat(cat.id);
-    cp.appendChild(b);
+    const el = document.getElementById(`tabCount_${cat.id}`);
+    if (!el) return;
+    const n = cat.id === 'all' ? roots.filter(t => !t.done).length : roots.filter(t => t.category === cat.id && !t.done).length;
+    el.textContent = n;
+    el.style.display = n > 0 ? '' : 'none';
   });
 }
 
-function setActiveCatBtn(active, container) {
-  container.querySelectorAll('.cat-btn').forEach(b => {
-    b.classList.remove('active');
-    b.style.background = '';
-    b.style.color = '';
-  });
-  active.classList.add('active');
-  const cid = active.dataset.catId;
-  if (cid) {
-    const cat = catByID(cid);
-    active.style.background = cat.color;
-    active.style.color = '#fff';
-  }
-}
-
-function selectCat(id) {
-  selectedCat = id;
-  document.querySelectorAll('.cat-pick-btn').forEach(b => {
-    const cat = catByID(b.dataset.catId);
-    const sel = b.dataset.catId === id;
-    b.className = 'cat-pick-btn' + (sel ? ' selected' : '');
-    b.style.background  = sel ? cat.color : '';
-    b.style.borderColor = sel ? cat.color : '';
-    b.style.color       = sel ? '#fff' : '';
-  });
-}
-
-/* ── Stats Render ────────────────────────────────────────── */
+/* ─── Stats Render ───────────────────────── */
 function renderStats() {
   const { level, xpInLevel, xpNeeded } = levelFromXP(stats.xp);
   document.getElementById('statLevel').textContent  = level;
@@ -967,203 +983,360 @@ function renderStats() {
   document.getElementById('statStreak').textContent = stats.streak;
   document.getElementById('statDone').textContent   = stats.completed_count;
   document.getElementById('xpBarLabel').textContent = `${xpInLevel} / ${xpNeeded} XP`;
-  document.getElementById('xpFill').style.width     = `${Math.round((xpInLevel / xpNeeded) * 100)}%`;
+  document.getElementById('xpFill').style.width     = `${Math.round(xpInLevel / xpNeeded * 100)}%`;
 }
 
 function renderBadges() {
   const list = document.getElementById('badgesList');
   list.innerHTML = '';
   BADGES.forEach(b => {
-    const el = document.createElement('div');
-    const earned = stats.badges.includes(b.id);
-    el.className = `badge-pill ${earned ? 'earned' : 'locked'}`;
-    el.title = b.label;
-    el.innerHTML = `${b.icon} ${b.label}`;
+    const el      = document.createElement('div');
+    const earned  = stats.badges.includes(b.id);
+    el.className  = `badge-pill ${earned ? 'earned' : 'locked'}`;
+    el.title      = b.label;
+    el.innerHTML  = `${b.icon} ${b.label}`;
     list.appendChild(el);
   });
 }
 
-/* ── Tasks ───────────────────────────────────────────────── */
+/* ─── Load ───────────────────────────────── */
 async function loadTasks() {
   document.getElementById('loadingWrap').style.display = 'block';
-  try {
-    tasks = await db('/todos?order=created_at.desc&select=*') || [];
-  } catch (e) { console.error(e); }
+  try { tasks = await db('/todos?order=sort_order.asc,created_at.asc&select=*') || []; }
+  catch(e) { console.error(e); }
   finally {
     document.getElementById('loadingWrap').style.display = 'none';
     render();
   }
 }
 
+/* ─── CRUD ───────────────────────────────── */
 async function addTask() {
-  const input   = document.getElementById('taskInput');
-  const dueInput = document.getElementById('taskDue');
-  const text    = input.value.trim();
-  if (!text) return;
-  const due_at = dueInput.value ? new Date(dueInput.value).toISOString() : null;
-  input.value    = '';
-  dueInput.value = '';
+  const input    = document.getElementById('taskInput');
+  const notesEl  = document.getElementById('addNotes');
+  const dueEl    = document.getElementById('addDue');
+  const text     = input.value.trim();
+  if (!text) { input.focus(); return; }
+  const payload  = { text, done: false, category: activeList === 'all' ? 'genel' : activeList, sort_order: Date.now() };
+  if (notesEl.value.trim()) payload.notes  = notesEl.value.trim();
+  if (dueEl.value)          payload.due_at = new Date(dueEl.value).toISOString();
+  input.value   = '';
+  notesEl.value = '';
+  dueEl.value   = '';
+  closeAddDetail();
   try {
-    const payload = { text, done: false, category: selectedCat };
-    if (due_at) payload.due_at = due_at;
-    const [task] = await db('/todos', { method: 'POST', body: JSON.stringify(payload) });
-    tasks.unshift(task);
+    const [t] = await db('/todos', { method: 'POST', body: JSON.stringify(payload) });
+    tasks.unshift(t);
     render();
-  } catch (e) { alert('Görev eklenemedi: ' + e.message); }
+  } catch(e) { alert(e.message); }
 }
 
-async function toggleTask(task, itemEl) {
-  const nowDone = !task.done;
-  await db(`/todos?id=eq.${task.id}`, {
-    method: 'PATCH',
-    body: JSON.stringify({ done: nowDone })
-  });
-  task.done = nowDone;
+async function addSubtask(parentId, text) {
+  if (!text.trim()) return null;
+  const parent  = tasks.find(t => t.id === parentId);
+  const payload = { text: text.trim(), done: false, category: parent?.category || 'genel', parent_id: parentId, sort_order: Date.now() };
+  try {
+    const [t] = await db('/todos', { method: 'POST', body: JSON.stringify(payload) });
+    tasks.push(t);
+    render();
+    return t;
+  } catch(e) { alert(e.message); return null; }
+}
 
-  if (nowDone) {
-    const xpGain = await onTaskCompleted(task);
-    showXpFloat(itemEl, xpGain);
-  }
+async function toggleTask(task, cardEl) {
+  const nowDone = !task.done;
+  await db(`/todos?id=eq.${task.id}`, { method: 'PATCH', body: JSON.stringify({ done: nowDone }) });
+  task.done = nowDone;
+  if (nowDone) await onComplete(task, cardEl);
   render();
 }
 
 async function deleteTask(id) {
   await db(`/todos?id=eq.${id}`, { method: 'DELETE', headers: { Prefer: '' } });
-  tasks = tasks.filter(t => t.id !== id);
+  tasks = tasks.filter(t => t.id !== id && t.parent_id !== id);
   render();
 }
 
-function scheduleUpdate(task, text) {
+function scheduleUpdate(task, patch) {
   clearTimeout(editTimers[task.id]);
   editTimers[task.id] = setTimeout(async () => {
-    await db(`/todos?id=eq.${task.id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ text })
-    });
-    task.text = text;
+    await db(`/todos?id=eq.${task.id}`, { method: 'PATCH', body: JSON.stringify(patch) });
+    Object.assign(task, patch);
   }, 700);
 }
 
-/* ── Render ──────────────────────────────────────────────── */
-function render() {
-  const list  = document.getElementById('taskList');
-  const empty = document.getElementById('empty');
-  const count = document.getElementById('count');
-
-  let visible = tasks;
-  if (catFilter !== 'all') visible = visible.filter(t => t.category === catFilter);
-  visible = visible.filter(t =>
-    filter === 'all' ? true : filter === 'done' ? t.done : !t.done
-  );
-
-  const remaining = tasks.filter(t => !t.done).length;
-  count.textContent = `${remaining} aktif görev`;
-  list.innerHTML = '';
-  empty.style.display = visible.length === 0 ? 'block' : 'none';
-
-  visible.forEach(task => {
-    const cat  = catByID(task.category || 'genel');
-    const item = document.createElement('div');
-    item.className = 'task-item' + (task.done ? ' done' : '');
-
-    const cb = document.createElement('input');
-    cb.type    = 'checkbox';
-    cb.checked = task.done;
-    cb.addEventListener('change', () => toggleTask(task, item));
-
-    const body = document.createElement('div');
-    body.className = 'task-body';
-
-    const meta = document.createElement('div');
-    meta.className = 'task-meta';
-
-    const tag = document.createElement('span');
-    tag.className = 'cat-tag';
-    tag.style.background = cat.color;
-    tag.innerHTML = `${cat.icon} ${cat.label}`;
-
-    const xpTag = document.createElement('span');
-    xpTag.className = 'xp-tag';
-    xpTag.textContent = `+${cat.xp} XP`;
-
-    meta.appendChild(tag);
-    if (!task.done) meta.appendChild(xpTag);
-
-    if (task.due_at) {
-      const due = formatDue(task.due_at);
-      const dueEl = document.createElement('span');
-      dueEl.className = `due-tag ${due.cls}`;
-      dueEl.textContent = due.label;
-      meta.appendChild(dueEl);
-    }
-
-    const textarea = document.createElement('textarea');
-    textarea.className  = 'task-text';
-    textarea.value      = task.text;
-    textarea.rows       = 1;
-    textarea.spellcheck = false;
-    textarea.addEventListener('input', () => {
-      textarea.style.height = 'auto';
-      textarea.style.height = textarea.scrollHeight + 'px';
-      scheduleUpdate(task, textarea.value);
-    });
-    textarea.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); textarea.blur(); }
-    });
-
-    body.appendChild(meta);
-    body.appendChild(textarea);
-
-    const del = document.createElement('button');
-    del.className = 'btn-del';
-    del.title     = 'Sil';
-    del.innerHTML = '✕';
-    del.addEventListener('click', () => deleteTask(task.id));
-
-    const actions = document.createElement('div');
-    actions.className = 'task-actions';
-    actions.appendChild(del);
-
-    item.appendChild(cb);
-    item.appendChild(body);
-    item.appendChild(actions);
-    list.appendChild(item);
-
-    textarea.style.height = textarea.scrollHeight + 'px';
-  });
-}
-
-function setFilter(f, btn) {
-  filter = f;
-  document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+async function updateDue(task, val) {
+  const due_at = val ? new Date(val).toISOString() : null;
+  await db(`/todos?id=eq.${task.id}`, { method: 'PATCH', body: JSON.stringify({ due_at }) });
+  task.due_at = due_at;
   render();
 }
 
-/* ── Animations ──────────────────────────────────────────── */
-function formatDue(isoStr) {
-  if (!isoStr) return null;
-  const d     = new Date(isoStr);
-  const now   = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const dDay  = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const diff  = dDay - today;
+/* ─── Add Task Detail ────────────────────── */
+function openAddDetail() { document.getElementById('addDetail').classList.add('open'); }
+function closeAddDetail() { document.getElementById('addDetail').classList.remove('open'); }
 
-  const timeStr = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-  const dateStr = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+document.getElementById('taskInput').addEventListener('focus', openAddDetail);
 
-  if (diff < 0)       return { label: `⏰ ${dateStr} ${timeStr}`, cls: 'overdue' };
-  if (diff === 0)     return { label: `⏰ Bugün ${timeStr}`,       cls: 'today'   };
-  if (diff === 86400000) return { label: `📅 Yarın ${timeStr}`,   cls: 'future'  };
-  return               { label: `📅 ${dateStr} ${timeStr}`,       cls: 'future'  };
+/* ─── Show/Hide Done ────────────────────── */
+function toggleShowDone() {
+  showDone = !showDone;
+  document.getElementById('btnToggleDone').textContent = showDone ? 'Tamamlananları Gizle' : 'Tamamlananları Göster';
+  render();
 }
 
+function toggleDoneList() {
+  doneListOpen = !doneListOpen;
+  document.getElementById('doneList').style.display  = doneListOpen ? 'flex' : 'none';
+  document.getElementById('doneToggle').classList.toggle('open', doneListOpen);
+}
+
+/* ─── Format Due ─────────────────────────── */
+function formatDue(iso) {
+  if (!iso) return null;
+  const d    = new Date(iso);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dDay  = new Date(d); dDay.setHours(0,0,0,0);
+  const diff  = dDay - today;
+  const time  = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  const date  = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+  if (diff < 0)          return { label: `⏰ ${date} ${time}`, cls: 'overdue' };
+  if (diff === 0)        return { label: `⏰ Bugün ${time}`,    cls: 'today'   };
+  if (diff === 86400000) return { label: `📅 Yarın ${time}`,   cls: 'future'  };
+  return                        { label: `📅 ${date} ${time}`,  cls: 'future'  };
+}
+
+function toLocalDT(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/* ─── Render ──────────────────────────────── */
+function render() {
+  const roots  = tasks.filter(t => !t.parent_id);
+  const active = roots.filter(t => !t.done && (activeList === 'all' || t.category === activeList));
+  const done   = roots.filter(t =>  t.done && (activeList === 'all' || t.category === activeList));
+
+  updateTabCounts();
+
+  document.getElementById('taskCount').textContent  = `${active.length} görev`;
+  document.getElementById('empty').style.display    = active.length === 0 ? 'block' : 'none';
+
+  document.getElementById('taskList').innerHTML = '';
+  active.forEach(t => renderTaskCard(t, false, document.getElementById('taskList')));
+
+  const doneSection = document.getElementById('doneSection');
+  doneSection.style.display = done.length > 0 && showDone ? 'block' : 'none';
+  document.getElementById('doneCount').textContent = done.length;
+  document.getElementById('doneList').innerHTML    = '';
+  if (showDone) done.forEach(t => renderTaskCard(t, true, document.getElementById('doneList')));
+}
+
+function renderTaskCard(task, isDone, container) {
+  const cat      = catByID(task.category || 'genel');
+  const subs     = tasks.filter(t => t.parent_id === task.id);
+  const subsDone = subs.filter(t => t.done).length;
+  const due      = formatDue(task.due_at);
+
+  const card = document.createElement('div');
+  card.className = 'task-card';
+  card.id        = `card_${task.id}`;
+
+  /* Row */
+  const row  = document.createElement('div');
+  row.className = 'task-row';
+
+  const chk = document.createElement('div');
+  chk.className = `task-check${task.done ? ' checked' : ''}`;
+  chk.onclick   = () => toggleTask(task, card);
+
+  const main = document.createElement('div');
+  main.className = 'task-main';
+
+  const titleRow = document.createElement('div');
+  titleRow.className = 'task-title-row';
+
+  const titleInput = document.createElement('input');
+  titleInput.className = 'task-title';
+  titleInput.value     = task.text;
+  titleInput.type      = 'text';
+  if (task.done) titleInput.disabled = true;
+  titleInput.addEventListener('change', () => scheduleUpdate(task, { text: titleInput.value }));
+
+  titleRow.appendChild(titleInput);
+
+  const tags = document.createElement('div');
+  tags.className = 'task-tags';
+
+  const catTag = document.createElement('span');
+  catTag.className         = 'cat-tag';
+  catTag.style.background  = cat.color;
+  catTag.innerHTML         = `${cat.icon} ${cat.label}`;
+  tags.appendChild(catTag);
+
+  if (!task.done) {
+    const xpTag = document.createElement('span');
+    xpTag.className   = 'xp-tag';
+    xpTag.textContent = `+${cat.xp} XP`;
+    tags.appendChild(xpTag);
+  }
+
+  if (due) {
+    const dueTag = document.createElement('span');
+    dueTag.className   = `due-tag ${due.cls}`;
+    dueTag.textContent = due.label;
+    tags.appendChild(dueTag);
+  }
+
+  if (subs.length > 0) {
+    const subSum = document.createElement('span');
+    subSum.className = 'subtask-summary';
+    subSum.innerHTML = `▸ <span class="subtask-progress">${subsDone}/${subs.length}</span> alt görev`;
+    tags.appendChild(subSum);
+  }
+
+  main.appendChild(titleRow);
+  main.appendChild(tags);
+
+  /* Side buttons */
+  const side = document.createElement('div');
+  side.className = 'task-side';
+
+  const expandBtn = document.createElement('button');
+  expandBtn.className = 'btn-expand';
+  expandBtn.innerHTML = '▾';
+  expandBtn.title     = 'Detaylar';
+
+  const delBtn = document.createElement('button');
+  delBtn.className  = 'btn-del-task';
+  delBtn.innerHTML  = '✕';
+  delBtn.title      = 'Sil';
+  delBtn.onclick    = () => deleteTask(task.id);
+
+  side.appendChild(expandBtn);
+  side.appendChild(delBtn);
+
+  row.appendChild(chk);
+  row.appendChild(main);
+  row.appendChild(side);
+
+  /* Detail panel */
+  const detail = document.createElement('div');
+  detail.className = 'task-detail';
+
+  const notesTA = document.createElement('textarea');
+  notesTA.className   = 'detail-notes';
+  notesTA.placeholder = 'Notlar';
+  notesTA.value       = task.notes || '';
+  notesTA.rows        = 2;
+  notesTA.addEventListener('input', () => { notesTA.style.height = 'auto'; notesTA.style.height = notesTA.scrollHeight + 'px'; });
+  notesTA.addEventListener('change', () => scheduleUpdate(task, { notes: notesTA.value }));
+
+  const dueRow = document.createElement('div');
+  dueRow.className = 'detail-due-row';
+  dueRow.innerHTML = `<label>📅 Bitiş:</label>`;
+
+  const dueInput = document.createElement('input');
+  dueInput.type  = 'datetime-local';
+  dueInput.value = toLocalDT(task.due_at);
+  dueInput.addEventListener('change', () => updateDue(task, dueInput.value));
+
+  const clearDue = document.createElement('button');
+  clearDue.className   = 'btn-clear-due';
+  clearDue.textContent = '✕ Temizle';
+  clearDue.onclick     = () => { dueInput.value = ''; updateDue(task, ''); };
+
+  dueRow.appendChild(dueInput);
+  dueRow.appendChild(clearDue);
+
+  /* Subtasks */
+  const subList = document.createElement('div');
+  subList.className = 'subtasks-list';
+  subs.forEach(sub => renderSubRow(sub, subList));
+
+  const subInputRow = document.createElement('div');
+  subInputRow.className = 'subtask-input-row';
+  const subInput   = document.createElement('input');
+  subInput.type    = 'text';
+  subInput.placeholder = 'Alt görev ekle...';
+  const subAddBtn  = document.createElement('button');
+  subAddBtn.textContent = 'Ekle';
+  subAddBtn.onclick     = async () => {
+    if (!subInput.value.trim()) return;
+    await addSubtask(task.id, subInput.value);
+    subInput.value = '';
+    subInputRow.classList.remove('open');
+  };
+  subInput.addEventListener('keydown', e => { if (e.key === 'Enter') subAddBtn.click(); if (e.key === 'Escape') subInputRow.classList.remove('open'); });
+  const subCancelBtn = document.createElement('button');
+  subCancelBtn.className   = 'cancel-sub';
+  subCancelBtn.textContent = 'İptal';
+  subCancelBtn.onclick     = () => { subInput.value = ''; subInputRow.classList.remove('open'); };
+  subInputRow.appendChild(subInput);
+  subInputRow.appendChild(subAddBtn);
+  subInputRow.appendChild(subCancelBtn);
+
+  const addSubBtn = document.createElement('button');
+  addSubBtn.className = 'btn-add-subtask';
+  addSubBtn.innerHTML = '+ Alt görev ekle';
+  addSubBtn.onclick   = () => { subInputRow.classList.add('open'); subInput.focus(); };
+
+  const addSubWrap = document.createElement('div');
+  addSubWrap.className = 'add-subtask-row';
+  addSubWrap.appendChild(addSubBtn);
+
+  detail.appendChild(notesTA);
+  detail.appendChild(dueRow);
+  if (!task.done) { detail.appendChild(subList); detail.appendChild(subInputRow); detail.appendChild(addSubWrap); }
+
+  /* Toggle expand */
+  expandBtn.onclick = () => {
+    const open = detail.classList.toggle('open');
+    expandBtn.classList.toggle('open', open);
+    if (open) { notesTA.style.height = 'auto'; notesTA.style.height = notesTA.scrollHeight + 'px'; }
+  };
+
+  card.appendChild(row);
+  card.appendChild(detail);
+  container.appendChild(card);
+}
+
+function renderSubRow(sub, container) {
+  const row = document.createElement('div');
+  row.className = 'subtask-row';
+
+  const chk = document.createElement('div');
+  chk.className = `sub-check${sub.done ? ' checked' : ''}`;
+  chk.onclick   = () => toggleTask(sub, row);
+
+  const txt = document.createElement('input');
+  txt.type      = 'text';
+  txt.className = `sub-text${sub.done ? ' done-text' : ''}`;
+  txt.value     = sub.text;
+  if (sub.done) txt.disabled = true;
+  txt.addEventListener('change', () => scheduleUpdate(sub, { text: txt.value }));
+
+  const del = document.createElement('button');
+  del.className  = 'btn-del-sub';
+  del.innerHTML  = '✕';
+  del.onclick    = () => deleteTask(sub.id);
+
+  row.appendChild(chk);
+  row.appendChild(txt);
+  row.appendChild(del);
+  container.appendChild(row);
+}
+
+/* ─── Animations ──────────────────────────── */
 function showXpFloat(el, xp) {
   const f = document.createElement('div');
-  f.className = 'xp-float';
+  f.className   = 'xp-float';
   f.textContent = `+${xp} XP`;
+  el.style.position = 'relative';
   el.appendChild(f);
-  setTimeout(() => f.remove(), 1300);
+  setTimeout(() => f.remove(), 1400);
 }
 
 let toastTimer;
@@ -1172,38 +1345,30 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-/* ── Email confirmation handler ──────────────────────────── */
-function handleEmailConfirmation() {
+/* ─── Email confirmation ──────────────────── */
+function handleConfirmation() {
   const hash = window.location.hash.substring(1);
   if (!hash) return false;
   const p = Object.fromEntries(new URLSearchParams(hash));
   if (p.access_token && (p.type === 'signup' || p.type === 'recovery')) {
-    const payload = jwtPayload(p.access_token);
-    saveSession({
-      access_token:  p.access_token,
-      refresh_token: p.refresh_token,
-      user: { id: payload.sub, email: payload.email || '' }
-    });
+    const pl = jwtPayload(p.access_token);
+    saveSession({ access_token: p.access_token, refresh_token: p.refresh_token, user: { id: pl.sub, email: pl.email || '' } });
     history.replaceState(null, '', window.location.pathname);
     return true;
   }
   return false;
 }
 
-/* ── Boot ────────────────────────────────────────────────── */
-document.getElementById('taskInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addTask();
-});
+/* ─── Boot ────────────────────────────────── */
+document.getElementById('taskInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
 
 (async function init() {
-  if (handleEmailConfirmation()) { await initApp(); return; }
+  if (handleConfirmation()) { await initApp(); return; }
   const stored = localStorage.getItem('sb_session');
-  if (stored) {
-    try { saveSession(JSON.parse(stored)); await initApp(); return; } catch (_) {}
-  }
+  if (stored) { try { saveSession(JSON.parse(stored)); await initApp(); return; } catch(_) {} }
   showAuth();
 })();
 </script>
