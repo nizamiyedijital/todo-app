@@ -311,6 +311,33 @@
       font-size:.67rem; font-weight:600; color:#888;
       background:#f4f5f9; border-radius:7px; padding:2px 7px;
     }
+
+    /* Priority badge on card */
+    .priority-badge {
+      font-size:.66rem; font-weight:700; padding:2px 7px; border-radius:7px;
+      display:inline-flex; align-items:center; gap:3px; white-space:nowrap;
+    }
+    .priority-badge.p1 { background:#fff1f1; color:#dc2626; border:1px solid #fca5a5; }
+    .priority-badge.p2 { background:#fefce8; color:#ca8a04; border:1px solid #fde047; }
+    .priority-badge.p3 { background:#fff7ed; color:#ea580c; border:1px solid #fdba74; }
+    .priority-badge.p4 { background:#f4f5f9; color:#94a3b8; border:1px solid #e2e8f0; }
+
+    /* Priority picker in detail */
+    .priority-row {
+      display:flex; align-items:center; gap:7px; flex-wrap:wrap;
+    }
+    .priority-row-label { font-size:.76rem; color:#bbb; font-weight:500; flex-shrink:0; }
+    .priority-btn {
+      font-size:.72rem; font-weight:600; padding:4px 9px; border-radius:7px;
+      cursor:pointer; border:1.5px solid transparent; transition:all .15s;
+      background:#f4f5f9; color:#888;
+    }
+    .priority-btn:hover { opacity:.85; }
+    .priority-btn.p1 { background:#fff1f1; color:#dc2626; border-color:#fca5a5; }
+    .priority-btn.p2 { background:#fefce8; color:#ca8a04; border-color:#fde047; }
+    .priority-btn.p3 { background:#fff7ed; color:#ea580c; border-color:#fdba74; }
+    .priority-btn.p4 { background:#f4f5f9; color:#94a3b8; border-color:#e2e8f0; }
+    .priority-btn.active { box-shadow:0 0 0 2px currentColor; }
     .task-side {
       display:flex; align-items:center; gap:2px; flex-shrink:0; padding-top:1px;
     }
@@ -1249,6 +1276,12 @@ function buildTaskCard(task, isDone) {
     sb.className='subtask-badge'; sb.textContent=`${subsDone}/${subs.length} alt görev`;
     tagsRow.appendChild(sb);
   }
+  if (task.priority && PRIORITIES[task.priority]) {
+    const pb = document.createElement('span');
+    pb.className=`priority-badge ${task.priority}`;
+    pb.textContent=PRIORITIES[task.priority].short;
+    tagsRow.appendChild(pb);
+  }
   body.appendChild(titleInput);
   if (tagsRow.children.length) body.appendChild(tagsRow);
 
@@ -1322,8 +1355,32 @@ function buildTaskCard(task, isDone) {
   addSubBtn.className='btn-add-subtask'; addSubBtn.textContent='+ Alt görev ekle';
   addSubBtn.onclick=()=>{ subInputRow.classList.add('open'); subInput.focus(); };
 
+  /* Priority picker */
+  const prioRow = document.createElement('div');
+  prioRow.className = 'priority-row';
+  const prioLbl = document.createElement('span');
+  prioLbl.className='priority-row-label'; prioLbl.textContent='Öncelik:';
+  prioRow.appendChild(prioLbl);
+  Object.entries(PRIORITIES).forEach(([key, prio]) => {
+    const btn = document.createElement('button');
+    btn.className = `priority-btn ${key}` + (task.priority===key?' active':'');
+    btn.textContent = prio.label;
+    btn.onclick = () => {
+      const newVal = task.priority===key ? null : key;
+      updatePriority(task, newVal);
+    };
+    prioRow.appendChild(btn);
+  });
+  const prioClr = document.createElement('button');
+  prioClr.className='btn-clear-due'; prioClr.textContent='✕';
+  prioClr.title='Önceliği kaldır';
+  prioClr.style.display = task.priority ? 'inline' : 'none';
+  prioClr.onclick = () => updatePriority(task, null);
+  prioRow.appendChild(prioClr);
+
   detail.appendChild(notesTA);
   detail.appendChild(dueRow);
+  detail.appendChild(prioRow);
   if (!isDone) { detail.appendChild(subList); detail.appendChild(subInputRow); detail.appendChild(addSubBtn); }
 
   expandBtn.onclick=()=>{
@@ -1350,6 +1407,21 @@ function buildSubRow(sub,container) {
   del.className='btn-del-sub'; del.textContent='✕'; del.onclick=()=>deleteTask(sub.id);
   row.appendChild(chk); row.appendChild(txt); row.appendChild(del);
   container.appendChild(row);
+}
+
+/* ── Priority ── */
+const PRIORITIES = {
+  p1: { label:'🔴 Acil & Önemli',       short:'🔴 Acil & Önemli'   },
+  p2: { label:'🟡 Önemli, Acil Değil',  short:'🟡 Önemli'          },
+  p3: { label:'🟠 Acil, Önemsiz',       short:'🟠 Acil'            },
+  p4: { label:'⚪ Ne Acil Ne Önemli',   short:'⚪ Ertele'          },
+};
+
+async function updatePriority(task, val) {
+  const priority = val || null;
+  await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify({priority})});
+  task.priority = priority;
+  render();
 }
 
 /* ── Helpers ── */
