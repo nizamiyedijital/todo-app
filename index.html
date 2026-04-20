@@ -469,6 +469,46 @@
     }
     .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
 
+    /* ── Icon picker ── */
+    .icon-picker-overlay {
+      position:fixed; inset:0; z-index:300; display:none;
+    }
+    .icon-picker-overlay.open { display:block; }
+    .icon-picker-popup {
+      position:fixed; background:#fff; border-radius:12px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15); z-index:301;
+      padding:10px; display:none; width:220px;
+    }
+    .icon-picker-popup.open { display:block; }
+    .icon-picker-label {
+      font-size:.72rem; color:#aaa; font-weight:600; text-transform:uppercase;
+      letter-spacing:.4px; margin-bottom:8px; display:block;
+    }
+    .icon-grid {
+      display:grid; grid-template-columns:repeat(7,28px); gap:3px;
+    }
+    .icon-btn {
+      width:28px; height:28px; border:none; background:transparent;
+      border-radius:7px; cursor:pointer; font-size:1rem;
+      display:flex; align-items:center; justify-content:center;
+      transition:background .12s;
+    }
+    .icon-btn:hover { background:#f0f2f9; }
+    .icon-btn.selected { background:#eef1fd; outline:2px solid #4f6ef7; }
+
+    /* List item name as editable input */
+    .list-name-input {
+      flex:1; font-size:.87rem; color:#333; font-weight:500;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      cursor:text; border:none; outline:none; background:transparent;
+      font-family:inherit; padding:0; min-width:0;
+    }
+    .list-item.active .list-name-input { color:#4f6ef7; font-weight:600; }
+    .list-name-input:focus {
+      background:#fff; color:#1a1a2e; border-bottom:1.5px solid #4f6ef7;
+      cursor:text;
+    }
+
     /* Delete confirm */
     .del-confirm-overlay {
       position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:400; display:none;
@@ -645,6 +685,13 @@
     <button class="dtp-btn-clear" onclick="dtpClear()">Temizle</button>
     <button class="dtp-btn-ok" onclick="dtpConfirm()">Tamam</button>
   </div>
+</div>
+
+<!-- Icon picker -->
+<div class="icon-picker-overlay" id="iconPickerOverlay" onclick="closeIconPicker()"></div>
+<div class="icon-picker-popup" id="iconPickerPopup">
+  <span class="icon-picker-label">İkon seç</span>
+  <div class="icon-grid" id="iconGrid"></div>
 </div>
 
 <!-- Delete confirm -->
@@ -841,6 +888,54 @@ function closeDelConfirm() {
   delConfirmCallback = null;
 }
 
+/* ── List update ── */
+async function updateList(listId, patch) {
+  try {
+    await db(`/lists?id=eq.${encodeURIComponent(listId)}`, {method:'PATCH', body:JSON.stringify(patch)});
+    const l = lists.find(l=>l.id===listId);
+    if (l) Object.assign(l, patch);
+    if (listId===activeListId) {
+      document.getElementById('mainListIcon').textContent  = lists.find(l=>l.id===listId)?.icon || '📋';
+      document.getElementById('mainListTitle').textContent = lists.find(l=>l.id===listId)?.name || '';
+    }
+    renderSidebar();
+  } catch(e) { showToast('Hata: '+e.message); }
+}
+
+/* ── Icon picker ── */
+const ALL_ICONS = ['📋','⭐','🎯','💡','🔥','✨','📌','🗂️','💼','🏃','📚','🥗',
+                   '🛒','🏠','💻','🎵','📷','🏆','🌟','💪','🧘','📖','✅','🔑',
+                   '🚀','🎨','🧪','🌿','🏋️','🎮','🍎','🧠','📝','🎁','🌍','💰'];
+let iconPickerListId = null;
+
+function openIconPicker(anchor, listId) {
+  iconPickerListId = listId;
+  const list = lists.find(l=>l.id===listId);
+  const grid = document.getElementById('iconGrid');
+  grid.innerHTML = '';
+  ALL_ICONS.forEach(ic => {
+    const btn = document.createElement('button');
+    btn.className   = 'icon-btn' + (ic===list?.icon?' selected':'');
+    btn.textContent = ic;
+    btn.onclick     = (e) => { e.stopPropagation(); updateList(listId,{icon:ic}); closeIconPicker(); };
+    grid.appendChild(btn);
+  });
+  const popup = document.getElementById('iconPickerPopup');
+  popup.classList.add('open');
+  document.getElementById('iconPickerOverlay').classList.add('open');
+  const rect = anchor.getBoundingClientRect();
+  const vw=window.innerWidth, vh=window.innerHeight, pw=220, ph=180;
+  let left=rect.right+6, top=rect.top;
+  if (left+pw>vw-8) left=Math.max(8, rect.left-pw-6);
+  if (top+ph>vh-8)  top=Math.max(8, vh-ph-8);
+  popup.style.left=left+'px'; popup.style.top=top+'px';
+}
+function closeIconPicker() {
+  document.getElementById('iconPickerPopup').classList.remove('open');
+  document.getElementById('iconPickerOverlay').classList.remove('open');
+  iconPickerListId = null;
+}
+
 /* ── Sidebar render ── */
 function renderSidebar() {
   const container = document.getElementById('sidebarLists');
@@ -849,15 +944,40 @@ function renderSidebar() {
     const count = tasks.filter(t=>!t.parent_id && t.category===l.id && !t.done).length;
     const item  = document.createElement('div');
     item.className = 'list-item' + (l.id===activeListId?' active':'');
-    item.onclick   = (e) => { if (e.target.classList.contains('btn-del-list')) return; selectList(l.id); };
 
+    /* Icon — click to pick */
     const icon = document.createElement('span');
     icon.className   = 'list-icon';
     icon.textContent = l.icon||'📋';
+    icon.title       = 'İkonu değiştir';
+    icon.style.cursor = 'pointer';
+    icon.onclick = (e) => { e.stopPropagation(); openIconPicker(icon, l.id); };
 
-    const name = document.createElement('span');
-    name.className   = 'list-name';
-    name.textContent = l.name;
+    /* Name — click to select list, double-click to edit */
+    const nameInput = document.createElement('input');
+    nameInput.className   = 'list-name-input';
+    nameInput.type        = 'text';
+    nameInput.value       = l.name;
+    nameInput.title       = 'Çift tıkla: adı düzenle';
+    nameInput.readOnly    = true;
+    nameInput.onclick     = (e) => { e.stopPropagation(); selectList(l.id); };
+    nameInput.ondblclick  = (e) => {
+      e.stopPropagation();
+      nameInput.readOnly = false;
+      nameInput.focus();
+      nameInput.select();
+    };
+    nameInput.onblur = () => {
+      nameInput.readOnly = true;
+      const newName = nameInput.value.trim();
+      if (newName && newName !== l.name) updateList(l.id, {name:newName});
+      else nameInput.value = l.name;
+    };
+    nameInput.onkeydown = (e) => {
+      if (e.key==='Enter')  { nameInput.blur(); }
+      if (e.key==='Escape') { nameInput.value=l.name; nameInput.blur(); }
+      e.stopPropagation();
+    };
 
     const badge = document.createElement('span');
     badge.className   = 'list-count';
@@ -876,7 +996,7 @@ function renderSidebar() {
     };
 
     item.appendChild(icon);
-    item.appendChild(name);
+    item.appendChild(nameInput);
     item.appendChild(badge);
     item.appendChild(delBtn);
     container.appendChild(item);
