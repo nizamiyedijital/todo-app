@@ -770,6 +770,35 @@ let doneOpen     = false;
 let addDueValue  = '';
 let editTimers   = {};
 let isRegMode    = false;
+let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', dir:'asc'|'desc' } }
+
+const SORT_OPTIONS = [
+  { key:'created_at', label:'Ekleniş Tarihi' },
+  { key:'due_at',     label:'Planlama Zamanı' },
+  { key:'priority',   label:'Öncelik Durumu'  },
+];
+const PRIO_ORDER = { p1:1, p2:2, p3:3, p4:4 };
+
+function sortedActiveTasks(listId, activeTasks) {
+  const s = listSorts[listId];
+  if (!s) return activeTasks;
+  const { by, dir } = s;
+  const mul = dir==='asc' ? 1 : -1;
+  return [...activeTasks].sort((a, b) => {
+    let av, bv;
+    if (by==='priority') {
+      av = PRIO_ORDER[a.priority] ?? 99;
+      bv = PRIO_ORDER[b.priority] ?? 99;
+    } else if (by==='due_at') {
+      av = a.due_at ? new Date(a.due_at).getTime() : (dir==='asc' ? Infinity : -Infinity);
+      bv = b.due_at ? new Date(b.due_at).getTime() : (dir==='asc' ? Infinity : -Infinity);
+    } else {
+      av = new Date(a.created_at).getTime();
+      bv = new Date(b.created_at).getTime();
+    }
+    return (av - bv) * mul;
+  });
+}
 
 /* ── Session ── */
 function jwtPayload(t) { try { return JSON.parse(atob(t.split('.')[1])); } catch { return {}; } }
@@ -979,36 +1008,82 @@ let openCtxMenu = null;
 
 function openListCtxMenu(anchor, listId) {
   closeListCtxMenu();
-  const list = lists.find(l=>l.id===listId);
-  const menu = document.createElement('div');
+  const list    = lists.find(l=>l.id===listId);
+  const curSort = listSorts[listId];
+  const menu    = document.createElement('div');
   menu.className = 'list-ctx-menu open';
 
-  const items = [
+  /* Edit actions */
+  const editItems = [
     { icon:'✏️', label:'Yeniden adlandır', action: () => startRename(listId) },
     { icon:'😀', label:'İkonu değiştir',   action: () => openIconPicker(anchor, listId) },
-    { sep: true },
-    { icon:'🗑️', label:'Listeyi sil', cls:'danger', action: () => {
-        openDelConfirm(
-          `"${list.name}" listesi ve içindeki tüm görevler silinecek. Emin misiniz?`,
-          () => deleteList(listId)
-        );
-    }},
   ];
-
-  items.forEach(it => {
-    if (it.sep) { const s=document.createElement('div'); s.className='list-ctx-sep'; menu.appendChild(s); return; }
+  editItems.forEach(it => {
     const btn = document.createElement('button');
-    btn.className = 'list-ctx-item' + (it.cls?' '+it.cls:'');
+    btn.className = 'list-ctx-item';
     btn.innerHTML = `<span>${it.icon}</span><span>${it.label}</span>`;
     btn.onclick   = (e) => { e.stopPropagation(); closeListCtxMenu(); it.action(); };
     menu.appendChild(btn);
   });
 
+  /* Sort section */
+  const sep1 = document.createElement('div'); sep1.className='list-ctx-sep'; menu.appendChild(sep1);
+  const sortHead = document.createElement('div');
+  sortHead.style.cssText = 'padding:5px 14px 3px;font-size:.69rem;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.4px;';
+  sortHead.textContent = 'Sırala';
+  menu.appendChild(sortHead);
+
+  SORT_OPTIONS.forEach(opt => {
+    const isActive = curSort?.by === opt.key;
+    const dir      = isActive ? curSort.dir : 'asc';
+    const btn      = document.createElement('button');
+    btn.className  = 'list-ctx-item' + (isActive?' sort-active':'');
+    const arrow    = isActive ? (dir==='asc'?' ↑':' ↓') : '';
+    btn.innerHTML  = `<span>↕️</span><span>${opt.label}${arrow}</span>`;
+    if (isActive) btn.style.cssText='color:#4f6ef7;background:#f0f3ff;width:100%;';
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      if (isActive) {
+        // toggle direction
+        listSorts[listId] = { by:opt.key, dir: dir==='asc'?'desc':'asc' };
+      } else {
+        listSorts[listId] = { by:opt.key, dir:'asc' };
+      }
+      closeListCtxMenu();
+      render();
+    };
+    menu.appendChild(btn);
+  });
+
+  /* Clear sort */
+  if (curSort) {
+    const clrBtn = document.createElement('button');
+    clrBtn.className = 'list-ctx-item';
+    clrBtn.style.color = '#aaa';
+    clrBtn.innerHTML = `<span>✕</span><span>Sıralamayı kaldır</span>`;
+    clrBtn.onclick = (e) => { e.stopPropagation(); delete listSorts[listId]; closeListCtxMenu(); render(); };
+    menu.appendChild(clrBtn);
+  }
+
+  /* Delete */
+  const sep2 = document.createElement('div'); sep2.className='list-ctx-sep'; menu.appendChild(sep2);
+  const delBtn = document.createElement('button');
+  delBtn.className = 'list-ctx-item danger';
+  delBtn.innerHTML = `<span>🗑️</span><span>Listeyi sil</span>`;
+  delBtn.onclick   = (e) => {
+    e.stopPropagation(); closeListCtxMenu();
+    openDelConfirm(
+      `"${list.name}" listesi ve içindeki tüm görevler silinecek. Emin misiniz?`,
+      () => deleteList(listId)
+    );
+  };
+  menu.appendChild(delBtn);
+
   document.body.appendChild(menu);
   openCtxMenu = menu;
 
   const rect = anchor.getBoundingClientRect();
-  const vw=window.innerWidth, vh=window.innerHeight, mw=164, mh=130;
+  const vw=window.innerWidth, vh=window.innerHeight, mw=190, mh=260;
   let left=rect.right+4, top=rect.top;
   if (left+mw>vw-8) left=Math.max(8, rect.left-mw-4);
   if (top+mh>vh-8)  top=Math.max(8, vh-mh-8);
@@ -1213,7 +1288,7 @@ function render() {
   if (!activeListId) return;
 
   const roots  = tasks.filter(t=>!t.parent_id && t.category===activeListId);
-  const active = roots.filter(t=>!t.done);
+  const active = sortedActiveTasks(activeListId, roots.filter(t=>!t.done));
   const done   = roots.filter(t=> t.done);
 
   const taskList = document.getElementById('taskList');
