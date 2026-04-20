@@ -670,12 +670,12 @@
 
     /* ── Calendar icon button ─────────────────── */
     .btn-cal {
-      width: 32px; height: 32px;
+      width: 30px; height: 30px;
       border: 1.5px solid #e0e4ef;
       border-radius: 8px;
       background: #fff;
       cursor: pointer;
-      font-size: 1rem;
+      font-size: 0.95rem;
       display: inline-flex; align-items: center; justify-content: center;
       transition: border-color 0.18s, background 0.18s;
       flex-shrink: 0;
@@ -697,142 +697,97 @@
     .dtp-box {
       position: fixed;
       background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.14);
       z-index: 201;
       display: none;
-      overflow: hidden;
-      width: 340px;
+      flex-direction: column;
+      width: 272px;
       max-width: calc(100vw - 16px);
     }
-    .dtp-box.open { display: flex; flex-direction: column; }
+    .dtp-box.open { display: flex; }
 
-    .dtp-body { display: flex; min-height: 0; }
-
-    /* Calendar side */
-    .dtp-cal { flex: 1; min-width: 0; padding: 14px 12px 10px; border-right: 1px solid #f0f2f9; }
+    /* Calendar */
+    .dtp-cal { padding: 14px 14px 8px; }
 
     .dtp-nav {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .dtp-nav-btn {
       width: 28px; height: 28px;
       border: none; background: transparent;
-      cursor: pointer; font-size: 1.1rem; color: #666;
-      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1rem; color: #555;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
       transition: background 0.15s;
     }
     .dtp-nav-btn:hover { background: #f0f2f9; }
 
-    .dtp-month-label { font-size: 0.85rem; font-weight: 600; color: #1a1a2e; }
+    .dtp-month-label { font-size: 0.88rem; font-weight: 600; color: #1a1a2e; }
 
     .dtp-dow {
       display: grid; grid-template-columns: repeat(7, 1fr);
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
     .dtp-dow span {
-      text-align: center; font-size: 0.65rem; font-weight: 600;
-      color: #bbb; padding: 2px 0;
+      text-align: center; font-size: 0.64rem; font-weight: 600;
+      color: #c0c4d0; padding: 2px 0;
     }
 
     .dtp-grid {
       display: grid; grid-template-columns: repeat(7, 1fr);
-      gap: 1px;
+      gap: 2px;
     }
 
     .dtp-day {
       aspect-ratio: 1;
       display: flex; align-items: center; justify-content: center;
-      font-size: 0.78rem; color: #333;
+      font-size: 0.8rem; color: #333;
       border: none; background: transparent;
       border-radius: 50%; cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+      transition: background 0.12s, color 0.12s;
     }
-    .dtp-day:hover    { background: #f0f3ff; color: #4f6ef7; }
+    .dtp-day:hover    { background: #eef1fd; color: #4f6ef7; }
     .dtp-day.today    { font-weight: 700; color: #4f6ef7; }
-    .dtp-day.selected { background: #4f6ef7; color: #fff !important; font-weight: 700; }
-    .dtp-day.empty    { cursor: default; pointer-events: none; }
+    .dtp-day.selected { background: #4f6ef7 !important; color: #fff !important; font-weight: 700; }
+    .dtp-day.empty    { pointer-events: none; }
 
-    /* Time side */
-    .dtp-time {
-      width: 110px; flex-shrink: 0;
-      padding: 14px 8px 10px;
-      display: flex; flex-direction: column; align-items: center;
+    /* Time row */
+    .dtp-time-row {
+      display: flex; align-items: center; justify-content: center;
       gap: 6px;
+      padding: 10px 14px 10px;
+      border-top: 1px solid #f2f3f8;
     }
 
     .dtp-time-label {
-      font-size: 0.7rem; font-weight: 600; color: #bbb;
-      text-transform: uppercase; letter-spacing: 0.5px;
+      font-size: 0.78rem; color: #aaa; font-weight: 500;
+      margin-right: 4px;
     }
 
-    .dtp-drums { display: flex; align-items: center; gap: 6px; }
-
-    .dtp-drum {
-      display: flex; flex-direction: column; align-items: center;
-      width: 36px;
+    .dtp-sel {
+      padding: 6px 8px;
+      border: 1.5px solid #e0e4ef;
+      border-radius: 8px;
+      font-size: 1rem; font-weight: 600;
+      color: #1a1a2e;
+      background: #fafbff;
+      cursor: pointer; outline: none;
+      text-align: center;
+      -webkit-appearance: none;
+      appearance: none;
+      min-width: 52px;
     }
+    .dtp-sel:focus { border-color: #4f6ef7; background: #fff; }
 
-    .dtp-drum-arrow {
-      width: 36px; height: 26px;
-      border: none; background: transparent;
-      cursor: pointer; color: #bbb; font-size: 0.7rem;
-      border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s, color 0.15s;
-      user-select: none;
-      flex-shrink: 0;
-    }
-    .dtp-drum-arrow:hover { background: #f0f3ff; color: #4f6ef7; }
-
-    /* Window shows exactly 3 items: 3 × 30px = 90px */
-    .dtp-drum-window {
-      height: 90px; width: 36px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .dtp-drum-list {
-      display: flex; flex-direction: column;
-      transition: transform 0.18s cubic-bezier(0.4,0,0.2,1);
-      /* translateY(-30px) centres item[2] (active) — set via JS */
-    }
-
-    .dtp-drum-item {
-      height: 30px; width: 36px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.92rem; color: #ccc;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: color 0.12s, font-size 0.12s, font-weight 0.12s;
-      flex-shrink: 0;
-    }
-
-    .dtp-drum-item.active {
-      color: #1a1a2e; font-size: 1.18rem; font-weight: 700;
-    }
-
-    /* highlight band behind active item */
-    .dtp-drum-window::after {
-      content: '';
-      position: absolute;
-      top: 30px; left: 0; right: 0; height: 30px;
-      background: #f0f3ff;
-      border-radius: 6px;
-      pointer-events: none;
-      z-index: 0;
-    }
-    .dtp-drum-item { position: relative; z-index: 1; }
-
-    .dtp-drum-sep { font-size: 1.2rem; font-weight: 700; color: #bbb; margin-bottom: 4px; }
+    .dtp-time-sep { font-size: 1.1rem; font-weight: 700; color: #bbb; }
 
     /* Footer */
     .dtp-footer {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 14px;
-      border-top: 1px solid #f0f2f9;
+      padding: 8px 14px 12px;
     }
 
     .dtp-btn-clear {
@@ -846,7 +801,7 @@
     .dtp-btn-ok {
       font-size: 0.82rem; color: #fff;
       background: #4f6ef7; border: none; border-radius: 8px;
-      padding: 6px 20px; cursor: pointer; font-weight: 600;
+      padding: 7px 22px; cursor: pointer; font-weight: 600;
       transition: background 0.15s;
     }
     .dtp-btn-ok:hover { background: #3a58e2; }
@@ -960,36 +915,22 @@
 <!-- Date-Time Picker -->
 <div class="dtp-overlay" id="dtpOverlay" onclick="dtpClose()"></div>
 <div class="dtp-box" id="dtpBox">
-  <div class="dtp-body">
-    <!-- Calendar -->
-    <div class="dtp-cal">
-      <div class="dtp-nav">
-        <button class="dtp-nav-btn" onclick="dtpPrevMonth()">‹</button>
-        <span class="dtp-month-label" id="dtpMonthLabel"></span>
-        <button class="dtp-nav-btn" onclick="dtpNextMonth()">›</button>
-      </div>
-      <div class="dtp-dow">
-        <span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span>Ct</span><span>Pa</span>
-      </div>
-      <div class="dtp-grid" id="dtpGrid"></div>
+  <div class="dtp-cal">
+    <div class="dtp-nav">
+      <button class="dtp-nav-btn" onclick="dtpPrevMonth()">‹</button>
+      <span class="dtp-month-label" id="dtpMonthLabel"></span>
+      <button class="dtp-nav-btn" onclick="dtpNextMonth()">›</button>
     </div>
-    <!-- Time -->
-    <div class="dtp-time">
-      <div class="dtp-time-label">Saat</div>
-      <div class="dtp-drums">
-        <div class="dtp-drum">
-          <button class="dtp-drum-arrow" onclick="dtpChangeHour(-1)">▲</button>
-          <div class="dtp-drum-window"><div class="dtp-drum-list" id="dtpHourList"></div></div>
-          <button class="dtp-drum-arrow" onclick="dtpChangeHour(1)">▼</button>
-        </div>
-        <div class="dtp-drum-sep">:</div>
-        <div class="dtp-drum">
-          <button class="dtp-drum-arrow" onclick="dtpChangeMin(-1)">▲</button>
-          <div class="dtp-drum-window"><div class="dtp-drum-list" id="dtpMinList"></div></div>
-          <button class="dtp-drum-arrow" onclick="dtpChangeMin(1)">▼</button>
-        </div>
-      </div>
+    <div class="dtp-dow">
+      <span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span><span>Cu</span><span>Ct</span><span>Pa</span>
     </div>
+    <div class="dtp-grid" id="dtpGrid"></div>
+  </div>
+  <div class="dtp-time-row">
+    <span class="dtp-time-label">Saat</span>
+    <select class="dtp-sel" id="dtpHourSel"></select>
+    <span class="dtp-time-sep">:</span>
+    <select class="dtp-sel" id="dtpMinSel"></select>
   </div>
   <div class="dtp-footer">
     <button class="dtp-btn-clear" onclick="dtpClear()">Temizle</button>
@@ -1609,43 +1550,56 @@ function fmtDueShort(iso) {
 }
 
 /* ─── Date-Time Picker ────────────────────── */
-const MINS = [0,5,10,15,20,25,30,35,40,45,50,55];
+const MINS      = [0,5,10,15,20,25,30,35,40,45,50,55];
 const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 
-let dtp = {
-  year: 0, month: 0, day: 0,   // calendar state
-  hour: 9, minIdx: 0,           // minIdx = index in MINS
-  cb: null, anchor: null
-};
+let dtp = { year: 0, month: 0, day: 0, cb: null };
 
 function dtpOpen(anchor, currentISO, callback) {
-  dtp.cb     = callback;
-  dtp.anchor = anchor;
+  dtp.cb = callback;
+  const now  = currentISO ? new Date(currentISO) : new Date();
+  dtp.year   = now.getFullYear();
+  dtp.month  = now.getMonth();
+  dtp.day    = currentISO ? now.getDate() : 0;
 
-  const now = currentISO ? new Date(currentISO) : new Date();
-  dtp.year  = now.getFullYear();
-  dtp.month = now.getMonth();
-  dtp.day   = currentISO ? now.getDate() : 0;
-  dtp.hour  = currentISO ? now.getHours() : 9;
-  const rawMin = currentISO ? now.getMinutes() : 0;
-  dtp.minIdx = MINS.reduce((best, m, i) => Math.abs(m - rawMin) < Math.abs(MINS[best] - rawMin) ? i : best, 0);
+  // Populate hour select (0-23)
+  const hSel = document.getElementById('dtpHourSel');
+  hSel.innerHTML = '';
+  for (let h = 0; h < 24; h++) {
+    const o = document.createElement('option');
+    o.value = h; o.textContent = String(h).padStart(2,'0');
+    hSel.appendChild(o);
+  }
+  hSel.value = currentISO ? now.getHours() : 9;
+
+  // Populate minute select (5-min steps)
+  const mSel = document.getElementById('dtpMinSel');
+  mSel.innerHTML = '';
+  MINS.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = String(m).padStart(2,'0');
+    mSel.appendChild(o);
+  });
+  if (currentISO) {
+    const raw = now.getMinutes();
+    mSel.value = MINS.reduce((a, b) => Math.abs(b-raw) < Math.abs(a-raw) ? b : a);
+  } else {
+    mSel.value = 0;
+  }
 
   dtpRenderCal();
-  dtpRenderDrums();
 
-  const box = document.getElementById('dtpBox');
+  const box  = document.getElementById('dtpBox');
   box.classList.add('open');
   document.getElementById('dtpOverlay').classList.add('open');
 
-  // Position near anchor
   const rect = anchor.getBoundingClientRect();
-  const vw   = window.innerWidth;
-  const vh   = window.innerHeight;
-  const bw   = 336, bh = 320;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const bw = 272, bh = 340;
   let left = rect.left;
   let top  = rect.bottom + 6;
-  if (left + bw > vw - 8) left = vw - bw - 8;
-  if (top  + bh > vh - 8) top  = rect.top - bh - 6;
+  if (left + bw > vw - 8) left = Math.max(8, vw - bw - 8);
+  if (top  + bh > vh - 8) top  = Math.max(8, rect.top - bh - 6);
   box.style.left = left + 'px';
   box.style.top  = top  + 'px';
 }
@@ -1659,8 +1613,9 @@ function dtpClear()   { dtp.cb && dtp.cb(''); dtpClose(); }
 
 function dtpConfirm() {
   if (!dtp.day) { showToast('Bir gün seçin'); return; }
-  const d = new Date(dtp.year, dtp.month, dtp.day, dtp.hour, MINS[dtp.minIdx]);
-  dtp.cb && dtp.cb(d.toISOString());
+  const h = parseInt(document.getElementById('dtpHourSel').value);
+  const m = parseInt(document.getElementById('dtpMinSel').value);
+  dtp.cb && dtp.cb(new Date(dtp.year, dtp.month, dtp.day, h, m).toISOString());
   dtpClose();
 }
 
@@ -1669,62 +1624,28 @@ function dtpNextMonth() { dtp.month++; if (dtp.month > 11) { dtp.month = 0;  dtp
 
 function dtpRenderCal() {
   document.getElementById('dtpMonthLabel').textContent = `${TR_MONTHS[dtp.month]} ${dtp.year}`;
-  const grid    = document.getElementById('dtpGrid');
+  const grid = document.getElementById('dtpGrid');
   grid.innerHTML = '';
-  const today   = new Date();
-  const first   = new Date(dtp.year, dtp.month, 1);
-  const last    = new Date(dtp.year, dtp.month + 1, 0);
-  // Monday-based offset
-  let startDow  = first.getDay(); // 0=Sun
-  startDow      = startDow === 0 ? 6 : startDow - 1; // convert to Mon=0
+  const today = new Date();
+  const first = new Date(dtp.year, dtp.month, 1);
+  const last  = new Date(dtp.year, dtp.month + 1, 0);
+  let dow = first.getDay();
+  dow = dow === 0 ? 6 : dow - 1; // Mon=0
 
-  for (let i = 0; i < startDow; i++) {
-    const el = document.createElement('button');
-    el.className = 'dtp-day empty'; el.disabled = true; grid.appendChild(el);
+  for (let i = 0; i < dow; i++) {
+    const e = document.createElement('button');
+    e.className = 'dtp-day empty'; grid.appendChild(e);
   }
-
   for (let d = 1; d <= last.getDate(); d++) {
     const btn = document.createElement('button');
-    btn.className = 'dtp-day';
+    btn.className   = 'dtp-day';
     btn.textContent = d;
-    const isToday = d === today.getDate() && dtp.month === today.getMonth() && dtp.year === today.getFullYear();
-    const isSel   = d === dtp.day;
-    if (isToday && !isSel) btn.classList.add('today');
-    if (isSel)             btn.classList.add('selected');
+    if (d === today.getDate() && dtp.month === today.getMonth() && dtp.year === today.getFullYear())
+      btn.classList.add('today');
+    if (d === dtp.day) btn.classList.add('selected');
     btn.onclick = () => { dtp.day = d; dtpRenderCal(); };
     grid.appendChild(btn);
   }
-}
-
-function dtpChangeHour(dir) {
-  dtp.hour = (dtp.hour + dir + 24) % 24;
-  dtpRenderDrums();
-}
-
-function dtpChangeMin(dir) {
-  dtp.minIdx = (dtp.minIdx + dir + MINS.length) % MINS.length;
-  dtpRenderDrums();
-}
-
-function dtpRenderDrums() {
-  dtpFillDrum('dtpHourList', Array.from({length:24},(_,i)=>String(i).padStart(2,'0')), dtp.hour, dtpChangeHour);
-  dtpFillDrum('dtpMinList',  MINS.map(m=>String(m).padStart(2,'0')), dtp.minIdx, dtpChangeMin);
-}
-
-function dtpFillDrum(listId, items, activeIdx, changeFn) {
-  const list = document.getElementById(listId);
-  // Show 5 items: active-2 to active+2, centred on active (index 2 = y:28px*2=56px offset)
-  list.innerHTML = '';
-  [-2,-1,0,1,2].forEach(offset => {
-    const idx  = (activeIdx + offset + items.length) % items.length;
-    const el   = document.createElement('div');
-    el.className   = 'dtp-drum-item' + (offset === 0 ? ' active' : '');
-    el.textContent = items[idx];
-    el.onclick     = () => { if (offset !== 0) changeFn(offset); };
-    list.appendChild(el);
-  });
-  // item height = 30px; show items[1,2,3]; translateY(-30px) puts item[1] at top of 90px window
-  list.style.transform = 'translateY(-30px)';
 }
 
 /* ─── Email confirmation ──────────────────── */
