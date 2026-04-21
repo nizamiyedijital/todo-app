@@ -2218,7 +2218,6 @@ function buildTaskCard(task, isDone) {
 
   row.addEventListener('click', e => {
     if (e.target.closest('.task-side') || e.target.closest('.task-check')) return;
-    if (e.target.closest('.task-title-preview')) return; // handled by titlePreview click
     if (window.innerWidth <= 600) { openMobTaskPage(task); return; }
     const wasOpen = detail.classList.contains('open');
     closeAllDetails();
