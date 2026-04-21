@@ -1963,6 +1963,8 @@ function restoreOpenDetails() {
     if (card) {
       card.querySelector('.task-detail')?.classList.add('open');
       card.classList.add('detail-open');
+      const prev = card.querySelector('.task-title-preview');
+      if (prev && prev.dataset.fullText) prev.textContent = prev.dataset.fullText;
     }
   });
   if (pendingSubtaskFocus) {
@@ -2034,16 +2036,19 @@ function buildTaskCard(task, isDone) {
   const titlePreview = document.createElement('span');
   titlePreview.className = 'task-title-preview';
   titlePreview.dataset.fullText = task.text;
-  titlePreview.dataset.shortText = task.text.length > 50 ? task.text.slice(0,50) + '…' : task.text;
+  titlePreview.dataset.shortText = task.text.length > 71 ? task.text.slice(0,71) + '…' : task.text;
   titlePreview.textContent = titlePreview.dataset.shortText;
 
-  // Desktop: click title to edit inline
+  // 1. tıklama → detail açılır (row handler devralır)
+  // 2. tıklama (detail açıkken) → inline edit
   titlePreview.addEventListener('click', e => {
     if (isDone || window.innerWidth <= 600) return;
-    e.stopPropagation();
-    card.classList.add('editing-title');
-    titleInput.value = task.text;
-    setTimeout(() => { titleInput.focus(); titleInput.select(); }, 0);
+    if (card.classList.contains('detail-open')) {
+      e.stopPropagation();
+      card.classList.add('editing-title');
+      titleInput.value = task.text;
+      setTimeout(() => { titleInput.focus(); titleInput.select(); }, 0);
+    }
   });
 
   const titleInput = document.createElement('input');
@@ -2058,7 +2063,7 @@ function buildTaskCard(task, isDone) {
     scheduleUpdate(task,{text:v});
     task.text = v;
     titlePreview.dataset.fullText  = v;
-    titlePreview.dataset.shortText = v.length>50 ? v.slice(0,50)+'…' : v;
+    titlePreview.dataset.shortText = v.length>71 ? v.slice(0,71)+'…' : v;
     titlePreview.textContent = card.classList.contains('detail-open') ? v : titlePreview.dataset.shortText;
   });
   titleInput.addEventListener('blur', ()=>{
