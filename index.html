@@ -1763,13 +1763,19 @@ function closeAddDetail() { document.getElementById('addDetail').classList.remov
 
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('taskInput').addEventListener('focus', openAddDetail);
-  document.getElementById('taskInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); if(e.key==='Escape') { closeAddDetail(); e.target.blur(); } });
-  document.addEventListener('click', e => {
-    if (addingTask) return;
-    const wrap = document.getElementById('addWrap');
-    if (!wrap || !wrap.contains(e.target)) {
-      if (!document.getElementById('taskInput').value.trim()) closeAddDetail();
-    }
+  document.getElementById('taskInput').addEventListener('keydown', e=>{
+    if (e.key==='Enter') addTask();
+    if (e.key==='Escape') { closeAddDetail(); e.target.blur(); }
+  });
+
+  // Sadece gerçekten odak addWrap dışına çıkınca kapat — Enter'da asla tetiklenmez
+  document.getElementById('addWrap').addEventListener('focusout', () => {
+    setTimeout(() => {
+      if (addingTask) return;
+      if (!document.getElementById('addWrap').contains(document.activeElement)) {
+        if (!document.getElementById('taskInput').value.trim()) closeAddDetail();
+      }
+    }, 200);
   });
 
   document.getElementById('mobTitleInput').addEventListener('keydown', e => {
