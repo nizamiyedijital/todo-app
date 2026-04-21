@@ -286,7 +286,7 @@
     .task-card.prio-p4 { border-left-color:#94a3b8; }
     .task-row {
       display:flex; align-items:flex-start; gap:9px;
-      padding:7px 10px 7px 11px;
+      padding:4px 10px 4px 11px;
     }
     .task-check {
       width:17px; height:17px; flex-shrink:0; margin-top:2px;
@@ -654,6 +654,9 @@
       background:#e53e3e; color:#fff; font-size:.85rem; font-weight:600; cursor:pointer;
     }
 
+    /* Mobile-only elements — hidden on desktop */
+    #mobSheet, #mobSheetOverlay { display:none; }
+
     /* ── Board view ── */
     .board-area {
       flex:1; min-height:0; display:flex;
@@ -697,6 +700,134 @@
     .board-col-body::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
     .board-col-body.drag-over { background:#eef1fd; }
 
+    /* ── Weekly Planning ── */
+    .weekly-area {
+      flex:1; min-height:0; display:flex; overflow:hidden;
+    }
+    .weekly-left {
+      width:210px; min-width:210px; flex-shrink:0;
+      border-right:1px solid #e8ecf4; overflow-y:auto;
+      background:#fafbff; display:flex; flex-direction:column;
+    }
+    .weekly-left::-webkit-scrollbar { width:3px; }
+    .weekly-left::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:3px; }
+    .wk-panel-title {
+      padding:8px 10px 6px; font-size:.68rem; color:#aaa;
+      font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+      border-bottom:1px solid #f0f2f8; flex-shrink:0;
+    }
+    .wk-list-group { border-bottom:1px solid #f4f6fb; }
+    .wk-list-header {
+      display:flex; align-items:center; gap:7px;
+      padding:7px 10px; cursor:pointer; font-size:.83rem;
+      font-weight:600; color:#444; background:transparent;
+      border:none; width:100%; text-align:left;
+      transition:background .12s;
+    }
+    .wk-list-header:hover { background:#f4f5f9; }
+    .wk-list-header.open { color:#4f6ef7; background:#eef1fd; }
+    .wk-list-tasks { display:none; }
+    .wk-list-tasks.open { display:block; }
+    .wk-task-chip {
+      display:flex; align-items:center; gap:5px;
+      padding:5px 8px 5px 20px; font-size:.77rem; color:#444;
+      cursor:grab; border-radius:6px; margin:2px 6px;
+      background:#fff; border:1px solid #e8ecf4;
+      user-select:none; touch-action:none;
+      transition:background .1s, box-shadow .1s;
+    }
+    .wk-task-chip:hover { background:#f0f2fb; border-color:#c5ceea; }
+    .wk-task-chip.wk-dragging { opacity:.35; }
+    .wk-ghost {
+      position:fixed; z-index:9999; pointer-events:none;
+      background:#4f6ef7; color:#fff; border-radius:8px;
+      padding:5px 12px; font-size:.78rem; max-width:170px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      box-shadow:0 6px 18px rgba(79,110,247,.35); opacity:.93;
+    }
+    .weekly-grid-wrap {
+      flex:1; overflow:auto; display:flex; flex-direction:column;
+    }
+    .weekly-grid-wrap::-webkit-scrollbar { width:5px; height:5px; }
+    .weekly-grid-wrap::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
+    .wk-nav {
+      display:flex; align-items:center; gap:8px;
+      padding:7px 14px; border-bottom:1px solid #e8ecf4;
+      background:#fff; flex-shrink:0;
+    }
+    .wk-nav-btn {
+      background:none; border:1px solid #e0e4ef; border-radius:7px;
+      padding:3px 11px; cursor:pointer; font-size:.8rem; color:#555;
+      transition:all .12s;
+    }
+    .wk-nav-btn:hover { background:#f4f5f9; border-color:#c5ceea; }
+    .wk-nav-title { flex:1; text-align:center; font-size:.84rem; font-weight:600; color:#333; }
+    .wk-inner {
+      flex:1; overflow:auto; position:relative;
+    }
+    .wk-inner::-webkit-scrollbar { width:5px; height:5px; }
+    .wk-inner::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
+    .wk-table {
+      min-width:760px; width:100%;
+      border-collapse:collapse;
+    }
+    .wk-table th, .wk-table td {
+      border:1px solid #f0f2f8; vertical-align:top;
+    }
+    .wk-day-head {
+      text-align:center; padding:6px 4px;
+      background:#fff; position:sticky; top:0; z-index:5;
+      border-bottom:2px solid #e8ecf4;
+      width:calc((100% - 52px)/7);
+    }
+    .wk-time-col { width:52px; background:#fff; position:sticky; top:0; z-index:5; }
+    .wk-day-name { font-size:.71rem; font-weight:700; color:#888; }
+    .wk-day-date {
+      font-size:.92rem; font-weight:700; color:#1a1a2e;
+      width:28px; height:28px; display:inline-flex;
+      align-items:center; justify-content:center; border-radius:50%;
+      margin:1px auto 0;
+    }
+    .wk-day-head.today .wk-day-date { background:#4f6ef7; color:#fff; }
+    .wk-row-theme td, .wk-row-toptask td {
+      padding:0; height:28px;
+    }
+    .wk-row-theme { background:#f8f9ff; }
+    .wk-row-toptask { background:#fffbeb; }
+    .wk-row-lbl {
+      font-size:.6rem; color:#bbb; text-align:right;
+      padding:4px 5px 0 0; vertical-align:middle;
+      white-space:nowrap;
+    }
+    .wk-row-toptask .wk-row-lbl { color:#d97706; }
+    .wk-theme-input, .wk-toptask-input {
+      width:100%; height:100%; border:none; outline:none;
+      background:transparent; font-size:.75rem; padding:4px 6px;
+      font-family:inherit; color:#555;
+    }
+    .wk-toptask-input { color:#b45309; font-weight:500; }
+    .wk-theme-input::placeholder { color:#ccc; }
+    .wk-toptask-input::placeholder { color:#e5a93a; }
+    .wk-hour-lbl {
+      font-size:.67rem; color:#bbb; text-align:right;
+      padding:3px 6px 0 0; height:50px; vertical-align:top;
+      white-space:nowrap;
+    }
+    .wk-slot {
+      height:50px; position:relative; padding:2px;
+      transition:background .1s;
+    }
+    .wk-slot.drag-over { background:#eef1fd !important; outline:2px dashed #4f6ef7; outline-offset:-2px; }
+    .wk-slot-task {
+      display:flex; align-items:center; gap:3px;
+      background:#4f6ef7; color:#fff; border-radius:5px;
+      font-size:.71rem; padding:2px 5px; margin-bottom:2px;
+      cursor:default; white-space:nowrap; overflow:hidden;
+    }
+    .wk-slot-task span { overflow:hidden; text-overflow:ellipsis; flex:1; }
+    .wk-rm { flex-shrink:0; cursor:pointer; opacity:.7; margin-left:2px; }
+    .wk-rm:hover { opacity:1; }
+
     /* Drag & drop */
     .task-card.is-dragging { opacity:.25; pointer-events:none; }
     .drag-ghost {
@@ -723,11 +854,11 @@
         border-bottom:1px solid #f0f2f8; margin-bottom:0;
         box-shadow:none !important;
       }
-      .task-card.prio-p1 { border-left:none !important; border-top:2px solid #dc2626 !important; }
-      .task-card.prio-p2 { border-left:none !important; border-top:2px solid #ca8a04 !important; }
-      .task-card.prio-p3 { border-left:none !important; border-top:2px solid #ea580c !important; }
-      .task-card.prio-p4 { border-left:none !important; border-top:2px solid #94a3b8 !important; }
-      .task-row { padding:11px 10px 11px 12px; }
+      .task-card.prio-p1 { border-left:3px solid #dc2626 !important; border-top:none !important; }
+      .task-card.prio-p2 { border-left:3px solid #ca8a04 !important; border-top:none !important; }
+      .task-card.prio-p3 { border-left:3px solid #ea580c !important; border-top:none !important; }
+      .task-card.prio-p4 { border-left:3px solid #94a3b8 !important; border-top:none !important; }
+      .task-row { padding:8px 10px 8px 12px; }
       .task-check { width:22px; height:22px; margin-top:1px; }
       .task-title { font-size:.9rem; }
       .btn-star  { opacity:1 !important; width:34px; height:34px; font-size:1.1rem; }
@@ -756,6 +887,7 @@
       }
       #mobSheetOverlay.open { display:block; }
       #mobSheet {
+        display:block;
         position:fixed; bottom:0; left:0; right:0;
         background:#fff; border-radius:18px 18px 0 0;
         box-shadow:0 -6px 30px rgba(0,0,0,.13);
@@ -873,7 +1005,7 @@
 
       <div class="sidebar-footer">
         <div class="new-list-input-row" id="newListInputRow">
-          <input type="text" id="newListInput" placeholder="Liste adı">
+          <input type="text" id="newListInput" placeholder="Liste adı" autocomplete="off">
           <button class="btn-nl-ok" onclick="confirmNewList()" title="Listeyi oluştur">Ekle</button>
           <button class="btn-nl-cxl" onclick="cancelNewList()" title="İptal">✕</button>
         </div>
@@ -892,13 +1024,15 @@
 
       <div class="main-body" id="mainBody">
         <div class="add-wrap" id="addWrap" style="display:none">
+          <input style="display:none" type="text" name="prevent-autofill-text">
+          <input style="display:none" type="password" name="prevent-autofill-pass">
           <div class="add-main-row">
             <span class="add-plus">+</span>
-            <input type="text" id="taskInput" placeholder="Görev ekle...">
+            <input type="text" id="taskInput" placeholder="Görev ekle..." autocomplete="new-password">
             <button class="btn-add" onclick="addTask()" title="Görevi ekle">Ekle</button>
           </div>
           <div class="add-detail" id="addDetail">
-            <textarea id="addNotes" placeholder="Notlar" rows="2"></textarea>
+            <textarea id="addNotes" placeholder="Notlar" rows="2" autocomplete="off"></textarea>
             <div class="add-bottom-row">
               <button class="btn-cal" id="addDueBtn"
                 onclick="dtpOpen(this, null, v=>{addDueValue=v;renderAddDueLabel();})"
@@ -926,6 +1060,7 @@
       </div>
 
       <div class="board-area" id="boardArea" style="display:none"></div>
+      <div class="weekly-area" id="weeklyArea" style="display:none"></div>
     </div>
 
   </div>
@@ -1013,6 +1148,7 @@ const APP_URL = 'https://nizamiyedijital.github.io/todo-app';
 
 const STARRED_LIST_ID = '__starred__';
 const BOARD_LIST_ID   = '__board__';
+const WEEKLY_LIST_ID  = '__weekly__';
 
 const DEFAULT_LISTS = [
   { id:'genel',    name:'Genel',    icon:'📋', color:'#718096', sort_order:0 },
@@ -1035,6 +1171,9 @@ let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', d
 let boardDoneStates  = {};
 let dragState        = null;
 let recentlyAddedId  = null;
+let weeklyOffset     = 0;
+let weeklyExpandedList = null;
+let wkDragState      = null;
 
 const SORT_OPTIONS = [
   { key:'created_at', label:'Ekleniş Tarihi' },
@@ -1410,6 +1549,20 @@ function renderSidebar() {
   }
   container.appendChild(boardItem);
 
+  /* Haftalık Planlama */
+  const weeklyItem = document.createElement('div');
+  weeklyItem.className = 'list-item' + (activeListId===WEEKLY_LIST_ID?' active':'');
+  weeklyItem.onclick   = () => selectList(WEEKLY_LIST_ID);
+  weeklyItem.innerHTML = `
+    <span class="list-icon">📅</span>
+    <span class="list-name" style="flex:1;font-size:.87rem;color:#333;font-weight:500;">Haftalık Planlama</span>
+  `;
+  if (activeListId===WEEKLY_LIST_ID) {
+    weeklyItem.querySelector('.list-name').style.color='#4f6ef7';
+    weeklyItem.querySelector('.list-name').style.fontWeight='600';
+  }
+  container.appendChild(weeklyItem);
+
   /* Yıldızlı akıllı liste */
   const starCount = tasks.filter(t=>!t.parent_id && t.starred && !t.done).length;
   const starItem  = document.createElement('div');
@@ -1467,14 +1620,16 @@ function renderSidebar() {
 function selectList(id) {
   activeListId = id;
   doneOpen     = false;
-  const isBoard = id === BOARD_LIST_ID;
-  const list    = lists.find(l=>l.id===id);
-  document.getElementById('mainListIcon').textContent  = isBoard ? '🗂️' : (list?.icon  || '📋');
-  document.getElementById('mainListTitle').textContent = isBoard ? 'Tüm Görevler' : (list?.name || '');
-  document.getElementById('addWrap').style.display     = isBoard ? 'none' : 'block';
-  document.getElementById('mainBody').style.display    = isBoard ? 'none' : '';
-  document.getElementById('boardArea').style.display   = isBoard ? 'flex' : 'none';
-  document.getElementById('mobileAddBar').style.display = isBoard ? 'none' : '';
+  const isBoard  = id === BOARD_LIST_ID;
+  const isWeekly = id === WEEKLY_LIST_ID;
+  const list     = lists.find(l=>l.id===id);
+  document.getElementById('mainListIcon').textContent  = isBoard ? '🗂️' : isWeekly ? '📅' : (list?.icon || '📋');
+  document.getElementById('mainListTitle').textContent = isBoard ? 'Tüm Görevler' : isWeekly ? 'Haftalık Planlama' : (list?.name || '');
+  document.getElementById('addWrap').style.display      = (isBoard||isWeekly) ? 'none' : 'block';
+  document.getElementById('mainBody').style.display     = (isBoard||isWeekly) ? 'none' : '';
+  document.getElementById('boardArea').style.display    = isBoard ? 'flex' : 'none';
+  document.getElementById('weeklyArea').style.display   = isWeekly ? 'flex' : 'none';
+  document.getElementById('mobileAddBar').style.display = (isBoard||isWeekly) ? 'none' : '';
   renderSidebar();
   render();
 }
@@ -1633,7 +1788,8 @@ function restoreOpenDetails() {
 function render() {
   try { renderStats(); } catch(e) { console.error('renderStats:', e); }
   if (!activeListId) return;
-  if (activeListId === BOARD_LIST_ID) { renderBoard(); return; }
+  if (activeListId === BOARD_LIST_ID)  { renderBoard();  return; }
+  if (activeListId === WEEKLY_LIST_ID) { renderWeekly(); return; }
 
   const isStarred = activeListId === STARRED_LIST_ID;
   const roots  = isStarred
@@ -2223,11 +2379,271 @@ async function dropTask(task, targetListId, insertBeforeId) {
   } catch(e) { showToast('Hata: '+e.message); }
 }
 
+/* ── Weekly Planning ── */
+function wkGetThemes() {
+  try { return JSON.parse(localStorage.getItem('wk_themes')||'{}'); } catch{ return {}; }
+}
+function wkSaveThemes(t) { localStorage.setItem('wk_themes', JSON.stringify(t)); }
+function wkGetSlots() {
+  try { return JSON.parse(localStorage.getItem('wk_slots')||'{}'); } catch{ return {}; }
+}
+function wkSaveSlots(s) { localStorage.setItem('wk_slots', JSON.stringify(s)); }
+function wkDateKey(d) { return d.toISOString().slice(0,10); }
+function wkGetWeekDates() {
+  const now = new Date();
+  const dow = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (dow===0?6:dow-1) + weeklyOffset*7);
+  monday.setHours(0,0,0,0);
+  return Array.from({length:7},(_,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); return d; });
+}
+
+function renderWeekly() {
+  const area = document.getElementById('weeklyArea');
+  area.innerHTML = '';
+
+  const dates  = wkGetWeekDates();
+  const today  = wkDateKey(new Date());
+  const DAYS   = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+  const HOURS  = Array.from({length:16},(_,i)=>i+7); // 07–22
+
+  /* ── Left panel ── */
+  const left = document.createElement('div');
+  left.className = 'weekly-left';
+  left.innerHTML = '<div class="wk-panel-title">Görev Listeleri</div>';
+
+  lists.forEach(list => {
+    const listTasks = tasks.filter(t=>!t.parent_id && !t.done && t.category===list.id);
+    const isOpen = weeklyExpandedList === list.id;
+    const group  = document.createElement('div');
+    group.className = 'wk-list-group';
+
+    const hdr = document.createElement('button');
+    hdr.className = 'wk-list-header' + (isOpen?' open':'');
+    hdr.innerHTML = `<span>${list.icon||'📋'}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${list.name}</span><span style="font-size:.7rem;color:#bbb;flex-shrink:0">${listTasks.length}</span><span style="font-size:.7rem;margin-left:2px">${isOpen?'▾':'▸'}</span>`;
+    hdr.onclick = () => { weeklyExpandedList = isOpen ? null : list.id; renderWeekly(); };
+
+    const wrap = document.createElement('div');
+    wrap.className = 'wk-list-tasks' + (isOpen?' open':'');
+
+    if (listTasks.length === 0) {
+      wrap.innerHTML = '<div style="padding:4px 8px 6px 20px;font-size:.74rem;color:#ccc;font-style:italic">Görev yok</div>';
+    } else {
+      listTasks.forEach(task => {
+        const chip = document.createElement('div');
+        chip.className = 'wk-task-chip';
+        chip.dataset.taskId = task.id;
+        const prio = task.priority ? (PRIORITIES[task.priority]?.icon||'') : '';
+        chip.innerHTML = `<span style="flex-shrink:0">${prio}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${task.text}</span>`;
+        chip.addEventListener('pointerdown', e => wkStartDrag(e, task, chip));
+        wrap.appendChild(chip);
+      });
+    }
+    group.appendChild(hdr);
+    group.appendChild(wrap);
+    left.appendChild(group);
+  });
+
+  /* ── Right: nav + grid ── */
+  const rightWrap = document.createElement('div');
+  rightWrap.className = 'weekly-grid-wrap';
+
+  /* Nav bar */
+  const nav = document.createElement('div');
+  nav.className = 'wk-nav';
+  const s = dates[0].toLocaleDateString('tr-TR',{day:'numeric',month:'short'});
+  const e = dates[6].toLocaleDateString('tr-TR',{day:'numeric',month:'short',year:'numeric'});
+  nav.innerHTML = `
+    <button class="wk-nav-btn" onclick="weeklyOffset--;renderWeekly()" title="Önceki hafta">‹</button>
+    <span class="wk-nav-title">${s} – ${e}</span>
+    <button class="wk-nav-btn" onclick="weeklyOffset=0;renderWeekly()" title="Bu hafta">Bugün</button>
+    <button class="wk-nav-btn" onclick="weeklyOffset++;renderWeekly()" title="Sonraki hafta">›</button>
+  `;
+  rightWrap.appendChild(nav);
+
+  /* Scrollable inner */
+  const inner = document.createElement('div');
+  inner.className = 'wk-inner';
+
+  /* Table */
+  const tbl = document.createElement('table');
+  tbl.className = 'wk-table';
+
+  /* Header row */
+  const thead = document.createElement('thead');
+  const headTr = document.createElement('tr');
+  const timeTh = document.createElement('th');
+  timeTh.className = 'wk-hour-lbl wk-time-col';
+  timeTh.style.cssText = 'position:sticky;top:0;z-index:6;background:#fff;border-bottom:2px solid #e8ecf4;';
+  headTr.appendChild(timeTh);
+  dates.forEach((d, i) => {
+    const isToday = wkDateKey(d) === today;
+    const th = document.createElement('th');
+    th.className = 'wk-day-head' + (isToday?' today':'');
+    th.innerHTML = `<div class="wk-day-name">${DAYS[i]}</div><div class="wk-day-date">${d.getDate()}</div>`;
+    headTr.appendChild(th);
+  });
+  thead.appendChild(headTr);
+  tbl.appendChild(thead);
+
+  /* Body */
+  const tbody = document.createElement('tbody');
+  const themes = wkGetThemes();
+
+  /* Theme row */
+  const themeTr = document.createElement('tr');
+  themeTr.className = 'wk-row-theme';
+  const themeLblTd = document.createElement('td');
+  themeLblTd.className = 'wk-row-lbl';
+  themeLblTd.textContent = 'Tema';
+  themeTr.appendChild(themeLblTd);
+  dates.forEach(d => {
+    const key = wkDateKey(d);
+    const td = document.createElement('td');
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'wk-theme-input';
+    inp.placeholder = 'Günün teması...'; inp.autocomplete = 'off';
+    inp.value = themes[key]?.theme || '';
+    inp.addEventListener('change', () => {
+      const t = wkGetThemes(); if (!t[key]) t[key]={};
+      t[key].theme = inp.value; wkSaveThemes(t);
+    });
+    td.appendChild(inp); themeTr.appendChild(td);
+  });
+  tbody.appendChild(themeTr);
+
+  /* Top task row */
+  const topTr = document.createElement('tr');
+  topTr.className = 'wk-row-toptask';
+  const topLblTd = document.createElement('td');
+  topLblTd.className = 'wk-row-lbl';
+  topLblTd.textContent = '⭐';
+  topTr.appendChild(topLblTd);
+  dates.forEach(d => {
+    const key = wkDateKey(d);
+    const td = document.createElement('td');
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'wk-toptask-input';
+    inp.placeholder = 'En önemli görev...'; inp.autocomplete = 'off';
+    inp.value = themes[key]?.topTask || '';
+    inp.addEventListener('change', () => {
+      const t = wkGetThemes(); if (!t[key]) t[key]={};
+      t[key].topTask = inp.value; wkSaveThemes(t);
+    });
+    td.appendChild(inp); topTr.appendChild(td);
+  });
+  tbody.appendChild(topTr);
+
+  /* Hour rows */
+  const slots = wkGetSlots();
+  HOURS.forEach(h => {
+    const tr = document.createElement('tr');
+    const lblTd = document.createElement('td');
+    lblTd.className = 'wk-hour-lbl';
+    lblTd.textContent = h + ':00';
+    tr.appendChild(lblTd);
+
+    dates.forEach(d => {
+      const dateStr = wkDateKey(d);
+      const slotKey = dateStr + '_' + h;
+      const td = document.createElement('td');
+      td.className = 'wk-slot';
+      td.dataset.date = dateStr;
+      td.dataset.hour = h;
+
+      (slots[slotKey]||[]).forEach(taskId => {
+        const task = tasks.find(t=>t.id===taskId);
+        if (!task) return;
+        const chip = document.createElement('div');
+        chip.className = 'wk-slot-task';
+        const prio = task.priority ? (PRIORITIES[task.priority]?.icon||'') : '';
+        chip.innerHTML = `<span style="flex-shrink:0">${prio}</span><span>${task.text}</span><span class="wk-rm" title="Kaldır">✕</span>`;
+        chip.querySelector('.wk-rm').addEventListener('click', e => {
+          e.stopPropagation();
+          wkRemoveFromSlot(slotKey, taskId);
+        });
+        td.appendChild(chip);
+      });
+
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+
+  tbl.appendChild(tbody);
+  inner.appendChild(tbl);
+  rightWrap.appendChild(inner);
+
+  area.appendChild(left);
+  area.appendChild(rightWrap);
+}
+
+function wkScheduleTask(taskId, date, hour) {
+  const slotKey = date + '_' + hour;
+  const slots = wkGetSlots();
+  if (!slots[slotKey]) slots[slotKey] = [];
+  if (!slots[slotKey].includes(taskId)) {
+    slots[slotKey].push(taskId);
+    wkSaveSlots(slots);
+  }
+  renderWeekly();
+}
+
+function wkRemoveFromSlot(slotKey, taskId) {
+  const slots = wkGetSlots();
+  if (slots[slotKey]) {
+    slots[slotKey] = slots[slotKey].filter(id=>id!==taskId);
+    if (!slots[slotKey].length) delete slots[slotKey];
+    wkSaveSlots(slots);
+  }
+  renderWeekly();
+}
+
+function wkStartDrag(e, task, chip) {
+  e.preventDefault();
+  chip.setPointerCapture(e.pointerId);
+
+  const ghost = document.createElement('div');
+  ghost.className = 'wk-ghost';
+  const prio = task.priority ? (PRIORITIES[task.priority]?.icon+' '||'') : '';
+  ghost.textContent = prio + task.text;
+  ghost.style.left = (e.clientX - 70) + 'px';
+  ghost.style.top  = (e.clientY - 16) + 'px';
+  document.body.appendChild(ghost);
+  chip.classList.add('wk-dragging');
+  wkDragState = { task, chip, ghost, active: true };
+
+  function onMove(ev) {
+    if (!wkDragState?.active) return;
+    ghost.style.left = (ev.clientX - 70) + 'px';
+    ghost.style.top  = (ev.clientY - 16) + 'px';
+    document.querySelectorAll('.wk-slot.drag-over').forEach(el=>el.classList.remove('drag-over'));
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    el?.closest('.wk-slot')?.classList.add('drag-over');
+  }
+
+  function onUp(ev) {
+    if (!wkDragState?.active) return;
+    ghost.remove();
+    chip.classList.remove('wk-dragging');
+    document.querySelectorAll('.wk-slot.drag-over').forEach(el=>el.classList.remove('drag-over'));
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    const slot = el?.closest('.wk-slot');
+    if (slot) wkScheduleTask(task.id, slot.dataset.date, parseInt(slot.dataset.hour));
+    wkDragState = null;
+    chip.removeEventListener('pointermove', onMove);
+    chip.removeEventListener('pointerup',   onUp);
+  }
+
+  chip.addEventListener('pointermove', onMove);
+  chip.addEventListener('pointerup',   onUp);
+}
+
 /* ── Mobile bottom sheet ── */
 let mobDueValue = '', mobPriority = null;
 
 function openMobileSheet() {
-  if (!activeListId || activeListId === BOARD_LIST_ID) return;
+  if (!activeListId || activeListId === BOARD_LIST_ID || activeListId === WEEKLY_LIST_ID) return;
   document.getElementById('mobSheet').classList.add('open');
   document.getElementById('mobSheetOverlay').classList.add('open');
   renderMobPrioButtons();
