@@ -478,7 +478,8 @@
     .btn-clear-due:hover { color:#e53e3e; }
 
     /* Subtasks — inline minimalist */
-    .task-sub-section { margin-top:4px; }
+    .task-sub-section { margin-top:4px; display:none; }
+    .task-card:hover .task-sub-section { display:block; }
     .sub-i-row {
       display:flex; align-items:center; gap:7px; padding:2px 0;
     }
@@ -1018,8 +1019,9 @@
         cursor:pointer; display:flex; align-items:center; justify-content:center;
         flex-shrink:0;
       }
-      /* Disable desktop hover styles on mobile */
+      /* Disable desktop-only styles on mobile */
       .task-body:hover .task-title-preview { text-decoration:none; cursor:default; }
+      .task-card:hover .task-sub-section { display:none; }
     }
     @media (max-width: 480px) {
       .app-layout { flex-direction:column; }
