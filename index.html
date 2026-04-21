@@ -1691,11 +1691,13 @@ async function addTask() {
   input.value=''; notesEl.value='';
   addDueValue=''; renderAddDueLabel();
   addingTask = true;
+  lastAddTaskTime = Date.now();
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
     tasks.unshift(t); recentlyAddedId = t.id; render(); renderSidebar();
   } catch(e) { alert(e.message); }
   finally {
+    lastAddTaskTime = Date.now();
     addingTask = false;
     openAddDetail();
     document.getElementById('taskInput').focus();
@@ -1752,8 +1754,12 @@ async function updateDue(task, val) {
 }
 
 /* ── Add form helpers ── */
+let lastAddTaskTime = 0;
 function openAddDetail()  { document.getElementById('addDetail').classList.add('open'); }
-function closeAddDetail() { document.getElementById('addDetail').classList.remove('open'); }
+function closeAddDetail() {
+  if (Date.now() - lastAddTaskTime < 600) return;
+  document.getElementById('addDetail').classList.remove('open');
+}
 
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('taskInput').addEventListener('focus', openAddDetail);
