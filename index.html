@@ -1649,7 +1649,9 @@ async function addTask() {
   const notesEl = document.getElementById('addNotes');
   const text    = input.value.trim();
   if (!text || !activeListId) { input.focus(); return; }
-  const payload = { text, done:false, category:activeListId, sort_order:Date.now() };
+  const listTasks = tasks.filter(t=>!t.parent_id && !t.done && t.category===activeListId);
+  const minOrder  = listTasks.reduce((m,t)=>Math.min(m, t.sort_order||0), 0);
+  const payload = { text, done:false, category:activeListId, sort_order: minOrder - 10000 };
   if (notesEl.value.trim()) payload.notes  = notesEl.value.trim();
   if (addDueValue)          payload.due_at = addDueValue;
   input.value=''; notesEl.value='';
@@ -2699,7 +2701,9 @@ function renderMobPrioButtons() {
 async function saveMobileTask() {
   const text = document.getElementById('mobTitleInput').value.trim();
   if (!text || !activeListId) { document.getElementById('mobTitleInput').focus(); return; }
-  const payload = { text, done:false, category:activeListId, sort_order:Date.now() };
+  const mobListTasks = tasks.filter(t=>!t.parent_id && !t.done && t.category===activeListId);
+  const mobMinOrder  = mobListTasks.reduce((m,t)=>Math.min(m, t.sort_order||0), 0);
+  const payload = { text, done:false, category:activeListId, sort_order: mobMinOrder - 10000 };
   const notes = document.getElementById('mobNotesInput').value.trim();
   if (notes)       payload.notes    = notes;
   if (mobDueValue) payload.due_at   = mobDueValue;
