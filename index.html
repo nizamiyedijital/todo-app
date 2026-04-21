@@ -354,10 +354,28 @@
     .prio-dot.p4 { background:#94a3b8; }
 
     /* Priority picker in detail */
+    /* Detail meta row: due + priority side by side */
+    .detail-meta-row {
+      display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    }
     .priority-row {
-      display:flex; align-items:center; gap:7px; flex-wrap:wrap;
+      display:flex; align-items:center; gap:5px; flex-shrink:0;
     }
     .priority-row-label { font-size:.76rem; color:#bbb; font-weight:500; flex-shrink:0; }
+
+    /* Priority tooltip */
+    .priority-btn { position:relative; }
+    .priority-btn[data-label]::after {
+      content:attr(data-label);
+      position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%);
+      background:#1a1a2e; color:#fff; font-size:.68rem; font-weight:500;
+      white-space:nowrap; padding:3px 8px; border-radius:6px;
+      pointer-events:none; opacity:0; transition:opacity .15s; z-index:100;
+    }
+    @media (hover: hover) {
+      .priority-btn[data-label]:hover::after { opacity:1; }
+    }
+    .priority-btn.show-label::after { opacity:1; }
     .priority-btn {
       width:28px; height:28px; border-radius:50%;
       cursor:pointer; border:2px solid transparent; transition:all .15s;
@@ -1618,25 +1636,28 @@ function buildTaskCard(task, isDone) {
   prioRow.appendChild(prioLbl);
   Object.entries(PRIORITIES).forEach(([key, prio]) => {
     const btn = document.createElement('button');
-    btn.className   = `priority-btn ${key}` + (task.priority===key?' active':'');
-    btn.textContent = prio.icon;
-    btn.title       = prio.label;
+    btn.className        = `priority-btn ${key}` + (task.priority===key?' active':'');
+    btn.textContent      = prio.icon;
+    btn.title            = prio.label;
+    btn.dataset.label    = prio.label;
     btn.onclick = () => {
       const newVal = task.priority===key ? null : key;
       updatePriority(task, newVal);
     };
+    btn.addEventListener('touchstart', () => {
+      btn.classList.add('show-label');
+      setTimeout(() => btn.classList.remove('show-label'), 1500);
+    }, { passive:true });
     prioRow.appendChild(btn);
   });
-  const prioClr = document.createElement('button');
-  prioClr.className='btn-clear-due'; prioClr.textContent='✕';
-  prioClr.title='Önceliği kaldır';
-  prioClr.style.display = task.priority ? 'inline' : 'none';
-  prioClr.onclick = () => updatePriority(task, null);
-  prioRow.appendChild(prioClr);
+
+  const metaRow = document.createElement('div');
+  metaRow.className = 'detail-meta-row';
+  metaRow.appendChild(dueRow);
+  metaRow.appendChild(prioRow);
 
   detail.appendChild(notesTA);
-  detail.appendChild(dueRow);
-  detail.appendChild(prioRow);
+  detail.appendChild(metaRow);
   if (!isDone) { detail.appendChild(subList); detail.appendChild(subInputRow); detail.appendChild(addSubBtn); }
 
   row.addEventListener('click', e => {
