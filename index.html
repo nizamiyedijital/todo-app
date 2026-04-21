@@ -2187,7 +2187,7 @@ function buildTaskCard(task, isDone) {
     const notesPrev = document.createElement('div');
     notesPrev.className = 'task-notes-preview';
     const raw = task.notes.trim();
-    notesPrev.textContent = raw.length > 171 ? raw.slice(0, 171) + '…' : raw;
+    notesPrev.textContent = raw.length > 100 ? raw.slice(0, 100) + '…' : raw;
     body.appendChild(notesPrev);
   }
 
