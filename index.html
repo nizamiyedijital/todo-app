@@ -1469,7 +1469,6 @@
     <!-- Main -->
     <div class="main-area">
       <div class="main-header">
-        <span class="main-list-icon" id="mainListIcon">📋</span>
         <span class="main-list-title" id="mainListTitle">Liste seçin</span>
       </div>
 
@@ -1543,13 +1542,6 @@
     <button class="dtp-btn-clear" onclick="dtpClear()" title="Tarihi temizle">Temizle</button>
     <button class="dtp-btn-ok" onclick="dtpConfirm()" title="Tarihi onayla">Tamam</button>
   </div>
-</div>
-
-<!-- Icon picker -->
-<div class="icon-picker-overlay" id="iconPickerOverlay" onclick="closeIconPicker()"></div>
-<div class="icon-picker-popup" id="iconPickerPopup">
-  <span class="icon-picker-label">İkon seç</span>
-  <div class="icon-grid" id="iconGrid"></div>
 </div>
 
 <!-- Delete confirm -->
@@ -2125,7 +2117,6 @@ function openListCtxMenu(anchor, listId) {
   /* Edit actions */
   const editItems = [
     { icon: mi('edit','16'),         label:'Yeniden adlandır', action: () => startRename(listId) },
-    { icon: mi('sentiment_satisfied','16'), label:'İkonu değiştir',   action: () => openIconPicker(anchor, listId) },
   ];
   editItems.forEach(it => {
     const btn = document.createElement('button');
@@ -2244,7 +2235,6 @@ function renderSidebar() {
   boardItem.className = 'list-item' + (activeListId===BOARD_LIST_ID?' active':'');
   boardItem.onclick   = () => selectList(BOARD_LIST_ID);
   boardItem.innerHTML = `
-    <span class="list-icon">${mi('view_kanban','18')}</span>
     <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Tüm Görevler</span>
   `;
   if (activeListId===BOARD_LIST_ID) {
@@ -2258,7 +2248,6 @@ function renderSidebar() {
   weeklyItem.className = 'list-item' + (activeListId===WEEKLY_LIST_ID?' active':'');
   weeklyItem.onclick   = () => selectList(WEEKLY_LIST_ID);
   weeklyItem.innerHTML = `
-    <span class="list-icon">${mi('calendar_view_week','18')}</span>
     <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Haftalık Planlama</span>
   `;
   if (activeListId===WEEKLY_LIST_ID) {
@@ -2273,7 +2262,6 @@ function renderSidebar() {
   starItem.className = 'list-item' + (activeListId===STARRED_LIST_ID?' active':'');
   starItem.onclick   = () => selectList(STARRED_LIST_ID);
   starItem.innerHTML = `
-    <span class="list-icon">${mi('star','18')}</span>
     <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Yıldızlı</span>
     <span class="list-count">${starCount > 0 ? starCount : ''}</span>
   `;
@@ -2294,10 +2282,6 @@ function renderSidebar() {
     item.dataset.id     = l.id;
     item.onclick        = () => selectList(l.id);
 
-    const icon = document.createElement('span');
-    icon.className   = 'list-icon';
-    icon.textContent = l.icon||'📋';
-
     const name = document.createElement('span');
     name.className   = 'list-name';
     name.textContent = l.name;
@@ -2312,7 +2296,6 @@ function renderSidebar() {
     moreBtn.innerHTML = mi('more_horiz', 18);
     moreBtn.onclick     = (e) => { e.stopPropagation(); openListCtxMenu(moreBtn, l.id); };
 
-    item.appendChild(icon);
     item.appendChild(name);
     item.appendChild(badge);
     item.appendChild(moreBtn);
@@ -2446,7 +2429,6 @@ function selectList(id) {
   const isBoard  = id === BOARD_LIST_ID;
   const isWeekly = id === WEEKLY_LIST_ID;
   const list     = lists.find(l=>l.id===id);
-  document.getElementById('mainListIcon').innerHTML  = isBoard ? mi('view_kanban','20') : isWeekly ? mi('calendar_view_week','20') : (list?.icon || '📋');
   document.getElementById('mainListTitle').textContent = isBoard ? 'Tüm Görevler' : isWeekly ? 'Haftalık Planlama' : (list?.name || '');
   document.getElementById('addWrap').style.display      = (isBoard||isWeekly) ? 'none' : 'block';
   document.getElementById('mainBody').style.display     = (isBoard||isWeekly) ? 'none' : '';
@@ -3207,7 +3189,7 @@ function renderBoard() {
     const tab = document.createElement('div');
     tab.className = 'board-nav-tab' + (i === 0 ? ' active' : '');
     tab.dataset.idx = i;
-    tab.innerHTML = `<span class="board-nav-tab-icon">${list.icon||'📋'}</span><span>${list.name}</span>`;
+    tab.innerHTML = `<span>${list.name}</span>`;
     tab.onclick = () => {
       const col = area.children[i];
       if (col) area.scrollTo({ left: col.offsetLeft, behavior:'smooth' });
@@ -3239,7 +3221,6 @@ function buildBoardCol(list) {
   const hdr = document.createElement('div');
   hdr.className = 'board-col-header';
   hdr.innerHTML = `
-    <span class="board-col-icon">${list.icon||'📋'}</span>
     <span class="board-col-title">${list.name}</span>
     <span class="board-col-count">${active.length}</span>
   `;
@@ -3473,7 +3454,7 @@ function renderWeekly() {
 
     const hdr = document.createElement('button');
     hdr.className = 'wk-list-header' + (isOpen?' open':'');
-    hdr.innerHTML = `<span>${list.icon||'📋'}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${list.name}</span><span style="font-size:.7rem;color:#bbb;flex-shrink:0">${listTasks.length}</span><span style="font-size:.7rem;margin-left:2px">${isOpen?mi('expand_more','14'):mi('chevron_right','14')}</span>`;
+    hdr.innerHTML = `<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${list.name}</span><span style="font-size:.7rem;color:#bbb;flex-shrink:0">${listTasks.length}</span><span style="font-size:.7rem;margin-left:2px">${isOpen?mi('expand_more','14'):mi('chevron_right','14')}</span>`;
     hdr.onclick = () => { weeklyExpandedList = isOpen ? null : list.id; renderWeekly(); };
 
     const wrap = document.createElement('div');
@@ -3742,7 +3723,7 @@ function toggleMobListPicker() {
     lists.forEach(l => {
       const opt = document.createElement('button');
       opt.className = 'mob-list-opt' + (l.id === mobTaskSheetCat ? ' active' : '');
-      opt.innerHTML = `<span>${l.icon||'📋'}</span><span>${l.name}</span>`;
+      opt.innerHTML = `<span>${l.name}</span>`;
       opt.onclick = () => {
         mobTaskSheetCat = l.id;
         renderMobListChip();
