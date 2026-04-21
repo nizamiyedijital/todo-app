@@ -1136,7 +1136,7 @@ async function initApp() {
   document.getElementById('appBox').style.display='block';
   await loadLists();
   await loadTasks();
-  if (lists.length > 0 && !activeListId) selectList(lists[0].id);
+  if (!activeListId) selectList(BOARD_LIST_ID);
 }
 
 /* ── Lists CRUD ── */
