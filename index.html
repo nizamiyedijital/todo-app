@@ -4,7 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yapılacaklar</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0">
   <style>
+    .mi {
+      font-family:'Material Symbols Outlined'; font-size:18px; color:#8a9ab5;
+      user-select:none; vertical-align:middle; line-height:1;
+      font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 20;
+      display:inline-flex; align-items:center;
+    }
+    .mi.s14 { font-size:14px; }
+    .mi.s16 { font-size:16px; }
+    .mi.s20 { font-size:20px; }
+    .mi.s22 { font-size:22px; }
+    .starred .mi { color:#f5a623; font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 20; }
     * { box-sizing:border-box; margin:0; padding:0; }
 
     body {
@@ -1038,7 +1050,7 @@
 <!-- Auth -->
 <div id="authBox">
   <div class="auth-card">
-    <h1>✅ Yapılacaklar</h1>
+    <h1>Yapılacaklar</h1>
     <p class="auth-subtitle">Görevlerini planla, takip et.</p>
     <h2 id="authTitle">Giriş Yap</h2>
     <div id="authMsg" class="msg"></div>
@@ -1063,8 +1075,8 @@
     <div class="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-title">
-          ✅ Yapılacaklar
-          <button class="btn-logout" onclick="logout()" title="Çıkış">⎋ Çık</button>
+          Yapılacaklar
+          <button class="btn-logout" onclick="logout()" title="Çıkış"><span class="mi s16">logout</span> Çık</button>
         </div>
       </div>
 
@@ -1089,7 +1101,7 @@
         <div class="new-list-input-row" id="newListInputRow">
           <input type="text" id="newListInput" placeholder="Liste adı" autocomplete="off">
           <button class="btn-nl-ok" onclick="confirmNewList()" title="Listeyi oluştur">Ekle</button>
-          <button class="btn-nl-cxl" onclick="cancelNewList()" title="İptal">✕</button>
+          <button class="btn-nl-cxl" onclick="cancelNewList()" title="İptal"><span class="mi s16">close</span></button>
         </div>
         <button class="btn-new-list" id="btnNewList" onclick="openNewList()" title="Yeni liste oluştur">
           <span class="btn-new-list-icon">+</span> Yeni liste
@@ -1118,7 +1130,7 @@
             <div class="add-bottom-row">
               <button class="btn-cal" id="addDueBtn"
                 onclick="dtpOpen(this, null, v=>{addDueValue=v;renderAddDueLabel();})"
-                title="Bitiş tarihi">📅</button>
+                title="Bitiş tarihi"><span class="mi s18">calendar_today</span></button>
               <span class="due-selected-label" id="addDueLabel"
                 onclick="document.getElementById('addDueBtn').click()"></span>
               <button class="btn-add-cancel" onclick="closeAddDetail()" title="İptal">İptal</button>
@@ -1133,7 +1145,7 @@
 
         <div class="done-section" id="doneSection" style="display:none">
           <button class="done-toggle" id="doneToggle" onclick="toggleDoneList()" title="Tamamlananları göster/gizle">
-            <span class="done-chevron">▶</span>
+            <span class="done-chevron"><span class="mi s16">chevron_right</span></span>
             <span>Tamamlananlar</span>
             <span class="done-badge" id="doneBadge">0</span>
           </button>
@@ -1212,7 +1224,7 @@
     <textarea id="mobNotesInput" placeholder="Notlar (isteğe bağlı)" rows="2"></textarea>
     <div class="mob-meta-row">
       <button id="mobDueBtn" title="Bitiş tarihi seç"
-        onclick="dtpOpen(this, mobDueValue||null, v=>{mobDueValue=v; renderMobDueLabel();})">📅</button>
+        onclick="dtpOpen(this, mobDueValue||null, v=>{mobDueValue=v; renderMobDueLabel();})"><span class="mi s18">calendar_today</span></button>
       <span id="mobDueLabel"></span>
       <div class="mob-prio-row" id="mobPrioRow"></div>
     </div>
@@ -1229,7 +1241,7 @@
   <div class="mob-handle"></div>
   <div class="mob-task-sheet-top">
     <span>Görevi düzenle</span>
-    <button class="mob-task-del-btn" onclick="deleteMobTaskSheet()" title="Görevi sil">🗑️</button>
+    <button class="mob-task-del-btn" onclick="deleteMobTaskSheet()" title="Görevi sil"><span class="mi s20">delete</span></button>
   </div>
   <div class="mob-sheet-body">
     <input id="mobTaskTitleInput" type="text" placeholder="Görev başlığı..." autocomplete="off" maxlength="1071">
@@ -1243,7 +1255,7 @@
       </div>
     </div>
     <div class="mob-meta-row">
-      <button id="mobTaskDueBtn" title="Bitiş tarihi seç">📅</button>
+      <button id="mobTaskDueBtn" title="Bitiş tarihi seç"><span class="mi s18">calendar_today</span></button>
       <span id="mobTaskDueLabel"></span>
       <div class="mob-prio-row" id="mobTaskPrioRow"></div>
     </div>
@@ -1559,8 +1571,8 @@ function openListCtxMenu(anchor, listId) {
 
   /* Edit actions */
   const editItems = [
-    { icon:'✏️', label:'Yeniden adlandır', action: () => startRename(listId) },
-    { icon:'😀', label:'İkonu değiştir',   action: () => openIconPicker(anchor, listId) },
+    { icon: mi('edit','16'),         label:'Yeniden adlandır', action: () => startRename(listId) },
+    { icon: mi('sentiment_satisfied','16'), label:'İkonu değiştir',   action: () => openIconPicker(anchor, listId) },
   ];
   editItems.forEach(it => {
     const btn = document.createElement('button');
@@ -1583,7 +1595,7 @@ function openListCtxMenu(anchor, listId) {
     const btn      = document.createElement('button');
     btn.className  = 'list-ctx-item' + (isActive?' sort-active':'');
     const arrow    = isActive ? (dir==='asc'?' ↑':' ↓') : '';
-    btn.innerHTML  = `<span>↕️</span><span>${opt.label}${arrow}</span>`;
+    btn.innerHTML  = `<span>${mi('swap_vert','16')}</span><span>${opt.label}${arrow}</span>`;
     if (isActive) btn.style.cssText='color:#4f6ef7;background:#f0f3ff;width:100%;';
     btn.onclick = (e) => {
       e.stopPropagation();
@@ -1604,7 +1616,7 @@ function openListCtxMenu(anchor, listId) {
     const clrBtn = document.createElement('button');
     clrBtn.className = 'list-ctx-item';
     clrBtn.style.color = '#aaa';
-    clrBtn.innerHTML = `<span>✕</span><span>Sıralamayı kaldır</span>`;
+    clrBtn.innerHTML = `<span>${mi('close','16')}</span><span>Sıralamayı kaldır</span>`;
     clrBtn.onclick = (e) => { e.stopPropagation(); delete listSorts[listId]; closeListCtxMenu(); render(); };
     menu.appendChild(clrBtn);
   }
@@ -1613,7 +1625,7 @@ function openListCtxMenu(anchor, listId) {
   const sep2 = document.createElement('div'); sep2.className='list-ctx-sep'; menu.appendChild(sep2);
   const delBtn = document.createElement('button');
   delBtn.className = 'list-ctx-item danger';
-  delBtn.innerHTML = `<span>🗑️</span><span>Listeyi sil</span>`;
+  delBtn.innerHTML = `<span>${mi('delete','16')}</span><span>Listeyi sil</span>`;
   delBtn.onclick   = (e) => {
     e.stopPropagation(); closeListCtxMenu();
     openDelConfirm(
@@ -1679,7 +1691,7 @@ function renderSidebar() {
   boardItem.className = 'list-item' + (activeListId===BOARD_LIST_ID?' active':'');
   boardItem.onclick   = () => selectList(BOARD_LIST_ID);
   boardItem.innerHTML = `
-    <span class="list-icon">🗂️</span>
+    <span class="list-icon">${mi('view_kanban','18')}</span>
     <span class="list-name" style="flex:1;font-size:.87rem;color:#333;font-weight:500;">Tüm Görevler</span>
   `;
   if (activeListId===BOARD_LIST_ID) {
@@ -1693,7 +1705,7 @@ function renderSidebar() {
   weeklyItem.className = 'list-item' + (activeListId===WEEKLY_LIST_ID?' active':'');
   weeklyItem.onclick   = () => selectList(WEEKLY_LIST_ID);
   weeklyItem.innerHTML = `
-    <span class="list-icon">📅</span>
+    <span class="list-icon">${mi('calendar_view_week','18')}</span>
     <span class="list-name" style="flex:1;font-size:.87rem;color:#333;font-weight:500;">Haftalık Planlama</span>
   `;
   if (activeListId===WEEKLY_LIST_ID) {
@@ -1708,7 +1720,7 @@ function renderSidebar() {
   starItem.className = 'list-item' + (activeListId===STARRED_LIST_ID?' active':'');
   starItem.onclick   = () => selectList(STARRED_LIST_ID);
   starItem.innerHTML = `
-    <span class="list-icon">⭐</span>
+    <span class="list-icon">${mi('star','18')}</span>
     <span class="list-name" style="flex:1;font-size:.87rem;color:#333;font-weight:500;">Yıldızlı</span>
     <span class="list-count">${starCount > 0 ? starCount : ''}</span>
   `;
@@ -1744,7 +1756,7 @@ function renderSidebar() {
     const moreBtn = document.createElement('button');
     moreBtn.className   = 'btn-list-more';
     moreBtn.title       = 'Seçenekler';
-    moreBtn.textContent = '⋯';
+    moreBtn.innerHTML = mi('more_horiz', 18);
     moreBtn.onclick     = (e) => { e.stopPropagation(); openListCtxMenu(moreBtn, l.id); };
 
     item.appendChild(icon);
@@ -1762,7 +1774,7 @@ function selectList(id) {
   const isBoard  = id === BOARD_LIST_ID;
   const isWeekly = id === WEEKLY_LIST_ID;
   const list     = lists.find(l=>l.id===id);
-  document.getElementById('mainListIcon').textContent  = isBoard ? '🗂️' : isWeekly ? '📅' : (list?.icon || '📋');
+  document.getElementById('mainListIcon').innerHTML  = isBoard ? mi('view_kanban','20') : isWeekly ? mi('calendar_view_week','20') : (list?.icon || '📋');
   document.getElementById('mainListTitle').textContent = isBoard ? 'Tüm Görevler' : isWeekly ? 'Haftalık Planlama' : (list?.name || '');
   document.getElementById('addWrap').style.display      = (isBoard||isWeekly) ? 'none' : 'block';
   document.getElementById('mainBody').style.display     = (isBoard||isWeekly) ? 'none' : '';
@@ -2094,7 +2106,7 @@ function buildTaskCard(task, isDone) {
   if (task.priority && PRIORITIES[task.priority]) {
     const dot = document.createElement('span');
     dot.className=`prio-dot ${task.priority}`;
-    dot.title=`${PRIORITIES[task.priority].icon} ${PRIORITIES[task.priority].label}`;
+    dot.title=PRIORITIES[task.priority].label;
     meta.appendChild(dot);
   }
   if (activeListId === STARRED_LIST_ID) {
@@ -2122,7 +2134,7 @@ function buildTaskCard(task, isDone) {
     t.className = 'sub-i-txt' + (s.done ? ' done' : '');
     t.textContent = s.text;
     const d = document.createElement('button');
-    d.className = 'sub-i-del'; d.textContent = '✕';
+    d.className = 'sub-i-del'; d.innerHTML = mi('close', 14);
     d.onclick = e => { e.stopPropagation(); deleteTask(s.id); };
     r.appendChild(c); r.appendChild(t); r.appendChild(d);
     subSect.appendChild(r);
@@ -2161,11 +2173,11 @@ function buildTaskCard(task, isDone) {
   const starBtn = document.createElement('button');
   starBtn.className = 'btn-star' + (task.starred?' starred':'');
   starBtn.title     = task.starred ? 'Yıldızı kaldır' : 'Yıldızla';
-  starBtn.textContent = task.starred ? '★' : '☆';
+  starBtn.innerHTML = mi('star', 18);
   starBtn.onclick   = (e) => { e.stopPropagation(); toggleStar(task); };
 
   const expandBtn = document.createElement('button');
-  expandBtn.className='btn-icon'; expandBtn.title='Seçenekler'; expandBtn.textContent='⋯';
+  expandBtn.className='btn-icon'; expandBtn.title='Seçenekler'; expandBtn.innerHTML=mi('more_horiz');
   expandBtn.onclick = (e) => { e.stopPropagation(); openTaskCtxMenu(expandBtn, task); };
 
   side.appendChild(starBtn);
@@ -2189,7 +2201,7 @@ function buildTaskCard(task, isDone) {
   dueRow.className='detail-due-row';
   const dueCalBtn = document.createElement('button');
   dueCalBtn.className='btn-cal'+(task.due_at?' has-date':'');
-  dueCalBtn.title='Bitiş tarihi seç'; dueCalBtn.textContent='📅';
+  dueCalBtn.title='Bitiş tarihi seç'; dueCalBtn.innerHTML=mi('calendar_today',18);
   dueCalBtn.onclick=()=>dtpOpen(dueCalBtn,task.due_at,async v=>{
     await updateDue(task,v);
     dueCalBtn.classList.toggle('has-date',!!v);
@@ -2200,7 +2212,7 @@ function buildTaskCard(task, isDone) {
   dueDateLabel.textContent=task.due_at?fmtShort(task.due_at):'';
   dueDateLabel.onclick=()=>dueCalBtn.click();
   const clearDueBtn = document.createElement('button');
-  clearDueBtn.className='btn-clear-due'; clearDueBtn.title='Tarihi kaldır'; clearDueBtn.textContent='✕ Temizle';
+  clearDueBtn.className='btn-clear-due'; clearDueBtn.title='Tarihi kaldır'; clearDueBtn.innerHTML=mi('close',14)+' Temizle';
   clearDueBtn.onclick=()=>{ updateDue(task,''); dueCalBtn.classList.remove('has-date'); dueDateLabel.textContent=''; };
   dueRow.appendChild(dueCalBtn); dueRow.appendChild(dueDateLabel);
   if (task.due_at) dueRow.appendChild(clearDueBtn);
@@ -2214,7 +2226,7 @@ function buildTaskCard(task, isDone) {
   Object.entries(PRIORITIES).forEach(([key, prio]) => {
     const btn = document.createElement('button');
     btn.className        = `priority-btn ${key}` + (task.priority===key?' active':'');
-    btn.textContent      = prio.icon;
+    btn.innerHTML        = mi(prio.mi, 16);
     btn.title            = prio.label;
     btn.dataset.label    = prio.label;
     btn.onclick = () => {
@@ -2266,7 +2278,7 @@ function buildSubRow(sub,container) {
   txt.value=sub.text; if(sub.done)txt.disabled=true;
   txt.addEventListener('change',()=>scheduleUpdate(sub,{text:txt.value}));
   const del=document.createElement('button');
-  del.className='btn-del-sub'; del.title='Alt görevi sil'; del.textContent='✕'; del.onclick=()=>deleteTask(sub.id);
+  del.className='btn-del-sub'; del.title='Alt görevi sil'; del.innerHTML=mi('close',14); del.onclick=()=>deleteTask(sub.id);
   row.appendChild(chk); row.appendChild(txt); row.appendChild(del);
   container.appendChild(row);
 }
@@ -2288,7 +2300,7 @@ function openTaskCtxMenu(anchor, task) {
 
   const delBtn = document.createElement('button');
   delBtn.className = 'list-ctx-item danger';
-  delBtn.innerHTML = `<span>🗑️</span><span>Görevi sil</span>`;
+  delBtn.innerHTML = `<span>${mi('delete','16')}</span><span>Görevi sil</span>`;
   delBtn.onclick = (e) => {
     e.stopPropagation(); menu.remove(); openTaskMenu = null;
     deleteTask(task.id);
@@ -2307,11 +2319,12 @@ function openTaskCtxMenu(anchor, task) {
 }
 
 /* ── Priority ── */
+const mi = (name, sz) => `<span class="mi${sz?' s'+sz:''}">${name}</span>`;
 const PRIORITIES = {
-  p1: { label:'Acil & Önemli (Hemen yap)',            icon:'🔴' },
-  p2: { label:'Önemli, Acil Değil (Gün ve saati planla)', icon:'🟡' },
-  p3: { label:'Acil, Önemsiz (Hızlı yönet, devret)',  icon:'🟠' },
-  p4: { label:'Ertelenebilir (Silinebilir)', icon:'⚪' },
+  p1: { label:'Acil & Önemli (Hemen yap)',                mi:'priority_high' },
+  p2: { label:'Önemli, Acil Değil (Gün ve saati planla)', mi:'flag' },
+  p3: { label:'Acil, Önemsiz (Hızlı yönet, devret)',      mi:'bolt' },
+  p4: { label:'Ertelenebilir (Silinebilir)',               mi:'remove' },
 };
 
 async function updatePriority(task, val) {
@@ -2479,7 +2492,7 @@ function buildBoardCol(list) {
     const isOpen = !!boardDoneStates[list.id];
     const doneBtn = document.createElement('button');
     doneBtn.className = 'done-toggle' + (isOpen?' open':'');
-    doneBtn.innerHTML = `<span class="done-chevron">▶</span><span>Tamamlananlar</span><span class="done-badge">${done.length}</span>`;
+    doneBtn.innerHTML = `<span class="done-chevron">${mi('chevron_right','16')}</span><span>Tamamlananlar</span><span class="done-badge">${done.length}</span>`;
     doneBtn.onclick = () => { boardDoneStates[list.id] = !boardDoneStates[list.id]; renderBoard(); };
     body.appendChild(doneBtn);
     if (isOpen) {
@@ -2665,7 +2678,7 @@ function renderWeekly() {
 
     const hdr = document.createElement('button');
     hdr.className = 'wk-list-header' + (isOpen?' open':'');
-    hdr.innerHTML = `<span>${list.icon||'📋'}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${list.name}</span><span style="font-size:.7rem;color:#bbb;flex-shrink:0">${listTasks.length}</span><span style="font-size:.7rem;margin-left:2px">${isOpen?'▾':'▸'}</span>`;
+    hdr.innerHTML = `<span>${list.icon||'📋'}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${list.name}</span><span style="font-size:.7rem;color:#bbb;flex-shrink:0">${listTasks.length}</span><span style="font-size:.7rem;margin-left:2px">${isOpen?mi('expand_more','14'):mi('chevron_right','14')}</span>`;
     hdr.onclick = () => { weeklyExpandedList = isOpen ? null : list.id; renderWeekly(); };
 
     const wrap = document.createElement('div');
@@ -2678,8 +2691,8 @@ function renderWeekly() {
         const chip = document.createElement('div');
         chip.className = 'wk-task-chip';
         chip.dataset.taskId = task.id;
-        const prio = task.priority ? (PRIORITIES[task.priority]?.icon||'') : '';
-        chip.innerHTML = `<span style="flex-shrink:0">${prio}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${task.text}</span>`;
+        const prioMi = task.priority ? mi(PRIORITIES[task.priority]?.mi||'','14') : '';
+        chip.innerHTML = `<span style="flex-shrink:0;line-height:1">${prioMi}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${task.text}</span>`;
         chip.addEventListener('pointerdown', e => wkStartDrag(e, task, chip));
         wrap.appendChild(chip);
       });
@@ -2762,7 +2775,7 @@ function renderWeekly() {
   topTr.className = 'wk-row-toptask';
   const topLblTd = document.createElement('td');
   topLblTd.className = 'wk-row-lbl';
-  topLblTd.textContent = '⭐';
+  topLblTd.innerHTML = mi('star', 16);
   topTr.appendChild(topLblTd);
   dates.forEach(d => {
     const key = wkDateKey(d);
@@ -2801,8 +2814,8 @@ function renderWeekly() {
         if (!task) return;
         const chip = document.createElement('div');
         chip.className = 'wk-slot-task';
-        const prio = task.priority ? (PRIORITIES[task.priority]?.icon||'') : '';
-        chip.innerHTML = `<span style="flex-shrink:0">${prio}</span><span>${task.text}</span><span class="wk-rm" title="Kaldır">✕</span>`;
+        const prioMi2 = task.priority ? mi(PRIORITIES[task.priority]?.mi||'','14') : '';
+        chip.innerHTML = `<span style="flex-shrink:0;line-height:1">${prioMi2}</span><span>${task.text}</span><span class="wk-rm" title="Kaldır">${mi('close','14')}</span>`;
         chip.querySelector('.wk-rm').addEventListener('click', e => {
           e.stopPropagation();
           wkRemoveFromSlot(slotKey, taskId);
@@ -2850,8 +2863,7 @@ function wkStartDrag(e, task, chip) {
 
   const ghost = document.createElement('div');
   ghost.className = 'wk-ghost';
-  const prio = task.priority ? (PRIORITIES[task.priority]?.icon+' '||'') : '';
-  ghost.textContent = prio + task.text;
+  ghost.textContent = task.text;
   ghost.style.left = (e.clientX - 70) + 'px';
   ghost.style.top  = (e.clientY - 16) + 'px';
   document.body.appendChild(ghost);
@@ -2916,7 +2928,7 @@ function renderMobPrioButtons() {
   Object.entries(PRIORITIES).forEach(([key, prio]) => {
     const btn = document.createElement('button');
     btn.className   = `priority-btn ${key}` + (mobPriority===key?' active':'');
-    btn.textContent = prio.icon; btn.title = prio.label;
+    btn.innerHTML = mi(prio.mi, 16); btn.title = prio.label;
     btn.style.cssText = 'width:28px;height:28px;';
     btn.onclick = (e) => {
       e.stopPropagation();
@@ -2977,7 +2989,7 @@ function renderMobSubsList() {
     txt.className = 'mob-sub-txt' + (s.done ? ' done' : '');
     txt.textContent = s.text;
     const del = document.createElement('button');
-    del.className = 'mob-sub-del'; del.textContent = '✕';
+    del.className = 'mob-sub-del'; del.innerHTML = mi('close', 14);
     del.onclick = async () => { await deleteTask(s.id); renderMobSubsList(); };
     row.appendChild(chk); row.appendChild(txt); row.appendChild(del);
     list.appendChild(row);
@@ -3023,9 +3035,9 @@ function renderMobTaskSheetPrio() {
   Object.entries(PRIORITIES).forEach(([key, prio]) => {
     const btn = document.createElement('button');
     btn.className   = `priority-btn ${key}` + (mobTaskSheetPrio === key ? ' active' : '');
-    btn.textContent = prio.icon;
-    btn.title       = prio.label;
-    btn.onclick     = () => { mobTaskSheetPrio = mobTaskSheetPrio === key ? null : key; renderMobTaskSheetPrio(); };
+    btn.innerHTML = mi(prio.mi, 16);
+    btn.title     = prio.label;
+    btn.onclick   = () => { mobTaskSheetPrio = mobTaskSheetPrio === key ? null : key; renderMobTaskSheetPrio(); };
     row.appendChild(btn);
   });
 }
