@@ -364,13 +364,16 @@
     .tib-list-lbl { font-size:11.5px; color:#999; flex-shrink:0; opacity:.85; }
     /* Notes preview on card */
     .task-notes-preview {
-      font-size:.73rem; color:#999; line-height:1.45; margin-top:3px;
+      font-size:.73rem; color:#999; line-height:1.45; margin-top:0;
       word-break:break-word; overflow-wrap:break-word;
-      display:none;
+      max-height:0; opacity:0; overflow:hidden;
+      transition:max-height .35s ease, opacity .3s ease, margin-top .3s ease;
     }
-    .task-card:hover .task-notes-preview { display:block; }
-    .task-card.detail-open .task-notes-preview { display:none; }
-    .task-done .task-notes-preview { opacity:.5; }
+    .task-card:hover .task-notes-preview {
+      max-height:5em; opacity:1; margin-top:3px;
+    }
+    .task-card.detail-open .task-notes-preview { max-height:0; opacity:0; margin-top:0; }
+    .task-done .task-notes-preview { opacity:.4; }
     /* Star button on card */
     .btn-star {
       width:36px; height:36px; border:none; background:transparent;
