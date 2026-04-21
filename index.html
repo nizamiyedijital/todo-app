@@ -1575,8 +1575,6 @@ function buildTaskCard(task, isDone) {
 
   const dueRow = document.createElement('div');
   dueRow.className='detail-due-row';
-  const dueLbl = document.createElement('span');
-  dueLbl.className='detail-due-label'; dueLbl.textContent='📅 Bitiş:';
   const dueCalBtn = document.createElement('button');
   dueCalBtn.className='btn-cal'+(task.due_at?' has-date':'');
   dueCalBtn.textContent='📅';
@@ -1592,7 +1590,7 @@ function buildTaskCard(task, isDone) {
   const clearDueBtn = document.createElement('button');
   clearDueBtn.className='btn-clear-due'; clearDueBtn.textContent='✕ Temizle';
   clearDueBtn.onclick=()=>{ updateDue(task,''); dueCalBtn.classList.remove('has-date'); dueDateLabel.textContent=''; };
-  dueRow.appendChild(dueLbl); dueRow.appendChild(dueCalBtn); dueRow.appendChild(dueDateLabel);
+  dueRow.appendChild(dueCalBtn); dueRow.appendChild(dueDateLabel);
   if (task.due_at) dueRow.appendChild(clearDueBtn);
 
   const subList = document.createElement('div');
