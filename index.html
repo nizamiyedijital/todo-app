@@ -1690,14 +1690,22 @@ async function addTask() {
   if (addDueValue)          payload.due_at = addDueValue;
   input.value=''; notesEl.value='';
   addDueValue=''; renderAddDueLabel();
+  openAddDetail();
+  input.focus();           // render öncesi focus — sync olarak set edilir
   addingTask = true;
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
     tasks.unshift(t); recentlyAddedId = t.id; render(); renderSidebar();
-    openAddDetail();
-    document.getElementById('taskInput').focus();
   } catch(e) { alert(e.message); }
-  finally { setTimeout(()=>{ addingTask = false; }, 100); }
+  finally {
+    openAddDetail();
+    // render() sonrası olası focus kayıplarına karşı iki kez dene
+    document.getElementById('taskInput').focus();
+    setTimeout(()=>{
+      document.getElementById('taskInput').focus();
+      addingTask = false;
+    }, 50);
+  }
 }
 
 async function addSubtask(parentId, text) {
