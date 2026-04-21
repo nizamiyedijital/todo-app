@@ -1394,6 +1394,12 @@ function closeAddDetail() { document.getElementById('addDetail').classList.remov
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('taskInput').addEventListener('focus', openAddDetail);
   document.getElementById('taskInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); });
+
+  ['mainBody','boardArea'].forEach(id => {
+    document.getElementById(id).addEventListener('click', e => {
+      if (!e.target.closest('.task-card')) closeAllDetails();
+    });
+  });
 });
 
 function renderAddDueLabel() {
@@ -1430,6 +1436,11 @@ function renderStats() {
 /* ── Render tasks ── */
 let pendingSubtaskFocus = null;
 let openDetailIds = new Set();
+
+function closeAllDetails() {
+  document.querySelectorAll('.task-detail.open').forEach(d => d.classList.remove('open'));
+  openDetailIds.clear();
+}
 
 function restoreOpenDetails() {
   openDetailIds.forEach(tid => {
@@ -1660,12 +1671,12 @@ function buildTaskCard(task, isDone) {
 
   row.addEventListener('click', e => {
     if (e.target.closest('.task-side') || e.target.closest('.task-check')) return;
-    const open = detail.classList.toggle('open');
-    if (open) {
+    const wasOpen = detail.classList.contains('open');
+    closeAllDetails();
+    if (!wasOpen) {
+      detail.classList.add('open');
       openDetailIds.add(task.id);
       notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px';
-    } else {
-      openDetailIds.delete(task.id);
     }
   });
 
