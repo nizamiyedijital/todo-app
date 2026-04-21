@@ -298,7 +298,7 @@
     .task-card.prio-p4 { border-left-color:#94a3b8; }
     .task-row {
       display:flex; align-items:flex-start; gap:9px;
-      padding:4px 10px 4px 11px;
+      padding:4px 10px 4px 11px; position:relative;
     }
     .task-check {
       width:17px; height:17px; flex-shrink:0; margin-top:2px;
@@ -338,6 +338,7 @@
     .task-info-bar {
       display:flex; align-items:center; gap:6px; margin-top:4px;
       overflow:hidden; white-space:nowrap; min-height:18px;
+      flex-wrap:nowrap;
     }
     .tib-chip {
       display:inline-flex; align-items:center; gap:3px; flex-shrink:0;
@@ -454,8 +455,9 @@
       font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20 !important;
     }
     .task-side {
-      display:flex; align-items:center; flex-shrink:0; padding-top:1px;
+      position:absolute; right:8px; top:5px;
     }
+    .task-body { padding-right:30px; }
 
     /* ── Task detail ── */
     .task-detail {
