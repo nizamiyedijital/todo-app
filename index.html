@@ -1182,6 +1182,7 @@ let boardDoneStates  = {};
 let dragState        = null;
 let recentlyAddedId  = null;
 let weeklyOffset     = 0;
+let sessionAddOrder  = null; // art arda görev eklerken sıra takibi
 let weeklyExpandedList = null;
 let wkDragState      = null;
 
@@ -1655,6 +1656,7 @@ function renderSidebar() {
 function selectList(id) {
   activeListId = id;
   doneOpen     = false;
+  sessionAddOrder = null;
   const isBoard  = id === BOARD_LIST_ID;
   const isWeekly = id === WEEKLY_LIST_ID;
   const list     = lists.find(l=>l.id===id);
@@ -1684,9 +1686,14 @@ async function addTask() {
   const notesEl = document.getElementById('addNotes');
   const text    = input.value.trim();
   if (!text || !activeListId) { input.focus(); return; }
-  const listTasks = tasks.filter(t=>!t.parent_id && !t.done && t.category===activeListId);
-  const minOrder  = listTasks.reduce((m,t)=>Math.min(m, t.sort_order||0), 0);
-  const payload = { text, done:false, category:activeListId, sort_order: minOrder - 10000 };
+  if (sessionAddOrder === null) {
+    const listTasks = tasks.filter(t=>!t.parent_id && !t.done && t.category===activeListId);
+    const minOrder  = listTasks.reduce((m,t)=>Math.min(m, t.sort_order||0), 0);
+    sessionAddOrder = minOrder - 10000;
+  } else {
+    sessionAddOrder += 1000; // bir öncekinin altına
+  }
+  const payload = { text, done:false, category:activeListId, sort_order: sessionAddOrder };
   if (notesEl.value.trim()) payload.notes  = notesEl.value.trim();
   if (addDueValue)          payload.due_at = addDueValue;
   input.value=''; notesEl.value='';
@@ -1696,9 +1703,13 @@ async function addTask() {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
     tasks.unshift(t); recentlyAddedId = t.id; render(); renderSidebar();
     openAddDetail();
-    document.getElementById('taskInput').focus();
+    requestAnimationFrame(() => {
+      const inp = document.getElementById('taskInput');
+      inp.focus();
+      inp.scrollIntoView({ behavior:'instant', block:'nearest' });
+    });
   } catch(e) { alert(e.message); }
-  finally { setTimeout(()=>{ addingTask = false; }, 100); }
+  finally { setTimeout(()=>{ addingTask = false; }, 150); }
 }
 
 async function addSubtask(parentId, text) {
@@ -1752,7 +1763,7 @@ async function updateDue(task, val) {
 
 /* ── Add form helpers ── */
 function openAddDetail()  { document.getElementById('addDetail').classList.add('open'); }
-function closeAddDetail() { document.getElementById('addDetail').classList.remove('open'); }
+function closeAddDetail() { document.getElementById('addDetail').classList.remove('open'); sessionAddOrder = null; }
 
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('taskInput').addEventListener('focus', openAddDetail);
