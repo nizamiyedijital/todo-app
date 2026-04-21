@@ -451,7 +451,7 @@
     .priority-btn.p3 .mi { color:#22c55e; }
     .priority-btn.p4 .mi { color:#94a3b8; }
     .priority-btn .mi, .tib-prio .mi {
-      font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 20;
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20 !important;
     }
     .task-side {
       display:flex; align-items:center; flex-shrink:0; padding-top:1px;
@@ -2144,6 +2144,7 @@ function buildTaskCard(task, isDone) {
   if (task.priority && PRIORITIES[task.priority]) {
     const chip = mkChip(`tib-prio ${task.priority}`, 'flag', PRIORITIES[task.priority].label);
     chip.title = PRIORITIES[task.priority].label;
+    chip.querySelector('.mi').style.fontVariationSettings = "'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20";
     infoBar.appendChild(chip);
   }
 
@@ -2311,6 +2312,7 @@ function buildTaskCard(task, isDone) {
     const btn = document.createElement('button');
     btn.className        = `priority-btn ${key}` + (task.priority===key?' active':'');
     btn.innerHTML        = mi(prio.mi, 16);
+    btn.querySelector('.mi').style.fontVariationSettings = "'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20";
     btn.title            = prio.label;
     btn.dataset.label    = prio.label;
     btn.onclick = () => {
@@ -3014,6 +3016,7 @@ function renderMobPrioButtons() {
     const btn = document.createElement('button');
     btn.className   = `priority-btn ${key}` + (mobPriority===key?' active':'');
     btn.innerHTML = mi(prio.mi, 16); btn.title = prio.label;
+    btn.querySelector('.mi').style.fontVariationSettings = "'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20";
     btn.style.cssText = 'width:28px;height:28px;';
     btn.onclick = (e) => {
       e.stopPropagation();
@@ -3122,6 +3125,7 @@ function renderMobTaskSheetPrio() {
     const btn = document.createElement('button');
     btn.className   = `priority-btn ${key}` + (mobTaskSheetPrio === key ? ' active' : '');
     btn.innerHTML = mi(prio.mi, 16);
+    btn.querySelector('.mi').style.fontVariationSettings = "'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20";
     btn.title     = prio.label;
     btn.onclick   = () => { mobTaskSheetPrio = mobTaskSheetPrio === key ? null : key; renderMobTaskSheetPrio(); };
     row.appendChild(btn);
