@@ -1643,6 +1643,7 @@ async function loadTasks() {
 }
 
 /* ── CRUD ── */
+let addingTask = false;
 async function addTask() {
   const input   = document.getElementById('taskInput');
   const notesEl = document.getElementById('addNotes');
@@ -1653,12 +1654,14 @@ async function addTask() {
   if (addDueValue)          payload.due_at = addDueValue;
   input.value=''; notesEl.value='';
   addDueValue=''; renderAddDueLabel();
-  // detail açık kalsın, input focus'ta kalsın → art arda görev eklenebilsin
+  addingTask = true;
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
     tasks.unshift(t); recentlyAddedId = t.id; render(); renderSidebar();
+    openAddDetail();
     document.getElementById('taskInput').focus();
   } catch(e) { alert(e.message); }
+  finally { addingTask = false; }
 }
 
 async function addSubtask(parentId, text) {
@@ -1717,9 +1720,10 @@ function closeAddDetail() { document.getElementById('addDetail').classList.remov
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('taskInput').addEventListener('focus', openAddDetail);
   document.getElementById('taskInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); if(e.key==='Escape') { closeAddDetail(); e.target.blur(); } });
-  document.getElementById('taskInput').addEventListener('blur', e=>{
-    // Dışarı tıklandığında: input boşsa kapat, dolu değilse açık bırak
+  document.getElementById('taskInput').addEventListener('blur', ()=>{
+    if (addingTask) return;
     setTimeout(()=>{
+      if (addingTask) return;
       const focused = document.activeElement;
       const wrap = document.getElementById('addWrap');
       if (!wrap.contains(focused) && !document.getElementById('taskInput').value.trim()) {
