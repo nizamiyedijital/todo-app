@@ -403,10 +403,42 @@
 
     /* ── Task detail ── */
     .task-detail {
-      display:none; flex-direction:column; gap:9px;
-      padding:0 12px 12px 37px; border-top:1px solid #f5f6fa;
+      display:flex; flex-direction:column; gap:9px;
+      padding:0 12px 0 37px;
+      max-height:0; overflow:hidden;
+      border-top:1px solid transparent;
+      transition:max-height .28s ease, padding .26s ease, border-color .2s;
     }
-    .task-detail.open { display:flex; padding-top:10px; }
+    .task-detail.open {
+      max-height:600px;
+      padding:10px 12px 12px 37px;
+      border-top-color:#f5f6fa;
+    }
+
+    /* ── Task animations ── */
+    @keyframes taskSlideIn {
+      from { opacity:0; transform:translateY(-10px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .task-card.new { animation:taskSlideIn .22s ease forwards; }
+
+    @keyframes checkBounce {
+      0%   { transform:scale(1); }
+      40%  { transform:scale(1.45); }
+      70%  { transform:scale(.88); }
+      100% { transform:scale(1); }
+    }
+    .task-check.bounce { animation:checkBounce .28s ease; }
+
+    @keyframes taskComplete {
+      0%   { opacity:1; transform:translateX(0); }
+      35%  { opacity:1; transform:translateX(10px); }
+      100% { opacity:0; transform:translateX(-14px); }
+    }
+    .task-card.completing {
+      animation:taskComplete .38s cubic-bezier(.4,0,.6,1) forwards;
+      pointer-events:none;
+    }
     .detail-notes {
       width:100%; border:1.5px solid #e8ecf4; border-radius:9px;
       padding:8px 12px; font-size:.87rem; font-family:inherit;
@@ -878,8 +910,9 @@ let addDueValue  = '';
 let editTimers   = {};
 let isRegMode    = false;
 let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', dir:'asc'|'desc' } }
-let boardDoneStates = {};  // { [listId]: boolean }
-let dragState    = null;
+let boardDoneStates  = {};
+let dragState        = null;
+let recentlyAddedId  = null;
 
 const SORT_OPTIONS = [
   { key:'created_at', label:'Ekleniş Tarihi' },
@@ -1345,7 +1378,7 @@ async function addTask() {
   closeAddDetail();
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
-    tasks.unshift(t); render(); renderSidebar();
+    tasks.unshift(t); recentlyAddedId = t.id; render(); renderSidebar();
   } catch(e) { alert(e.message); }
 }
 
@@ -1359,7 +1392,18 @@ async function addSubtask(parentId, text) {
 
 async function toggleTask(task) {
   const nowDone = !task.done;
-  const patch   = { done:nowDone };
+  if (nowDone) {
+    const card = document.querySelector(`[data-task-id="${task.id}"]`);
+    if (card) {
+      const chk = card.querySelector('.task-check');
+      if (chk) { chk.classList.add('bounce'); }
+      if (navigator.vibrate) navigator.vibrate([12, 0, 8]);
+      await new Promise(r => setTimeout(r, 200));
+      card.classList.add('completing');
+      await new Promise(r => setTimeout(r, 380));
+    }
+  }
+  const patch = { done:nowDone };
   if (nowDone) { patch.completed_at = new Date().toISOString(); openDetailIds.delete(task.id); }
   else           patch.completed_at = null;
   await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify(patch)});
@@ -1498,6 +1542,7 @@ function buildTaskCard(task, isDone) {
   const card = document.createElement('div');
   card.className = 'task-card'+(isDone?' task-done':'')+(task.priority?' prio-'+task.priority:'');
   card.dataset.taskId = task.id;
+  if (task.id === recentlyAddedId) { card.classList.add('new'); recentlyAddedId = null; }
 
   const row = document.createElement('div');
   row.className = 'task-row';
@@ -1922,7 +1967,7 @@ async function addTaskToList(listId, text) {
   const payload = { text:text.trim(), done:false, category:listId, sort_order:Date.now() };
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
-    tasks.unshift(t);
+    tasks.unshift(t); recentlyAddedId = t.id;
     renderBoard(); renderSidebar();
   } catch(e) { showToast('Hata: '+e.message); }
 }
