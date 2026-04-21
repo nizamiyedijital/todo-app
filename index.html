@@ -304,13 +304,15 @@
       line-height:1.3; display:none;
     }
     .task-title-preview {
-      font-size:.83rem; color:#1a1a2e; line-height:1.3;
-      word-break:break-word; display:block;
-      overflow-wrap:break-word;
+      font-size:.83rem; color:#1a1a2e; line-height:1.4;
+      word-break:break-word; overflow-wrap:break-word;
+      display:-webkit-box; -webkit-box-orient:vertical;
+      -webkit-line-clamp:2; overflow:hidden;
+    }
+    .task-card.detail-open .task-title-preview {
+      display:block; overflow:visible; -webkit-line-clamp:unset;
     }
     .task-done .task-title-preview { text-decoration:line-through; color:#bbb; }
-    .task-card.detail-open .task-title         { display:block; }
-    .task-card.detail-open .task-title-preview { display:none; }
     .task-done .task-title { text-decoration:line-through; color:#bbb; }
     .task-meta {
       display:flex; align-items:center; gap:4px; margin-top:3px; flex-wrap:wrap;
@@ -1811,8 +1813,12 @@ let pendingSubtaskFocus = null;
 let openDetailIds = new Set();
 
 function closeAllDetails() {
+  document.querySelectorAll('.task-card.detail-open').forEach(c => {
+    c.classList.remove('detail-open');
+    const prev = c.querySelector('.task-title-preview');
+    if (prev && prev.dataset.shortText) prev.textContent = prev.dataset.shortText;
+  });
   document.querySelectorAll('.task-detail.open').forEach(d => d.classList.remove('open'));
-  document.querySelectorAll('.task-card.detail-open').forEach(c => c.classList.remove('detail-open'));
   openDetailIds.clear();
 }
 
@@ -1891,8 +1897,9 @@ function buildTaskCard(task, isDone) {
 
   const titlePreview = document.createElement('span');
   titlePreview.className = 'task-title-preview';
-  const previewText = task.text.length > 50 ? task.text.slice(0,50) + '…' : task.text;
-  titlePreview.textContent = previewText;
+  titlePreview.dataset.fullText = task.text;
+  titlePreview.dataset.shortText = task.text.length > 50 ? task.text.slice(0,50) + '…' : task.text;
+  titlePreview.textContent = titlePreview.dataset.shortText;
 
   const titleInput = document.createElement('input');
   titleInput.className = 'task-title';
@@ -1900,7 +1907,13 @@ function buildTaskCard(task, isDone) {
   titleInput.value     = task.text;
   titleInput.maxLength = 1071;
   if (isDone) titleInput.disabled = true;
-  titleInput.addEventListener('change', ()=>{ scheduleUpdate(task,{text:titleInput.value}); titlePreview.textContent = titleInput.value.length>50 ? titleInput.value.slice(0,50)+'…' : titleInput.value; });
+  titleInput.addEventListener('change', ()=>{
+    const v = titleInput.value;
+    scheduleUpdate(task,{text:v});
+    task.text = v;
+    titlePreview.dataset.fullText  = v;
+    titlePreview.dataset.shortText = v.length>50 ? v.slice(0,50)+'…' : v;
+  });
   titleInput.addEventListener('keydown', e=>{
     if (e.key==='Enter'&&e.shiftKey&&!isDone) {
       e.preventDefault();
@@ -2064,7 +2077,7 @@ function buildTaskCard(task, isDone) {
       detail.classList.add('open');
       card.classList.add('detail-open');
       openDetailIds.add(task.id);
-      titleInput.value = task.text;
+      titlePreview.textContent = task.text;
       notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px';
     }
   });
