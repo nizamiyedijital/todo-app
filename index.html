@@ -772,6 +772,7 @@
     #mobTaskSheet, #mobTaskSheetOverlay { display:none; }
 
     /* ── Board view ── */
+    .board-nav { display:none; }
     .board-area {
       flex:1; min-height:0; display:flex;
       overflow-x:auto; overflow-y:auto;
@@ -1135,6 +1136,38 @@
       /* Disable desktop-only styles on mobile */
       .task-body:hover .task-title-preview { text-decoration:none; cursor:default; }
       .task-card:hover .task-sub-section { display:none; }
+      /* Board snap scroll on mobile */
+      .board-nav {
+        display:flex; align-items:center; gap:0;
+        overflow-x:auto; flex-shrink:0;
+        background:var(--surface); border-bottom:1px solid var(--border);
+        padding:0 4px; scrollbar-width:none;
+      }
+      .board-nav::-webkit-scrollbar { display:none; }
+      .board-nav-tab {
+        display:flex; align-items:center; gap:5px;
+        padding:10px 14px; font-size:.82rem; font-weight:500;
+        color:var(--text3); white-space:nowrap; cursor:pointer;
+        border-bottom:2.5px solid transparent; flex-shrink:0;
+        transition:color .15s, border-color .15s;
+      }
+      .board-nav-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+      .board-nav-tab-icon { font-size:.95rem; }
+      .board-area {
+        scroll-snap-type:x mandatory;
+        overflow-x:scroll; overflow-y:hidden;
+        padding:0; gap:0;
+        -webkit-overflow-scrolling:touch;
+        scrollbar-width:none;
+      }
+      .board-area::-webkit-scrollbar { display:none; }
+      .board-col {
+        min-width:100%; width:100%;
+        scroll-snap-align:start;
+        border-radius:0; box-shadow:none;
+        height:100%; overflow-y:auto;
+      }
+      .board-col-body { overflow-y:visible; }
       /* List picker in mob task sheet */
       .mob-list-row {
         display:flex; align-items:center; gap:8px;
@@ -1497,6 +1530,7 @@
         </div>
       </div>
 
+      <div class="board-nav" id="boardNav" style="display:none"></div>
       <div class="board-area" id="boardArea" style="display:none"></div>
       <div class="weekly-area" id="weeklyArea" style="display:none"></div>
     </div>
@@ -2465,6 +2499,7 @@ function selectList(id) {
   document.getElementById('addWrap').style.display      = (isBoard||isWeekly) ? 'none' : 'block';
   document.getElementById('mainBody').style.display     = (isBoard||isWeekly) ? 'none' : '';
   document.getElementById('boardArea').style.display    = isBoard ? 'flex' : 'none';
+  document.getElementById('boardNav').style.display     = isBoard ? '' : 'none';
   document.getElementById('weeklyArea').style.display   = isWeekly ? 'flex' : 'none';
   document.getElementById('mobileAddBar').style.display = (isBoard||isWeekly) ? 'none' : '';
   renderSidebar();
@@ -3217,9 +3252,32 @@ function handleConfirmation() {
 function renderBoard() {
   try { renderStats(); } catch(e) {}
   const area = document.getElementById('boardArea');
+  const nav  = document.getElementById('boardNav');
   area.innerHTML = '';
-  lists.forEach(list => area.appendChild(buildBoardCol(list)));
+  nav.innerHTML  = '';
+  lists.forEach((list, i) => {
+    area.appendChild(buildBoardCol(list));
+    const tab = document.createElement('div');
+    tab.className = 'board-nav-tab' + (i === 0 ? ' active' : '');
+    tab.dataset.idx = i;
+    tab.innerHTML = `<span class="board-nav-tab-icon">${list.icon||'📋'}</span><span>${list.name}</span>`;
+    tab.onclick = () => {
+      const col = area.children[i];
+      if (col) area.scrollTo({ left: col.offsetLeft, behavior:'smooth' });
+    };
+    nav.appendChild(tab);
+  });
   restoreOpenDetails();
+  // Sync active tab on scroll
+  area._scrollSyncSetup = true;
+  area.onscroll = () => {
+    const colW = area.clientWidth;
+    const idx  = Math.round(area.scrollLeft / (colW || 1));
+    nav.querySelectorAll('.board-nav-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+    // keep active tab visible
+    const activeTab = nav.children[idx];
+    if (activeTab) activeTab.scrollIntoView({ inline:'center', behavior:'smooth' });
+  };
 }
 
 function buildBoardCol(list) {
