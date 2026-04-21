@@ -779,10 +779,10 @@
       <div class="sidebar-footer">
         <div class="new-list-input-row" id="newListInputRow">
           <input type="text" id="newListInput" placeholder="Liste adı">
-          <button class="btn-nl-ok" onclick="confirmNewList()">Ekle</button>
-          <button class="btn-nl-cxl" onclick="cancelNewList()">✕</button>
+          <button class="btn-nl-ok" onclick="confirmNewList()" title="Listeyi oluştur">Ekle</button>
+          <button class="btn-nl-cxl" onclick="cancelNewList()" title="İptal">✕</button>
         </div>
-        <button class="btn-new-list" id="btnNewList" onclick="openNewList()">
+        <button class="btn-new-list" id="btnNewList" onclick="openNewList()" title="Yeni liste oluştur">
           <span class="btn-new-list-icon">+</span> Yeni liste
         </button>
       </div>
@@ -800,7 +800,7 @@
           <div class="add-main-row">
             <span class="add-plus">+</span>
             <input type="text" id="taskInput" placeholder="Görev ekle...">
-            <button class="btn-add" onclick="addTask()">Ekle</button>
+            <button class="btn-add" onclick="addTask()" title="Görevi ekle">Ekle</button>
           </div>
           <div class="add-detail" id="addDetail">
             <textarea id="addNotes" placeholder="Notlar" rows="2"></textarea>
@@ -810,7 +810,7 @@
                 title="Bitiş tarihi">📅</button>
               <span class="due-selected-label" id="addDueLabel"
                 onclick="document.getElementById('addDueBtn').click()"></span>
-              <button class="btn-add-cancel" onclick="closeAddDetail()">İptal</button>
+              <button class="btn-add-cancel" onclick="closeAddDetail()" title="İptal">İptal</button>
             </div>
           </div>
         </div>
@@ -821,7 +821,7 @@
         <div class="loading-wrap" id="loadingWrap" style="display:none">Yükleniyor...</div>
 
         <div class="done-section" id="doneSection" style="display:none">
-          <button class="done-toggle" id="doneToggle" onclick="toggleDoneList()">
+          <button class="done-toggle" id="doneToggle" onclick="toggleDoneList()" title="Tamamlananları göster/gizle">
             <span class="done-chevron">▶</span>
             <span>Tamamlananlar</span>
             <span class="done-badge" id="doneBadge">0</span>
@@ -842,9 +842,9 @@
 <div class="dtp-box" id="dtpBox">
   <div class="dtp-cal">
     <div class="dtp-nav">
-      <button class="dtp-nav-btn" onclick="dtpPrev()">‹</button>
+      <button class="dtp-nav-btn" onclick="dtpPrev()" title="Önceki ay">‹</button>
       <span class="dtp-month-label" id="dtpMonthLabel"></span>
-      <button class="dtp-nav-btn" onclick="dtpNext()">›</button>
+      <button class="dtp-nav-btn" onclick="dtpNext()" title="Sonraki ay">›</button>
     </div>
     <div class="dtp-dow">
       <span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span>
@@ -859,8 +859,8 @@
     <select class="dtp-sel" id="dtpMinSel"></select>
   </div>
   <div class="dtp-footer">
-    <button class="dtp-btn-clear" onclick="dtpClear()">Temizle</button>
-    <button class="dtp-btn-ok" onclick="dtpConfirm()">Tamam</button>
+    <button class="dtp-btn-clear" onclick="dtpClear()" title="Tarihi temizle">Temizle</button>
+    <button class="dtp-btn-ok" onclick="dtpConfirm()" title="Tarihi onayla">Tamam</button>
   </div>
 </div>
 
@@ -1633,7 +1633,7 @@ function buildTaskCard(task, isDone) {
   dueRow.className='detail-due-row';
   const dueCalBtn = document.createElement('button');
   dueCalBtn.className='btn-cal'+(task.due_at?' has-date':'');
-  dueCalBtn.textContent='📅';
+  dueCalBtn.title='Bitiş tarihi seç'; dueCalBtn.textContent='📅';
   dueCalBtn.onclick=()=>dtpOpen(dueCalBtn,task.due_at,async v=>{
     await updateDue(task,v);
     dueCalBtn.classList.toggle('has-date',!!v);
@@ -1644,7 +1644,7 @@ function buildTaskCard(task, isDone) {
   dueDateLabel.textContent=task.due_at?fmtShort(task.due_at):'';
   dueDateLabel.onclick=()=>dueCalBtn.click();
   const clearDueBtn = document.createElement('button');
-  clearDueBtn.className='btn-clear-due'; clearDueBtn.textContent='✕ Temizle';
+  clearDueBtn.className='btn-clear-due'; clearDueBtn.title='Tarihi kaldır'; clearDueBtn.textContent='✕ Temizle';
   clearDueBtn.onclick=()=>{ updateDue(task,''); dueCalBtn.classList.remove('has-date'); dueDateLabel.textContent=''; };
   dueRow.appendChild(dueCalBtn); dueRow.appendChild(dueDateLabel);
   if (task.due_at) dueRow.appendChild(clearDueBtn);
@@ -1658,9 +1658,9 @@ function buildTaskCard(task, isDone) {
   const subInput = document.createElement('input');
   subInput.type='text'; subInput.placeholder='Alt görev ekle...';
   const subOk  = document.createElement('button');
-  subOk.className='sub-ok'; subOk.textContent='Ekle';
+  subOk.className='sub-ok'; subOk.title='Alt görevi ekle'; subOk.textContent='Ekle';
   const subCxl = document.createElement('button');
-  subCxl.className='sub-cxl'; subCxl.textContent='İptal';
+  subCxl.className='sub-cxl'; subCxl.title='İptal'; subCxl.textContent='İptal';
   subOk.onclick =async()=>{ if(!subInput.value.trim())return; await addSubtask(task.id,subInput.value); subInput.value=''; subInputRow.classList.remove('open'); };
   subCxl.onclick=()=>{ subInput.value=''; subInputRow.classList.remove('open'); };
   subInput.addEventListener('keydown', e=>{
@@ -1679,7 +1679,7 @@ function buildTaskCard(task, isDone) {
   subInputRow.appendChild(subInput); subInputRow.appendChild(subOk); subInputRow.appendChild(subCxl);
 
   const addSubBtn = document.createElement('button');
-  addSubBtn.className='btn-add-subtask'; addSubBtn.textContent='+ Alt görev ekle';
+  addSubBtn.className='btn-add-subtask'; addSubBtn.title='Alt görev ekle'; addSubBtn.textContent='+ Alt görev ekle';
   addSubBtn.onclick=()=>{ subInputRow.classList.add('open'); subInput.focus(); };
 
   /* Priority picker */
@@ -1740,7 +1740,7 @@ function buildSubRow(sub,container) {
   txt.value=sub.text; if(sub.done)txt.disabled=true;
   txt.addEventListener('change',()=>scheduleUpdate(sub,{text:txt.value}));
   const del=document.createElement('button');
-  del.className='btn-del-sub'; del.textContent='✕'; del.onclick=()=>deleteTask(sub.id);
+  del.className='btn-del-sub'; del.title='Alt görevi sil'; del.textContent='✕'; del.onclick=()=>deleteTask(sub.id);
   row.appendChild(chk); row.appendChild(txt); row.appendChild(del);
   container.appendChild(row);
 }
