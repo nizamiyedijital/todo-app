@@ -301,8 +301,16 @@
     .task-title {
       font-size:.83rem; color:#1a1a2e; border:none; outline:none;
       background:transparent; font-family:inherit; width:100%; padding:0;
-      line-height:1.3; display:block;
+      line-height:1.3; display:none;
     }
+    .task-title-preview {
+      font-size:.83rem; color:#1a1a2e; line-height:1.3;
+      word-break:break-word; display:block;
+      overflow-wrap:break-word;
+    }
+    .task-done .task-title-preview { text-decoration:line-through; color:#bbb; }
+    .task-card.detail-open .task-title         { display:block; }
+    .task-card.detail-open .task-title-preview { display:none; }
     .task-done .task-title { text-decoration:line-through; color:#bbb; }
     .task-meta {
       display:flex; align-items:center; gap:4px; margin-top:3px; flex-wrap:wrap;
@@ -1028,7 +1036,7 @@
           <input style="display:none" type="password" name="prevent-autofill-pass">
           <div class="add-main-row">
             <span class="add-plus">+</span>
-            <input type="text" id="taskInput" placeholder="Görev ekle..." autocomplete="new-password">
+            <input type="text" id="taskInput" placeholder="Görev ekle..." autocomplete="new-password" maxlength="1071">
             <button class="btn-add" onclick="addTask()" title="Görevi ekle">Ekle</button>
           </div>
           <div class="add-detail" id="addDetail">
@@ -1804,13 +1812,17 @@ let openDetailIds = new Set();
 
 function closeAllDetails() {
   document.querySelectorAll('.task-detail.open').forEach(d => d.classList.remove('open'));
+  document.querySelectorAll('.task-card.detail-open').forEach(c => c.classList.remove('detail-open'));
   openDetailIds.clear();
 }
 
 function restoreOpenDetails() {
   openDetailIds.forEach(tid => {
     const card = document.querySelector(`[data-task-id="${tid}"]`);
-    if (card) card.querySelector('.task-detail')?.classList.add('open');
+    if (card) {
+      card.querySelector('.task-detail')?.classList.add('open');
+      card.classList.add('detail-open');
+    }
   });
   if (pendingSubtaskFocus) {
     const tid = pendingSubtaskFocus; pendingSubtaskFocus = null;
@@ -1877,12 +1889,18 @@ function buildTaskCard(task, isDone) {
   const body = document.createElement('div');
   body.className = 'task-body';
 
+  const titlePreview = document.createElement('span');
+  titlePreview.className = 'task-title-preview';
+  const previewText = task.text.length > 50 ? task.text.slice(0,50) + '…' : task.text;
+  titlePreview.textContent = previewText;
+
   const titleInput = document.createElement('input');
   titleInput.className = 'task-title';
   titleInput.type      = 'text';
   titleInput.value     = task.text;
+  titleInput.maxLength = 1071;
   if (isDone) titleInput.disabled = true;
-  titleInput.addEventListener('change', ()=>scheduleUpdate(task,{text:titleInput.value}));
+  titleInput.addEventListener('change', ()=>{ scheduleUpdate(task,{text:titleInput.value}); titlePreview.textContent = titleInput.value.length>50 ? titleInput.value.slice(0,50)+'…' : titleInput.value; });
   titleInput.addEventListener('keydown', e=>{
     if (e.key==='Enter'&&e.shiftKey&&!isDone) {
       e.preventDefault();
@@ -1919,6 +1937,7 @@ function buildTaskCard(task, isDone) {
       meta.appendChild(lbl);
     }
   }
+  body.appendChild(titlePreview);
   body.appendChild(titleInput);
   if (meta.children.length) body.appendChild(meta);
 
@@ -2043,7 +2062,9 @@ function buildTaskCard(task, isDone) {
     closeAllDetails();
     if (!wasOpen) {
       detail.classList.add('open');
+      card.classList.add('detail-open');
       openDetailIds.add(task.id);
+      titleInput.value = task.text;
       notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px';
     }
   });
