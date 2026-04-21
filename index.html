@@ -601,6 +601,64 @@
       background:#e53e3e; color:#fff; font-size:.85rem; font-weight:600; cursor:pointer;
     }
 
+    /* ── Board view ── */
+    .board-area {
+      flex:1; min-height:0; display:flex;
+      overflow-x:auto; overflow-y:hidden;
+      padding:16px 18px 20px; gap:12px;
+      align-items:stretch;
+    }
+    .board-area::-webkit-scrollbar { height:6px; }
+    .board-area::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
+
+    .board-col {
+      width:280px; min-width:280px; flex-shrink:0;
+      background:#fff; border-radius:12px;
+      display:flex; flex-direction:column;
+      overflow:hidden;
+      box-shadow:0 1px 4px rgba(0,0,0,0.05);
+    }
+    .board-col-header {
+      padding:13px 14px 10px;
+      display:flex; align-items:center; gap:8px;
+      border-bottom:1px solid #f0f2f8; flex-shrink:0;
+    }
+    .board-col-icon { font-size:1.05rem; }
+    .board-col-title { font-size:.9rem; font-weight:700; color:#1a1a2e; flex:1; }
+    .board-col-count {
+      font-size:.7rem; color:#999; background:#f4f5f9;
+      padding:1px 7px; border-radius:9px; font-weight:600;
+    }
+    .board-col-add { padding:8px 8px 6px; flex-shrink:0; border-bottom:1px solid #f4f5f9; }
+    .board-col-add input {
+      width:100%; padding:7px 10px;
+      border:1.5px solid #e8ecf4; border-radius:8px;
+      font-size:.83rem; font-family:inherit; outline:none; color:#333;
+      transition:border-color .2s;
+    }
+    .board-col-add input:focus { border-color:#4f6ef7; }
+    .board-col-body {
+      flex:1; overflow-y:auto; padding:6px 6px;
+      min-height:80px; transition:background .15s;
+    }
+    .board-col-body::-webkit-scrollbar { width:4px; }
+    .board-col-body::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
+    .board-col-body.drag-over { background:#eef1fd; }
+
+    /* Drag & drop */
+    .task-card.is-dragging { opacity:.25; pointer-events:none; }
+    .drag-ghost {
+      position:fixed; z-index:9999; pointer-events:none;
+      opacity:.92; transform:rotate(1.5deg);
+      box-shadow:0 8px 28px rgba(0,0,0,.18);
+      border-radius:10px; background:#fff;
+      border:2px solid #4f6ef7; overflow:hidden;
+    }
+    .drop-placeholder {
+      height:3px; background:#4f6ef7; border-radius:3px;
+      margin:2px 2px; flex-shrink:0;
+    }
+
     @media (max-width: 600px) {
       .sidebar { width:180px; }
       .main-body { padding:12px 14px 40px; }
@@ -686,7 +744,7 @@
         <span class="main-list-title" id="mainListTitle">Liste seçin</span>
       </div>
 
-      <div class="main-body">
+      <div class="main-body" id="mainBody">
         <div class="add-wrap" id="addWrap" style="display:none">
           <div class="add-main-row">
             <span class="add-plus">+</span>
@@ -720,6 +778,9 @@
           <div class="done-list" id="doneList"></div>
         </div>
       </div>
+    </div>
+
+      <div class="board-area" id="boardArea" style="display:none"></div>
     </div>
 
   </div>
@@ -778,6 +839,7 @@ const ANON    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsIn
 const APP_URL = 'https://nizamiyedijital.github.io/todo-app';
 
 const STARRED_LIST_ID = '__starred__';
+const BOARD_LIST_ID   = '__board__';
 
 const DEFAULT_LISTS = [
   { id:'genel',    name:'Genel',    icon:'📋', color:'#718096', sort_order:0 },
@@ -797,6 +859,8 @@ let addDueValue  = '';
 let editTimers   = {};
 let isRegMode    = false;
 let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', dir:'asc'|'desc' } }
+let boardDoneStates = {};  // { [listId]: boolean }
+let dragState    = null;
 
 const SORT_OPTIONS = [
   { key:'created_at', label:'Ekleniş Tarihi' },
@@ -1155,6 +1219,20 @@ function renderSidebar() {
   const container = document.getElementById('sidebarLists');
   container.innerHTML = '';
 
+  /* Tüm Görevler board item */
+  const boardItem = document.createElement('div');
+  boardItem.className = 'list-item' + (activeListId===BOARD_LIST_ID?' active':'');
+  boardItem.onclick   = () => selectList(BOARD_LIST_ID);
+  boardItem.innerHTML = `
+    <span class="list-icon">🗂️</span>
+    <span class="list-name" style="flex:1;font-size:.87rem;color:#333;font-weight:500;">Tüm Görevler</span>
+  `;
+  if (activeListId===BOARD_LIST_ID) {
+    boardItem.querySelector('.list-name').style.color='#4f6ef7';
+    boardItem.querySelector('.list-name').style.fontWeight='600';
+  }
+  container.appendChild(boardItem);
+
   /* Yıldızlı akıllı liste */
   const starCount = tasks.filter(t=>!t.parent_id && t.starred && !t.done).length;
   const starItem  = document.createElement('div');
@@ -1212,10 +1290,13 @@ function renderSidebar() {
 function selectList(id) {
   activeListId = id;
   doneOpen     = false;
-  const list   = lists.find(l=>l.id===id);
-  document.getElementById('mainListIcon').textContent  = list?.icon  || '📋';
-  document.getElementById('mainListTitle').textContent = list?.name  || '';
-  document.getElementById('addWrap').style.display     = 'block';
+  const isBoard = id === BOARD_LIST_ID;
+  const list    = lists.find(l=>l.id===id);
+  document.getElementById('mainListIcon').textContent  = isBoard ? '🗂️' : (list?.icon  || '📋');
+  document.getElementById('mainListTitle').textContent = isBoard ? 'Tüm Görevler' : (list?.name || '');
+  document.getElementById('addWrap').style.display     = isBoard ? 'none' : 'block';
+  document.getElementById('mainBody').style.display    = isBoard ? 'none' : '';
+  document.getElementById('boardArea').style.display   = isBoard ? 'flex' : 'none';
   renderSidebar();
   render();
 }
@@ -1328,9 +1409,26 @@ function renderStats() {
 let pendingSubtaskFocus = null;
 let openDetailIds = new Set();
 
+function restoreOpenDetails() {
+  openDetailIds.forEach(tid => {
+    const card = document.querySelector(`[data-task-id="${tid}"]`);
+    if (card) card.querySelector('.task-detail')?.classList.add('open');
+  });
+  if (pendingSubtaskFocus) {
+    const tid = pendingSubtaskFocus; pendingSubtaskFocus = null;
+    const card = document.querySelector(`[data-task-id="${tid}"]`);
+    if (card) {
+      card.querySelector('.task-detail')?.classList.add('open');
+      card.querySelector('.subtask-input-row')?.classList.add('open');
+      card.querySelector('.subtask-input-row input')?.focus();
+    }
+  }
+}
+
 function render() {
   try { renderStats(); } catch(e) { console.error('renderStats:', e); }
   if (!activeListId) return;
+  if (activeListId === BOARD_LIST_ID) { renderBoard(); return; }
 
   const isStarred = activeListId === STARRED_LIST_ID;
   const roots  = isStarred
@@ -1355,21 +1453,7 @@ function render() {
   doneList.classList.toggle('open', doneOpen);
   if (doneOpen) done.forEach(t=>doneList.appendChild(buildTaskCard(t,true)));
 
-  openDetailIds.forEach(tid => {
-    const card = document.querySelector(`[data-task-id="${tid}"]`);
-    if (card) card.querySelector('.task-detail')?.classList.add('open');
-  });
-
-  if (pendingSubtaskFocus) {
-    const tid = pendingSubtaskFocus;
-    pendingSubtaskFocus = null;
-    const card = document.querySelector(`[data-task-id="${tid}"]`);
-    if (card) {
-      card.querySelector('.task-detail')?.classList.add('open');
-      card.querySelector('.subtask-input-row')?.classList.add('open');
-      card.querySelector('.subtask-input-row input')?.focus();
-    }
-  }
+  restoreOpenDetails();
 }
 
 /* ── Build task card ── */
@@ -1704,6 +1788,206 @@ function handleConfirmation() {
     return true;
   }
   return false;
+}
+
+/* ── Board view ── */
+function renderBoard() {
+  try { renderStats(); } catch(e) {}
+  const area = document.getElementById('boardArea');
+  area.innerHTML = '';
+  lists.forEach(list => area.appendChild(buildBoardCol(list)));
+  restoreOpenDetails();
+}
+
+function buildBoardCol(list) {
+  const colTasks = tasks.filter(t=>!t.parent_id && t.category===list.id);
+  const active   = sortedActiveTasks(list.id, colTasks.filter(t=>!t.done));
+  const done     = colTasks.filter(t=>t.done);
+
+  const col = document.createElement('div');
+  col.className = 'board-col';
+  col.dataset.colId = list.id;
+
+  const hdr = document.createElement('div');
+  hdr.className = 'board-col-header';
+  hdr.innerHTML = `
+    <span class="board-col-icon">${list.icon||'📋'}</span>
+    <span class="board-col-title">${list.name}</span>
+    <span class="board-col-count">${active.length}</span>
+  `;
+
+  const addDiv = document.createElement('div');
+  addDiv.className = 'board-col-add';
+  const addInput = document.createElement('input');
+  addInput.type = 'text'; addInput.placeholder = '+ Görev ekle...';
+  addInput.addEventListener('keydown', async e => {
+    if (e.key==='Enter') {
+      const text = addInput.value.trim();
+      if (!text) return;
+      addInput.value = '';
+      await addTaskToList(list.id, text);
+    }
+    if (e.key==='Escape') { addInput.value=''; addInput.blur(); }
+  });
+  addDiv.appendChild(addInput);
+
+  const body = document.createElement('div');
+  body.className = 'board-col-body';
+  body.dataset.colId = list.id;
+
+  active.forEach(t => {
+    const card = buildTaskCard(t, false);
+    initDrag(card, t);
+    body.appendChild(card);
+  });
+
+  if (done.length > 0) {
+    const isOpen = !!boardDoneStates[list.id];
+    const doneBtn = document.createElement('button');
+    doneBtn.className = 'done-toggle' + (isOpen?' open':'');
+    doneBtn.innerHTML = `<span class="done-chevron">▶</span><span>Tamamlananlar</span><span class="done-badge">${done.length}</span>`;
+    doneBtn.onclick = () => { boardDoneStates[list.id] = !boardDoneStates[list.id]; renderBoard(); };
+    body.appendChild(doneBtn);
+    if (isOpen) {
+      done.forEach(t => { body.appendChild(buildTaskCard(t, true)); });
+    }
+  }
+
+  col.appendChild(hdr);
+  col.appendChild(addDiv);
+  col.appendChild(body);
+  return col;
+}
+
+async function addTaskToList(listId, text) {
+  if (!text.trim()) return;
+  const payload = { text:text.trim(), done:false, category:listId, sort_order:Date.now() };
+  try {
+    const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
+    tasks.unshift(t);
+    renderBoard(); renderSidebar();
+  } catch(e) { showToast('Hata: '+e.message); }
+}
+
+/* ── Drag & drop ── */
+function initDrag(card, task) {
+  card.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    if (e.target.closest('button,input,textarea,select')) return;
+
+    const startX = e.clientX, startY = e.clientY;
+    let dragging = false, ghost = null, placeholder = null, overBody = null;
+
+    function onMove(ev) {
+      const dx = ev.clientX - startX, dy = ev.clientY - startY;
+      if (!dragging) {
+        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+        dragging = true;
+        document.body.style.userSelect = 'none';
+        const rect = card.getBoundingClientRect();
+        ghost = document.createElement('div');
+        ghost.className = 'drag-ghost';
+        ghost.style.width  = rect.width + 'px';
+        ghost.style.left   = (ev.clientX - rect.width/2) + 'px';
+        ghost.style.top    = (ev.clientY - 20) + 'px';
+        const row = card.querySelector('.task-row');
+        if (row) ghost.appendChild(row.cloneNode(true));
+        document.body.appendChild(ghost);
+        card.classList.add('is-dragging');
+        dragState = { task, card };
+      }
+
+      ghost.style.left = (ev.clientX - parseFloat(ghost.style.width)/2) + 'px';
+      ghost.style.top  = (ev.clientY - 20) + 'px';
+
+      if (placeholder) { placeholder.remove(); placeholder = null; }
+      if (overBody)    { overBody.classList.remove('drag-over'); overBody = null; }
+
+      ghost.style.visibility = 'hidden';
+      const el = document.elementFromPoint(ev.clientX, ev.clientY);
+      ghost.style.visibility = '';
+      const body = el?.closest('.board-col-body');
+      if (!body) return;
+
+      overBody = body; body.classList.add('drag-over');
+      placeholder = document.createElement('div');
+      placeholder.className = 'drop-placeholder';
+      const colCards = [...body.querySelectorAll('.task-card:not(.is-dragging)')];
+      let inserted = false;
+      for (const c of colCards) {
+        if (ev.clientY < c.getBoundingClientRect().top + c.getBoundingClientRect().height/2) {
+          body.insertBefore(placeholder, c); inserted = true; break;
+        }
+      }
+      if (!inserted) {
+        const dt = body.querySelector('.done-toggle');
+        if (dt) body.insertBefore(placeholder, dt); else body.appendChild(placeholder);
+      }
+    }
+
+    async function onUp(ev) {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.body.style.userSelect = '';
+
+      if (dragging) {
+        if (ghost) ghost.style.visibility = 'hidden';
+        const el = document.elementFromPoint(ev.clientX, ev.clientY);
+        if (ghost) ghost.style.visibility = '';
+        const body = el?.closest('.board-col-body') || overBody;
+        if (body) {
+          const targetListId = body.dataset.colId;
+          let insertBeforeId = null;
+          if (placeholder) {
+            let next = placeholder.nextElementSibling;
+            while (next && (!next.classList.contains('task-card') || next.classList.contains('is-dragging')))
+              next = next.nextElementSibling;
+            if (next?.dataset?.taskId) insertBeforeId = next.dataset.taskId;
+          }
+          await dropTask(task, targetListId, insertBeforeId);
+        }
+      }
+      if (ghost)       { ghost.remove(); ghost = null; }
+      if (placeholder) { placeholder.remove(); placeholder = null; }
+      if (overBody)    { overBody.classList.remove('drag-over'); overBody = null; }
+      card.classList.remove('is-dragging');
+      dragState = null;
+    }
+
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  });
+}
+
+async function dropTask(task, targetListId, insertBeforeId) {
+  const patch = {};
+  if (task.category !== targetListId) patch.category = targetListId;
+
+  const targetTasks = tasks
+    .filter(t=>!t.parent_id && t.category===targetListId && !t.done && t.id!==task.id)
+    .sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+
+  let newOrder;
+  if (insertBeforeId) {
+    const idx = targetTasks.findIndex(t=>t.id===insertBeforeId);
+    if (idx === 0) {
+      newOrder = (targetTasks[0].sort_order || 1000000) - 10000;
+    } else {
+      const prev = targetTasks[idx-1]?.sort_order || 0;
+      const next = targetTasks[idx]?.sort_order   || prev + 20000;
+      newOrder = Math.floor((prev + next) / 2);
+      if (newOrder === prev) newOrder = prev + 1;
+    }
+  } else {
+    newOrder = (targetTasks[targetTasks.length-1]?.sort_order || 0) + 10000;
+  }
+  patch.sort_order = newOrder;
+
+  try {
+    await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify(patch)});
+    Object.assign(task, patch);
+    renderBoard(); renderSidebar();
+  } catch(e) { showToast('Hata: '+e.message); }
 }
 
 /* ── Boot ── */
