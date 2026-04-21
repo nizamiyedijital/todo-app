@@ -1183,25 +1183,27 @@ const SORT_OPTIONS = [
 const PRIO_ORDER = { p1:1, p2:2, p3:3, p4:4 };
 
 function defaultTaskSort(a, b) {
-  const aHasPrio = !!a.priority;
-  const bHasPrio = !!b.priority;
-  // 1. Öncelikli görevler her zaman üstte
+  const aIsP4 = a.priority === 'p4';
+  const bIsP4 = b.priority === 'p4';
+  // p4 her zaman en altta
+  if (aIsP4 !== bIsP4) return aIsP4 ? 1 : -1;
+
+  const aHasPrio = !!a.priority && !aIsP4;
+  const bHasPrio = !!b.priority && !bIsP4;
+  // p1–p3 her zaman önceliksizlerden üstte
   if (aHasPrio !== bHasPrio) return aHasPrio ? -1 : 1;
   if (aHasPrio && bHasPrio) {
-    // 2. Öncelik hiyerarşisi (p1 > p2 > p3 > p4)
     const pd = (PRIO_ORDER[a.priority]??99) - (PRIO_ORDER[b.priority]??99);
     if (pd !== 0) return pd;
-    // Aynı öncelik: tarihi olan önce
     if (a.due_at && !b.due_at) return -1;
     if (!a.due_at && b.due_at) return 1;
     if (a.due_at && b.due_at) return new Date(a.due_at) - new Date(b.due_at);
     return (a.sort_order||0) - (b.sort_order||0);
   }
-  // 3. Önceliksiz: tarihi olan önce
+  // Önceliksiz (ve p4 kendi içi): tarihi olan önce
   if (a.due_at && !b.due_at) return -1;
   if (!a.due_at && b.due_at) return 1;
   if (a.due_at && b.due_at) return new Date(a.due_at) - new Date(b.due_at);
-  // 4. Tarihi de yoksa sort_order (küçük = üstte = en son eklenen)
   return (a.sort_order||0) - (b.sort_order||0);
 }
 
