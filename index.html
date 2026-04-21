@@ -388,17 +388,6 @@
     .priority-btn.p2.active { box-shadow:0 0 0 3px #fde047; }
     .priority-btn.p3.active { box-shadow:0 0 0 3px #fdba74; }
     .priority-btn.p4.active { box-shadow:0 0 0 3px #e2e8f0; }
-    /* Swipe background (mobile) */
-    .swipe-bg {
-      position:absolute; inset:0; display:flex;
-      align-items:center; justify-content:space-between;
-      padding:0 20px; pointer-events:none; border-radius:inherit;
-    }
-    .swipe-l, .swipe-r {
-      color:#fff; font-size:1.25rem; font-weight:700;
-      opacity:0; transition:none;
-    }
-
     .task-side {
       display:flex; align-items:center; gap:2px; flex-shrink:0; padding-top:1px;
     }
@@ -1682,10 +1671,6 @@ function buildTaskCard(task, isDone) {
   card.className = 'task-card'+(isDone?' task-done':'')+(task.priority?' prio-'+task.priority:'');
   card.dataset.taskId = task.id;
   if (task.id === recentlyAddedId) { card.classList.add('new'); recentlyAddedId = null; }
-  const swipeBg = document.createElement('div');
-  swipeBg.className = 'swipe-bg';
-  swipeBg.innerHTML = '<span class="swipe-l">✓</span><span class="swipe-r">🗑️</span>';
-  card.appendChild(swipeBg);
 
   const row = document.createElement('div');
   row.className = 'task-row';
@@ -1859,7 +1844,6 @@ function buildTaskCard(task, isDone) {
   if (!isDone) { detail.appendChild(subList); detail.appendChild(subInputRow); detail.appendChild(addSubBtn); }
 
   row.addEventListener('click', e => {
-    if (card._swipeMoved) { card._swipeMoved = false; return; }
     if (e.target.closest('.task-side') || e.target.closest('.task-check')) return;
     const wasOpen = detail.classList.contains('open');
     closeAllDetails();
@@ -1869,7 +1853,6 @@ function buildTaskCard(task, isDone) {
       notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px';
     }
   });
-  initSwipe(card, task);
 
   card.appendChild(row);
   card.appendChild(detail);
@@ -2238,67 +2221,6 @@ async function dropTask(task, targetListId, insertBeforeId) {
     Object.assign(task, patch);
     renderBoard(); renderSidebar();
   } catch(e) { showToast('Hata: '+e.message); }
-}
-
-/* ── Mobile swipe ── */
-function initSwipe(card, task) {
-  const bg = card.querySelector('.swipe-bg');
-  let startX, startY, dx = 0, active = false;
-
-  card.addEventListener('pointerdown', e => {
-    if (window.innerWidth > 600) return;
-    if (activeListId === BOARD_LIST_ID) return;
-    if (e.target.closest('button,input,textarea')) return;
-    startX = e.clientX; startY = e.clientY; dx = 0; active = false;
-  }, { passive:true });
-
-  card.addEventListener('pointermove', e => {
-    if (!startX || window.innerWidth > 600) return;
-    const dxR = e.clientX - startX, dyR = e.clientY - startY;
-    if (!active && Math.abs(dyR) > Math.abs(dxR)) { startX = null; return; }
-    if (!active && Math.abs(dxR) > 8) { active = true; card._swipeMoved = true; card.setPointerCapture(e.pointerId); }
-    if (!active) return;
-    dx = Math.max(-115, Math.min(115, dxR));
-    const row = card.querySelector('.task-row');
-    row.style.cssText = `transform:translateX(${dx}px);transition:none;position:relative;z-index:1;background:#fff;border-radius:inherit;`;
-    const ratio = Math.abs(dx) / 90;
-    if (dx > 20) {
-      bg.style.background = `rgba(34,197,94,${Math.min(ratio,.88)})`;
-      bg.querySelector('.swipe-l').style.opacity = Math.min(dx/50,1);
-      bg.querySelector('.swipe-r').style.opacity = 0;
-    } else if (dx < -20) {
-      bg.style.background = `rgba(239,68,68,${Math.min(ratio,.88)})`;
-      bg.querySelector('.swipe-r').style.opacity = Math.min(-dx/50,1);
-      bg.querySelector('.swipe-l').style.opacity = 0;
-    } else {
-      bg.style.background = 'transparent';
-      bg.querySelector('.swipe-l').style.opacity = 0;
-      bg.querySelector('.swipe-r').style.opacity = 0;
-    }
-  }, { passive:true });
-
-  card.addEventListener('pointerup', e => {
-    if (!startX || !active) { startX = null; return; }
-    startX = null; active = false;
-    const row = card.querySelector('.task-row');
-    const snap = () => {
-      row.style.cssText = `transform:translateX(0);transition:transform .25s ease;position:relative;z-index:1;background:#fff;border-radius:inherit;`;
-      bg.style.background = 'transparent';
-      bg.querySelector('.swipe-l').style.opacity = 0;
-      bg.querySelector('.swipe-r').style.opacity = 0;
-      card._swipeMoved = false;
-    };
-    if (dx > 80) {
-      row.style.cssText = `transform:translateX(115%);transition:transform .2s ease;position:relative;z-index:1;background:#fff;`;
-      setTimeout(() => toggleTask(task), 180);
-    } else if (dx < -80) {
-      row.style.cssText = `transform:translateX(-115%);transition:transform .2s ease;position:relative;z-index:1;background:#fff;`;
-      setTimeout(() => deleteTask(task.id), 180);
-    } else {
-      snap();
-    }
-    dx = 0;
-  });
 }
 
 /* ── Mobile bottom sheet ── */
