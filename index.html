@@ -143,6 +143,11 @@
     }
     .list-item:hover .btn-list-more { opacity:1; }
     .btn-list-more:hover { background:#e8ecf4; color:#555; opacity:1; }
+    .list-item.dragging { opacity:.25; pointer-events:none; }
+    .list-drop-line {
+      height:2px; background:#4f6ef7; border-radius:2px;
+      margin:1px 8px; pointer-events:none;
+    }
 
     /* List context menu */
     .list-ctx-wrap { position:relative; flex-shrink:0; }
@@ -1798,6 +1803,85 @@ function renderSidebar() {
     item.appendChild(badge);
     item.appendChild(moreBtn);
     container.appendChild(item);
+    initListDrag(item, l.id);
+  });
+}
+
+/* ── Sidebar list drag-to-reorder ── */
+function initListDrag(item, listId) {
+  item.addEventListener('pointerdown', e => {
+    if (e.target.closest('.btn-list-more')) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const startY = e.clientY, startX = e.clientX;
+    let dragging = false, ghost = null, dropIdx = null;
+
+    const getUserItems = () => [...document.querySelectorAll('#sidebarLists .list-item[data-id]')];
+
+    const clearIndicator = () => document.querySelectorAll('.list-drop-line').forEach(el => el.remove());
+
+    const onMove = e => {
+      const dy = e.clientY - startY, dx = e.clientX - startX;
+      if (!dragging && Math.sqrt(dy*dy + dx*dx) > 5) {
+        dragging = true;
+        item.classList.add('dragging');
+        const r = item.getBoundingClientRect();
+        ghost = item.cloneNode(true);
+        ghost.classList.remove('dragging');
+        ghost.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;
+          opacity:.9;pointer-events:none;z-index:9999;
+          box-shadow:0 4px 18px rgba(0,0,0,.13);border-radius:9px;background:#fff;`;
+        document.body.appendChild(ghost);
+        item.setPointerCapture(e.pointerId);
+      }
+      if (!dragging) return;
+      ghost.style.top = (e.clientY - item.offsetHeight / 2) + 'px';
+      clearIndicator();
+      const allItems = getUserItems();
+      let newDrop = allItems.length;
+      for (let i = 0; i < allItems.length; i++) {
+        const r = allItems[i].getBoundingClientRect();
+        if (e.clientY < r.top + r.height / 2) { newDrop = i; break; }
+      }
+      dropIdx = newDrop;
+      const line = document.createElement('div');
+      line.className = 'list-drop-line';
+      const container = document.getElementById('sidebarLists');
+      const ref = allItems[dropIdx] || null;
+      container.insertBefore(line, ref);
+    };
+
+    const onUp = async () => {
+      item.removeEventListener('pointermove', onMove);
+      item.removeEventListener('pointerup', onUp);
+      item.removeEventListener('pointercancel', onUp);
+      clearIndicator();
+      if (ghost) { ghost.remove(); ghost = null; }
+      item.classList.remove('dragging');
+      if (!dragging || dropIdx === null) return;
+
+      const allItems = getUserItems();
+      const fromIdx = allItems.findIndex(el => el.dataset.id === listId);
+      if (fromIdx < 0) return;
+      const toIdx = dropIdx > fromIdx ? dropIdx - 1 : dropIdx;
+      if (fromIdx === toIdx) return;
+
+      const reordered = [...lists];
+      const [moved] = reordered.splice(fromIdx, 1);
+      reordered.splice(toIdx, 0, moved);
+      reordered.forEach((l, i) => { l.sort_order = i * 10; });
+      lists = reordered;
+      renderSidebar();
+
+      try {
+        await Promise.all(reordered.map(l =>
+          db(`/lists?id=eq.${l.id}`, { method:'PATCH', body: JSON.stringify({ sort_order: l.sort_order }) })
+        ));
+      } catch(e) { console.warn('List reorder save error:', e.message); }
+    };
+
+    item.addEventListener('pointermove', onMove);
+    item.addEventListener('pointerup', onUp);
+    item.addEventListener('pointercancel', onUp);
   });
 }
 
