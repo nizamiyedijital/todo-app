@@ -3248,6 +3248,7 @@ async function addTaskToList(listId, text) {
 function initDrag(card, task) {
   card.addEventListener('pointerdown', e => {
     if (e.button !== 0) return;
+    if (e.pointerType === 'touch') return;
     if (e.target.closest('button,input,textarea,select')) return;
 
     const startX = e.clientX, startY = e.clientY;
@@ -3329,8 +3330,21 @@ function initDrag(card, task) {
       dragState = null;
     }
 
+    function onCancel() {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', onCancel);
+      document.body.style.userSelect = '';
+      if (ghost)       { ghost.remove(); ghost = null; }
+      if (placeholder) { placeholder.remove(); placeholder = null; }
+      if (overBody)    { overBody.classList.remove('drag-over'); overBody = null; }
+      card.classList.remove('is-dragging');
+      dragState = null;
+    }
+
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onCancel);
   });
 }
 
@@ -3609,19 +3623,25 @@ function wkStartDrag(e, task, chip) {
 
   function onUp(ev) {
     if (!wkDragState?.active) return;
-    ghost.remove();
-    chip.classList.remove('wk-dragging');
-    document.querySelectorAll('.wk-slot.drag-over').forEach(el=>el.classList.remove('drag-over'));
+    cleanup();
     const el = document.elementFromPoint(ev.clientX, ev.clientY);
     const slot = el?.closest('.wk-slot');
     if (slot) wkScheduleTask(task.id, slot.dataset.date, parseInt(slot.dataset.hour));
+  }
+
+  function cleanup() {
+    ghost.remove();
+    chip.classList.remove('wk-dragging');
+    document.querySelectorAll('.wk-slot.drag-over').forEach(el=>el.classList.remove('drag-over'));
     wkDragState = null;
     chip.removeEventListener('pointermove', onMove);
     chip.removeEventListener('pointerup',   onUp);
+    chip.removeEventListener('pointercancel', cleanup);
   }
 
   chip.addEventListener('pointermove', onMove);
   chip.addEventListener('pointerup',   onUp);
+  chip.addEventListener('pointercancel', cleanup);
 }
 
 /* ── Mobile bottom sheet ── */
