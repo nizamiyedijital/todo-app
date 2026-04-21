@@ -545,11 +545,11 @@
     .loading-wrap { text-align:center; color:#ccc; padding:28px 0; }
 
     /* ── Date-Time Picker ── */
-    .dtp-overlay { position:fixed; inset:0; z-index:200; display:none; }
+    .dtp-overlay { position:fixed; inset:0; z-index:500; display:none; }
     .dtp-overlay.open { display:block; }
     .dtp-box {
       position:fixed; background:#fff; border-radius:12px;
-      box-shadow:0 4px 20px rgba(0,0,0,0.15); z-index:201;
+      box-shadow:0 4px 20px rgba(0,0,0,0.15); z-index:501;
       display:none; flex-direction:column; width:250px; overflow:hidden;
     }
     .dtp-box.open { display:flex; }
@@ -2324,12 +2324,17 @@ function dtpOpen(anchor,currentISO,cb) {
   const box=document.getElementById('dtpBox');
   box.classList.add('open');
   document.getElementById('dtpOverlay').classList.add('open');
-  const rect=anchor.getBoundingClientRect();
   const vw=window.innerWidth,vh=window.innerHeight,bw=250,bh=340;
-  let left=rect.left, top=rect.bottom+6;
-  if(left+bw>vw-8) left=Math.max(8,vw-bw-8);
-  if(top+bh>vh-8)  top=Math.max(8,rect.top-bh-6);
-  box.style.left=left+'px'; box.style.top=top+'px';
+  if(vw<=600){
+    box.style.left=Math.round((vw-bw)/2)+'px';
+    box.style.top =Math.round((vh-bh)/2)+'px';
+  } else {
+    const rect=anchor.getBoundingClientRect();
+    let left=rect.left, top=rect.bottom+6;
+    if(left+bw>vw-8) left=Math.max(8,vw-bw-8);
+    if(top+bh>vh-8)  top=Math.max(8,rect.top-bh-6);
+    box.style.left=left+'px'; box.style.top=top+'px';
+  }
 }
 function dtpClose() {
   document.getElementById('dtpBox').classList.remove('open');
