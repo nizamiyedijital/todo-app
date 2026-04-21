@@ -359,16 +359,17 @@
     }
     .priority-row-label { font-size:.76rem; color:#bbb; font-weight:500; flex-shrink:0; }
     .priority-btn {
-      font-size:.72rem; font-weight:600; padding:4px 9px; border-radius:7px;
-      cursor:pointer; border:1.5px solid transparent; transition:all .15s;
-      background:#f4f5f9; color:#888;
+      width:28px; height:28px; border-radius:50%;
+      cursor:pointer; border:2px solid transparent; transition:all .15s;
+      background:transparent; display:inline-flex; align-items:center;
+      justify-content:center; font-size:1.1rem; padding:0;
     }
-    .priority-btn:hover { opacity:.85; }
-    .priority-btn.p1 { background:#fff1f1; color:#dc2626; border-color:#fca5a5; }
-    .priority-btn.p2 { background:#fefce8; color:#ca8a04; border-color:#fde047; }
-    .priority-btn.p3 { background:#fff7ed; color:#ea580c; border-color:#fdba74; }
-    .priority-btn.p4 { background:#f4f5f9; color:#94a3b8; border-color:#e2e8f0; }
-    .priority-btn.active { box-shadow:0 0 0 2px currentColor; }
+    .priority-btn:hover { transform:scale(1.2); }
+    .priority-btn.active { transform:scale(1.1); }
+    .priority-btn.p1.active { box-shadow:0 0 0 3px #fca5a5; }
+    .priority-btn.p2.active { box-shadow:0 0 0 3px #fde047; }
+    .priority-btn.p3.active { box-shadow:0 0 0 3px #fdba74; }
+    .priority-btn.p4.active { box-shadow:0 0 0 3px #e2e8f0; }
     .task-side {
       display:flex; align-items:center; gap:2px; flex-shrink:0; padding-top:1px;
     }
@@ -1186,7 +1187,10 @@ function closeListCtxMenu() {
   if (openCtxMenu) { openCtxMenu.remove(); openCtxMenu=null; }
 }
 
-document.addEventListener('click', () => closeListCtxMenu());
+document.addEventListener('click', () => {
+  closeListCtxMenu();
+  if (openTaskMenu) { openTaskMenu.remove(); openTaskMenu = null; }
+});
 
 /* ── Rename ── */
 function startRename(listId) {
@@ -1506,7 +1510,7 @@ function buildTaskCard(task, isDone) {
   if (task.priority && PRIORITIES[task.priority]) {
     const dot = document.createElement('span');
     dot.className=`prio-dot ${task.priority}`;
-    dot.title=PRIORITIES[task.priority].label;
+    dot.title=`${PRIORITIES[task.priority].icon} ${PRIORITIES[task.priority].label}`;
     meta.appendChild(dot);
   }
   if (activeListId === STARRED_LIST_ID) {
@@ -1531,15 +1535,11 @@ function buildTaskCard(task, isDone) {
   starBtn.onclick   = (e) => { e.stopPropagation(); toggleStar(task); };
 
   const expandBtn = document.createElement('button');
-  expandBtn.className='btn-icon'; expandBtn.title='Detaylar'; expandBtn.textContent='…';
-
-  const delBtn = document.createElement('button');
-  delBtn.className='btn-icon del'; delBtn.title='Sil'; delBtn.textContent='✕';
-  delBtn.onclick = ()=>deleteTask(task.id);
+  expandBtn.className='btn-icon'; expandBtn.title='Seçenekler'; expandBtn.textContent='⋯';
+  expandBtn.onclick = (e) => { e.stopPropagation(); openTaskCtxMenu(expandBtn, task); };
 
   side.appendChild(starBtn);
   side.appendChild(expandBtn);
-  side.appendChild(delBtn);
 
   row.appendChild(chk);
   row.appendChild(body);
@@ -1618,8 +1618,9 @@ function buildTaskCard(task, isDone) {
   prioRow.appendChild(prioLbl);
   Object.entries(PRIORITIES).forEach(([key, prio]) => {
     const btn = document.createElement('button');
-    btn.className = `priority-btn ${key}` + (task.priority===key?' active':'');
-    btn.textContent = prio.label;
+    btn.className   = `priority-btn ${key}` + (task.priority===key?' active':'');
+    btn.textContent = prio.icon;
+    btn.title       = prio.label;
     btn.onclick = () => {
       const newVal = task.priority===key ? null : key;
       updatePriority(task, newVal);
@@ -1638,16 +1639,16 @@ function buildTaskCard(task, isDone) {
   detail.appendChild(prioRow);
   if (!isDone) { detail.appendChild(subList); detail.appendChild(subInputRow); detail.appendChild(addSubBtn); }
 
-  expandBtn.onclick=()=>{
-    const open=detail.classList.toggle('open');
-    expandBtn.classList.toggle('open',open);
+  row.addEventListener('click', e => {
+    if (e.target.closest('.task-side') || e.target.closest('.task-check')) return;
+    const open = detail.classList.toggle('open');
     if (open) {
       openDetailIds.add(task.id);
       notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px';
     } else {
       openDetailIds.delete(task.id);
     }
-  };
+  });
 
   card.appendChild(row);
   card.appendChild(detail);
@@ -1677,12 +1678,39 @@ async function toggleStar(task) {
   render(); renderSidebar();
 }
 
+/* ── Task context menu ── */
+let openTaskMenu = null;
+function openTaskCtxMenu(anchor, task) {
+  if (openTaskMenu) { openTaskMenu.remove(); openTaskMenu = null; }
+  const menu = document.createElement('div');
+  menu.className = 'list-ctx-menu open';
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'list-ctx-item danger';
+  delBtn.innerHTML = `<span>🗑️</span><span>Görevi sil</span>`;
+  delBtn.onclick = (e) => {
+    e.stopPropagation(); menu.remove(); openTaskMenu = null;
+    deleteTask(task.id);
+  };
+  menu.appendChild(delBtn);
+
+  document.body.appendChild(menu);
+  openTaskMenu = menu;
+
+  const rect = anchor.getBoundingClientRect();
+  const vw=window.innerWidth, vh=window.innerHeight, mw=160, mh=48;
+  let left=rect.right+4, top=rect.top;
+  if (left+mw>vw-8) left=Math.max(8,rect.left-mw-4);
+  if (top+mh>vh-8)  top=Math.max(8,vh-mh-8);
+  menu.style.left=left+'px'; menu.style.top=top+'px';
+}
+
 /* ── Priority ── */
 const PRIORITIES = {
-  p1: { label:'🔴 Acil & Önemli',       short:'🔴 Acil & Önemli'   },
-  p2: { label:'🟡 Önemli, Acil Değil',  short:'🟡 Önemli'          },
-  p3: { label:'🟠 Acil, Önemsiz',       short:'🟠 Acil'            },
-  p4: { label:'⚪ Ne Acil Ne Önemli',   short:'⚪ Ertele'          },
+  p1: { label:'Acil & Önemli',      icon:'🔴' },
+  p2: { label:'Önemli, Acil Değil', icon:'🟡' },
+  p3: { label:'Acil, Önemsiz',      icon:'🟠' },
+  p4: { label:'Ertelenebilir',      icon:'⚪' },
 };
 
 async function updatePriority(task, val) {
