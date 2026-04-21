@@ -1690,21 +1690,15 @@ async function addTask() {
   if (addDueValue)          payload.due_at = addDueValue;
   input.value=''; notesEl.value='';
   addDueValue=''; renderAddDueLabel();
-  openAddDetail();
-  input.focus();           // render öncesi focus — sync olarak set edilir
   addingTask = true;
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
     tasks.unshift(t); recentlyAddedId = t.id; render(); renderSidebar();
   } catch(e) { alert(e.message); }
   finally {
+    addingTask = false;
     openAddDetail();
-    // render() sonrası olası focus kayıplarına karşı iki kez dene
     document.getElementById('taskInput').focus();
-    setTimeout(()=>{
-      document.getElementById('taskInput').focus();
-      addingTask = false;
-    }, 50);
   }
 }
 
@@ -1768,14 +1762,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     if (e.key==='Escape') { closeAddDetail(); e.target.blur(); }
   });
 
-  // Sadece gerçekten odak addWrap dışına çıkınca kapat — Enter'da asla tetiklenmez
-  document.getElementById('addWrap').addEventListener('focusout', () => {
-    setTimeout(() => {
-      if (addingTask) return;
-      if (!document.getElementById('addWrap').contains(document.activeElement)) {
-        if (!document.getElementById('taskInput').value.trim()) closeAddDetail();
-      }
-    }, 200);
+  // Görev listesine tıklanınca kapat (görev kartı dışı tıklama)
+  document.getElementById('mainBody').addEventListener('pointerdown', e=>{
+    if (addingTask) return;
+    if (!e.target.closest('#addWrap')) {
+      if (!document.getElementById('taskInput').value.trim()) closeAddDetail();
+    }
   });
 
   document.getElementById('mobTitleInput').addEventListener('keydown', e => {
