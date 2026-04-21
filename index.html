@@ -1216,8 +1216,8 @@ async function addSubtask(parentId, text) {
 async function toggleTask(task) {
   const nowDone = !task.done;
   const patch   = { done:nowDone };
-  if (nowDone) patch.completed_at = new Date().toISOString();
-  else         patch.completed_at = null;
+  if (nowDone) { patch.completed_at = new Date().toISOString(); openDetailIds.delete(task.id); }
+  else           patch.completed_at = null;
   await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify(patch)});
   Object.assign(task, patch);
   render(); renderSidebar();
@@ -1289,6 +1289,7 @@ function renderStats() {
 
 /* ── Render tasks ── */
 let pendingSubtaskFocus = null;
+let openDetailIds = new Set();
 
 function render() {
   try { renderStats(); } catch(e) { console.error('renderStats:', e); }
@@ -1310,6 +1311,11 @@ function render() {
   const doneList = document.getElementById('doneList');
   doneList.innerHTML='';
   if (showDone) done.forEach(t=>doneList.appendChild(buildTaskCard(t,true)));
+
+  openDetailIds.forEach(tid => {
+    const card = document.querySelector(`[data-task-id="${tid}"]`);
+    if (card) card.querySelector('.task-detail')?.classList.add('open');
+  });
 
   if (pendingSubtaskFocus) {
     const tid = pendingSubtaskFocus;
@@ -1492,7 +1498,12 @@ function buildTaskCard(task, isDone) {
   expandBtn.onclick=()=>{
     const open=detail.classList.toggle('open');
     expandBtn.classList.toggle('open',open);
-    if (open) { notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px'; }
+    if (open) {
+      openDetailIds.add(task.id);
+      notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px';
+    } else {
+      openDetailIds.delete(task.id);
+    }
   };
 
   card.appendChild(row);
