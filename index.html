@@ -316,6 +316,30 @@
       font-size:.63rem; color:#aaa;
       background:#f4f5f9; border-radius:5px; padding:1px 5px;
     }
+    /* Star button on card */
+    .btn-star {
+      width:26px; height:26px; border:none; background:transparent;
+      cursor:pointer; font-size:.95rem; border-radius:6px;
+      display:flex; align-items:center; justify-content:center;
+      color:#ddd; transition:all .15s; flex-shrink:0;
+      opacity:0;
+    }
+    .task-card:hover .btn-star { opacity:1; }
+    .btn-star:hover { color:#f59e0b; }
+    .btn-star.starred { color:#f59e0b; opacity:1; }
+
+    /* List label badge (shown in Yıldızlı view) */
+    .list-label-badge {
+      font-size:.62rem; font-weight:500; color:#888;
+      background:#f0f2f8; border-radius:5px; padding:1px 6px;
+      white-space:nowrap;
+    }
+
+    /* Starred smart list separator */
+    .sidebar-sep {
+      height:1px; background:#f0f2f8; margin:6px 8px;
+    }
+
     /* Priority dot on card — shown in .task-meta */
     .prio-dot {
       width:7px; height:7px; border-radius:50%; flex-shrink:0; display:inline-block;
@@ -749,6 +773,8 @@ const SB      = 'https://uzkscrrqyxftbtwkiyra.supabase.co';
 const ANON    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6a3NjcnJxeXhmdGJ0d2tpeXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDkxNDMsImV4cCI6MjA5MjI4NTE0M30.wA7g4SVacghNunC0nt6ZP3SgHZ6U6LAWu3ggUrypBxE';
 const APP_URL = 'https://nizamiyedijital.github.io/todo-app';
 
+const STARRED_LIST_ID = '__starred__';
+
 const DEFAULT_LISTS = [
   { id:'genel',    name:'Genel',    icon:'📋', color:'#718096', sort_order:0 },
   { id:'iş',       name:'İş',       icon:'💼', color:'#3b82f6', sort_order:1 },
@@ -1124,6 +1150,27 @@ function startRename(listId) {
 function renderSidebar() {
   const container = document.getElementById('sidebarLists');
   container.innerHTML = '';
+
+  /* Yıldızlı akıllı liste */
+  const starCount = tasks.filter(t=>!t.parent_id && t.starred && !t.done).length;
+  const starItem  = document.createElement('div');
+  starItem.className = 'list-item' + (activeListId===STARRED_LIST_ID?' active':'');
+  starItem.onclick   = () => selectList(STARRED_LIST_ID);
+  starItem.innerHTML = `
+    <span class="list-icon">⭐</span>
+    <span class="list-name" style="flex:1;font-size:.87rem;color:#333;font-weight:500;">Yıldızlı</span>
+    <span class="list-count">${starCount > 0 ? starCount : ''}</span>
+  `;
+  if (activeListId===STARRED_LIST_ID) {
+    starItem.querySelector('.list-name').style.color='#4f6ef7';
+    starItem.querySelector('.list-name').style.fontWeight='600';
+  }
+  container.appendChild(starItem);
+
+  const sep = document.createElement('div');
+  sep.className = 'sidebar-sep';
+  container.appendChild(sep);
+
   lists.forEach(l => {
     const count = tasks.filter(t=>!t.parent_id && t.category===l.id && !t.done).length;
     const item  = document.createElement('div');
@@ -1281,8 +1328,13 @@ function render() {
   try { renderStats(); } catch(e) { console.error('renderStats:', e); }
   if (!activeListId) return;
 
-  const roots  = tasks.filter(t=>!t.parent_id && t.category===activeListId);
-  const active = sortedActiveTasks(activeListId, roots.filter(t=>!t.done));
+  const isStarred = activeListId === STARRED_LIST_ID;
+  const roots  = isStarred
+    ? tasks.filter(t=>!t.parent_id && t.starred)
+    : tasks.filter(t=>!t.parent_id && t.category===activeListId);
+  const active = isStarred
+    ? roots.filter(t=>!t.done)
+    : sortedActiveTasks(activeListId, roots.filter(t=>!t.done));
   const done   = roots.filter(t=> t.done);
 
   const taskList = document.getElementById('taskList');
@@ -1369,11 +1421,26 @@ function buildTaskCard(task, isDone) {
     dot.title=PRIORITIES[task.priority].label;
     meta.appendChild(dot);
   }
+  if (activeListId === STARRED_LIST_ID) {
+    const listObj = lists.find(l=>l.id===task.category);
+    if (listObj) {
+      const lbl = document.createElement('span');
+      lbl.className = 'list-label-badge';
+      lbl.textContent = `${listObj.icon} ${listObj.name}`;
+      meta.appendChild(lbl);
+    }
+  }
   body.appendChild(titleInput);
   if (meta.children.length) body.appendChild(meta);
 
   const side = document.createElement('div');
   side.className = 'task-side';
+
+  const starBtn = document.createElement('button');
+  starBtn.className = 'btn-star' + (task.starred?' starred':'');
+  starBtn.title     = task.starred ? 'Yıldızı kaldır' : 'Yıldızla';
+  starBtn.textContent = task.starred ? '★' : '☆';
+  starBtn.onclick   = (e) => { e.stopPropagation(); toggleStar(task); };
 
   const expandBtn = document.createElement('button');
   expandBtn.className='btn-icon'; expandBtn.title='Detaylar'; expandBtn.textContent='…';
@@ -1382,6 +1449,7 @@ function buildTaskCard(task, isDone) {
   delBtn.className='btn-icon del'; delBtn.title='Sil'; delBtn.textContent='✕';
   delBtn.onclick = ()=>deleteTask(task.id);
 
+  side.appendChild(starBtn);
   side.appendChild(expandBtn);
   side.appendChild(delBtn);
 
@@ -1511,6 +1579,14 @@ function buildSubRow(sub,container) {
   del.className='btn-del-sub'; del.textContent='✕'; del.onclick=()=>deleteTask(sub.id);
   row.appendChild(chk); row.appendChild(txt); row.appendChild(del);
   container.appendChild(row);
+}
+
+/* ── Star ── */
+async function toggleStar(task) {
+  const starred = !task.starred;
+  await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify({starred})});
+  task.starred = starred;
+  render(); renderSidebar();
 }
 
 /* ── Priority ── */
