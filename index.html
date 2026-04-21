@@ -678,12 +678,6 @@
           </div>
         </div>
 
-        <div class="summary-row" id="summaryRow" style="display:none">
-          <button class="btn-toggle-done" id="btnToggleDone" onclick="toggleShowDone()">
-            Tamamlananları Göster
-          </button>
-        </div>
-
         <div id="taskList"></div>
 
         <div class="empty" id="empty" style="display:none">Bu listede henüz görev yok.</div>
@@ -692,7 +686,7 @@
         <div class="done-section" id="doneSection" style="display:none">
           <button class="done-toggle" id="doneToggle" onclick="toggleDoneList()">
             <span class="done-chevron">▶</span>
-            Tamamlananlar
+            <span>Tamamlananlar</span>
             <span class="done-badge" id="doneBadge">0</span>
           </button>
           <div class="done-list" id="doneList"></div>
@@ -768,7 +762,6 @@ let session      = null;
 let tasks        = [];
 let lists        = [];
 let activeListId = null;
-let showDone     = false;
 let doneOpen     = false;
 let addDueValue  = '';
 let editTimers   = {};
@@ -1167,14 +1160,11 @@ function renderSidebar() {
 /* ── Select list ── */
 function selectList(id) {
   activeListId = id;
-  showDone     = false;
   doneOpen     = false;
   const list   = lists.find(l=>l.id===id);
   document.getElementById('mainListIcon').textContent  = list?.icon  || '📋';
   document.getElementById('mainListTitle').textContent = list?.name  || '';
   document.getElementById('addWrap').style.display     = 'block';
-  document.getElementById('summaryRow').style.display  = 'flex';
-  document.getElementById('btnToggleDone').textContent = 'Tamamlananları Göster';
   renderSidebar();
   render();
 }
@@ -1263,15 +1253,11 @@ function renderAddDueLabel() {
   } else { el.textContent=''; btn.classList.remove('has-date'); }
 }
 
-function toggleShowDone() {
-  showDone = !showDone;
-  document.getElementById('btnToggleDone').textContent = showDone ? 'Tamamlananları Gizle' : 'Tamamlananları Göster';
-  render();
-}
+
 function toggleDoneList() {
   doneOpen = !doneOpen;
-  document.getElementById('doneList').classList.toggle('open',doneOpen);
-  document.getElementById('doneToggle').classList.toggle('open',doneOpen);
+  document.getElementById('doneToggle').classList.toggle('open', doneOpen);
+  render();
 }
 
 /* ── Stats ── */
@@ -1306,11 +1292,12 @@ function render() {
   document.getElementById('empty').style.display = active.length===0 ? 'block' : 'none';
 
   const doneSection = document.getElementById('doneSection');
-  doneSection.style.display = showDone && done.length>0 ? 'block' : 'none';
+  doneSection.style.display = done.length > 0 ? 'block' : 'none';
   document.getElementById('doneBadge').textContent = done.length;
   const doneList = document.getElementById('doneList');
   doneList.innerHTML='';
-  if (showDone) done.forEach(t=>doneList.appendChild(buildTaskCard(t,true)));
+  doneList.classList.toggle('open', doneOpen);
+  if (doneOpen) done.forEach(t=>doneList.appendChild(buildTaskCard(t,true)));
 
   openDetailIds.forEach(tid => {
     const card = document.querySelector(`[data-task-id="${tid}"]`);
