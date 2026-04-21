@@ -1686,7 +1686,7 @@ async function addTask() {
     openAddDetail();
     document.getElementById('taskInput').focus();
   } catch(e) { alert(e.message); }
-  finally { addingTask = false; }
+  finally { setTimeout(()=>{ addingTask = false; }, 100); }
 }
 
 async function addSubtask(parentId, text) {
@@ -1745,16 +1745,12 @@ function closeAddDetail() { document.getElementById('addDetail').classList.remov
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('taskInput').addEventListener('focus', openAddDetail);
   document.getElementById('taskInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); if(e.key==='Escape') { closeAddDetail(); e.target.blur(); } });
-  document.getElementById('taskInput').addEventListener('blur', ()=>{
+  document.addEventListener('click', e => {
     if (addingTask) return;
-    setTimeout(()=>{
-      if (addingTask) return;
-      const focused = document.activeElement;
-      const wrap = document.getElementById('addWrap');
-      if (!wrap.contains(focused) && !document.getElementById('taskInput').value.trim()) {
-        closeAddDetail();
-      }
-    }, 150);
+    const wrap = document.getElementById('addWrap');
+    if (!wrap || !wrap.contains(e.target)) {
+      if (!document.getElementById('taskInput').value.trim()) closeAddDetail();
+    }
   });
 
   document.getElementById('mobTitleInput').addEventListener('keydown', e => {
