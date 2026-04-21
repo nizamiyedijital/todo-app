@@ -1872,8 +1872,10 @@ async function deleteTask(id) {
 function scheduleUpdate(task, patch) {
   clearTimeout(editTimers[task.id]);
   editTimers[task.id] = setTimeout(async ()=>{
-    await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify(patch)});
-    Object.assign(task, patch);
+    try {
+      await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify(patch)});
+      Object.assign(task, patch);
+    } catch(e) { console.warn('Auto-save error:', e.message); }
   }, 700);
 }
 
@@ -3133,7 +3135,8 @@ window.onerror = (msg, src, line, col, err) => {
 };
 window.onunhandledrejection = (e) => {
   console.error('Unhandled rejection:', e.reason);
-  showAuth();
+  // Only logout on auth errors, not on API/network errors
+  if (e.reason?.message?.includes('Oturum')) showAuth();
 };
 
 (async function init(){
