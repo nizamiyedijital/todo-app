@@ -768,7 +768,6 @@
     }
 
     /* Mobile-only elements — hidden on desktop */
-    #mobSheet, #mobSheetOverlay,
     #mobTaskSheet, #mobTaskSheetOverlay { display:none; }
 
     /* ── Board view ── */
@@ -962,8 +961,7 @@
       .main-header { padding:16px 14px 0; }
 
       /* Google Tasks–style flat task rows */
-      #addWrap { display:none !important; }
-      #mainBody { padding:0 0 90px; }
+      #mainBody { padding:0 0 72px; }
       .task-card {
         border-radius:0 !important; border-left:none !important;
         border-bottom:1px solid #f0f2f8; margin-bottom:0;
@@ -980,39 +978,21 @@
       .btn-icon  { opacity:1 !important; width:34px; height:34px; font-size:1.1rem; }
       .task-info-bar { display:none; }
 
-      /* Mobile add bar */
-      #mobileAddBar {
-        display:flex !important; position:fixed;
-        bottom:0; left:180px; right:0;
-        background:#fff; border-top:1px solid #e8ecf4;
-        padding:10px 14px max(10px, env(safe-area-inset-bottom));
-        z-index:150; align-items:center;
+      /* addWrap fixed at bottom on mobile */
+      #addWrap {
+        position:fixed !important; bottom:0; left:180px; right:0;
+        margin:0; border-radius:0;
+        border-top:1px solid var(--border);
+        box-shadow:0 -4px 16px rgba(0,0,0,.08);
+        z-index:150; display:block !important;
+        flex-direction:column-reverse;
+        padding-bottom:max(0px, env(safe-area-inset-bottom));
       }
-      .mob-bar-inner {
-        flex:1; display:flex; align-items:center; gap:10px;
-        background:#f4f5f9; border-radius:24px;
-        padding:10px 16px; cursor:text;
+      #addWrap .add-main-row { padding:8px 10px 8px 14px; }
+      #addWrap .add-detail.open {
+        border-top:none; border-bottom:1px solid var(--border2);
+        padding-bottom:10px;
       }
-      .mob-bar-plus { color:#4f6ef7; font-size:1.15rem; font-weight:700; flex-shrink:0; }
-      .mob-bar-text { font-size:.9rem; color:#bbb; }
-
-      /* Bottom sheet */
-      #mobSheetOverlay {
-        position:fixed; inset:0; background:rgba(0,0,0,.4);
-        z-index:298; display:none;
-      }
-      #mobSheetOverlay.open { display:block; }
-      #mobSheet {
-        display:block;
-        position:fixed; bottom:0; left:0; right:0;
-        background:#fff; border-radius:18px 18px 0 0;
-        box-shadow:0 -6px 30px rgba(0,0,0,.13);
-        transform:translateY(100%);
-        transition:transform .32s cubic-bezier(.4,0,.2,1);
-        z-index:299;
-        padding-bottom:max(20px, env(safe-area-inset-bottom));
-      }
-      #mobSheet.open { transform:translateY(0); }
       .mob-handle {
         width:38px; height:4px; background:#e0e4ef;
         border-radius:2px; margin:10px auto 14px;
@@ -1584,34 +1564,6 @@
 </div>
 
 <div class="toast" id="toast"></div>
-
-<!-- Mobile: bottom add bar -->
-<div id="mobileAddBar" style="display:none">
-  <div class="mob-bar-inner" onclick="openMobileSheet()">
-    <span class="mob-bar-plus">+</span>
-    <span class="mob-bar-text">Görev ekle...</span>
-  </div>
-</div>
-
-<!-- Mobile: bottom sheet (add task) -->
-<div id="mobSheetOverlay" onclick="closeMobileSheet()"></div>
-<div id="mobSheet">
-  <div class="mob-handle"></div>
-  <div class="mob-sheet-body">
-    <input id="mobTitleInput" type="text" placeholder="Görev başlığı..." autocomplete="off">
-    <textarea id="mobNotesInput" placeholder="Notlar (isteğe bağlı)" rows="2"></textarea>
-    <div class="mob-meta-row">
-      <button id="mobDueBtn" title="Bitiş tarihi seç"
-        onclick="dtpOpen(this, mobDueValue||null, v=>{mobDueValue=v; renderMobDueLabel();})"><span class="mi s18">calendar_today</span></button>
-      <span id="mobDueLabel"></span>
-      <div class="mob-prio-row" id="mobPrioRow"></div>
-    </div>
-    <div class="mob-footer">
-      <button class="mob-btn-cancel" onclick="closeMobileSheet()">İptal</button>
-      <button class="mob-btn-save" onclick="saveMobileTask()">Kaydet</button>
-    </div>
-  </div>
-</div>
 
 <!-- Mobile: task edit bottom sheet -->
 <!-- Settings Modal -->
@@ -2501,7 +2453,6 @@ function selectList(id) {
   document.getElementById('boardArea').style.display    = isBoard ? 'flex' : 'none';
   document.getElementById('boardNav').style.display     = isBoard ? '' : 'none';
   document.getElementById('weeklyArea').style.display   = isWeekly ? 'flex' : 'none';
-  document.getElementById('mobileAddBar').style.display = (isBoard||isWeekly) ? 'none' : '';
   renderSidebar();
   render();
 }
@@ -2655,10 +2606,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   });
 
-  document.getElementById('mobTitleInput').addEventListener('keydown', e => {
-    if (e.key==='Enter')  saveMobileTask();
-    if (e.key==='Escape') closeMobileSheet();
-  });
   document.getElementById('mobTaskTitleInput').addEventListener('keydown', e => {
     if (e.key==='Enter')  saveMobTaskSheet();
     if (e.key==='Escape') closeMobTaskSheet();
@@ -3751,63 +3698,6 @@ function wkStartDrag(e, task, chip) {
 }
 
 /* ── Mobile bottom sheet ── */
-let mobDueValue = '', mobPriority = null;
-
-function openMobileSheet() {
-  if (!activeListId || activeListId === BOARD_LIST_ID || activeListId === WEEKLY_LIST_ID) return;
-  document.getElementById('mobSheet').classList.add('open');
-  document.getElementById('mobSheetOverlay').classList.add('open');
-  renderMobPrioButtons();
-  setTimeout(() => document.getElementById('mobTitleInput').focus(), 320);
-}
-function closeMobileSheet() {
-  document.getElementById('mobSheet').classList.remove('open');
-  document.getElementById('mobSheetOverlay').classList.remove('open');
-  document.getElementById('mobTitleInput').value = '';
-  document.getElementById('mobNotesInput').value = '';
-  mobDueValue = ''; mobPriority = null;
-  renderMobDueLabel(); renderMobPrioButtons();
-}
-function renderMobDueLabel() {
-  const lbl = document.getElementById('mobDueLabel');
-  const btn = document.getElementById('mobDueBtn');
-  if (!lbl || !btn) return;
-  lbl.textContent = mobDueValue ? fmtShort(mobDueValue) : '';
-  btn.classList.toggle('has-date', !!mobDueValue);
-}
-function renderMobPrioButtons() {
-  const row = document.getElementById('mobPrioRow');
-  if (!row) return;
-  row.innerHTML = '';
-  Object.entries(PRIORITIES).forEach(([key, prio]) => {
-    const btn = document.createElement('button');
-    btn.className   = `priority-btn ${key}` + (mobPriority===key?' active':'');
-    btn.innerHTML = mi(prio.mi, 16); btn.title = prio.label;
-    btn.querySelector('.mi').style.fontVariationSettings = "'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20";
-    btn.style.cssText = 'width:28px;height:28px;';
-    btn.onclick = (e) => {
-      e.stopPropagation();
-      mobPriority = mobPriority===key ? null : key;
-      renderMobPrioButtons();
-    };
-    row.appendChild(btn);
-  });
-}
-async function saveMobileTask() {
-  const text = document.getElementById('mobTitleInput').value.trim();
-  if (!text || !activeListId) { document.getElementById('mobTitleInput').focus(); return; }
-  const payload = { text, done:false, category:activeListId, sort_order: Date.now() };
-  const notes = document.getElementById('mobNotesInput').value.trim();
-  if (notes)       payload.notes    = notes;
-  if (mobDueValue) payload.due_at   = mobDueValue;
-  if (mobPriority) payload.priority = mobPriority;
-  closeMobileSheet();
-  try {
-    const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
-    tasks.unshift(t); recentlyAddedId = t.id;
-    render(); renderSidebar();
-  } catch(e) { showToast('Hata: '+e.message); }
-}
 
 /* ── Mobile task edit sheet ── */
 let mobTaskSheetTask = null;
