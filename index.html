@@ -1261,6 +1261,59 @@
     body.theme-dark .stab:hover { background:var(--border); }
     body.theme-dark .sselect { background:var(--input-bg); color:var(--text); border-color:var(--input-border); }
     body.theme-dark #settingsModal { background:var(--surface); }
+    /* Settings footer */
+    .settings-footer {
+      display:flex; align-items:center; justify-content:flex-end; gap:10px;
+      padding:14px 24px; border-top:1px solid var(--border); flex-shrink:0;
+      background:var(--surface);
+    }
+    .sfooter-cancel {
+      padding:8px 18px; border:1.5px solid var(--border); border-radius:9px;
+      background:transparent; color:var(--text2); font-size:.85rem; font-weight:500;
+      cursor:pointer; font-family:inherit; transition:all .15s;
+    }
+    .sfooter-cancel:hover { background:var(--surface2); }
+    .sfooter-save {
+      padding:8px 22px; border:none; border-radius:9px;
+      background:var(--accent); color:#fff; font-size:.85rem; font-weight:600;
+      cursor:pointer; font-family:inherit; transition:opacity .15s;
+    }
+    .sfooter-save:hover { opacity:.88; }
+    /* ── Dark mode: comprehensive overrides ── */
+    body.theme-dark .list-count { background:var(--surface2); color:var(--text3); }
+    body.theme-dark .list-item.active .list-count { background:var(--accent-bg); color:var(--accent); }
+    body.theme-dark .btn-list-more { color:var(--text3); }
+    body.theme-dark .btn-list-more:hover { background:var(--surface2); color:var(--text2); }
+    body.theme-dark .sidebar-sep { background:var(--border); }
+    body.theme-dark .new-list-input-row input { background:var(--input-bg); border-color:var(--input-border); color:var(--text); }
+    body.theme-dark .btn-nl-ok { background:var(--accent); }
+    body.theme-dark .btn-nl-cxl { background:var(--surface2); border-color:var(--border); color:var(--text3); }
+    body.theme-dark .priority-row-label { color:var(--text3); }
+    body.theme-dark .due-selected-label { color:var(--text2); }
+    body.theme-dark .btn-cal { background:var(--input-bg); border-color:var(--input-border); color:var(--text2); }
+    body.theme-dark .btn-cal:hover, body.theme-dark .btn-cal.has-date { border-color:var(--accent); background:var(--accent-bg); }
+    body.theme-dark .btn-clear-due { color:var(--text3); }
+    body.theme-dark .sub-i-txt { color:var(--text2); }
+    body.theme-dark .sub-i-txt.done { color:var(--text4); }
+    body.theme-dark .sub-i-chk { border-color:var(--border); background:transparent; }
+    body.theme-dark .sub-i-chk.done { background:var(--accent); border-color:var(--accent); }
+    body.theme-dark .sub-i-add-btn { color:var(--text3); }
+    body.theme-dark .sub-i-add-btn:hover { color:var(--accent); }
+    body.theme-dark .sub-i-inp-row input { background:transparent; border-bottom-color:var(--border); color:var(--text); }
+    body.theme-dark .board-col-add { border-bottom-color:var(--border); }
+    body.theme-dark .board-col-add input { background:var(--input-bg); border-color:var(--input-border); color:var(--text); }
+    body.theme-dark .board-col-body { background:var(--surface2); }
+    body.theme-dark .board-col-body.drag-over { background:var(--accent-bg); }
+    body.theme-dark .board-col-body::-webkit-scrollbar-thumb { background:var(--border); }
+    body.theme-dark .sbtn { background:var(--surface2); border-color:var(--border); color:var(--text2); }
+    body.theme-dark .sbtn:hover { background:var(--surface); border-color:var(--accent); color:var(--accent); }
+    body.theme-dark .sbtn.danger { color:#f87171; border-color:#7f1d1d; }
+    body.theme-dark .sbtn.danger:hover { background:#1a0a0a; }
+    body.theme-dark .sinput { background:var(--input-bg); border-color:var(--input-border); color:var(--text); }
+    body.theme-dark .stoggle-slider { background:var(--border); }
+    body.theme-dark .settings-footer { background:var(--surface); border-top-color:var(--border); }
+    body.theme-dark ::placeholder { color:var(--text4); }
+    body.theme-dark .done-item-txt { color:var(--text3); }
   </style>
 </head>
 <body>
@@ -1458,11 +1511,11 @@
 
 <!-- Mobile: task edit bottom sheet -->
 <!-- Settings Modal -->
-<div id="settingsOverlay" onclick="closeSettings()"></div>
+<div id="settingsOverlay" onclick="cancelSettings()"></div>
 <div id="settingsModal">
   <div class="settings-hdr">
     <h2><span class="mi s18" style="vertical-align:middle;margin-right:6px;">settings</span>Ayarlar</h2>
-    <button class="settings-hdr-close" onclick="closeSettings()"><span class="mi s20">close</span></button>
+    <button class="settings-hdr-close" onclick="cancelSettings()"><span class="mi s20">close</span></button>
   </div>
   <div class="settings-layout">
     <div class="settings-tabs">
@@ -1481,7 +1534,7 @@
           <div class="sgroup-title">Profil</div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Görünen Ad</div><div class="srow-desc">Uygulama başlığında görünür</div></div>
-            <div class="srow-ctrl"><input class="sinput" id="sDisplayName" placeholder="Adınız" style="width:150px" oninput="saveSetting('displayName',this.value)"></div>
+            <div class="srow-ctrl"><input class="sinput" id="sDisplayName" placeholder="Adınız" style="width:150px"></div>
           </div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">E-posta</div><div class="srow-desc" id="sCurrentEmail">—</div></div>
@@ -1507,7 +1560,7 @@
           <div class="sgroup-title">Tema</div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Renk Teması</div></div>
-            <select class="sselect" id="sTheme" onchange="applyTheme(this.value)">
+            <select class="sselect" id="sTheme">
               <option value="system">Sistem</option>
               <option value="light">Açık</option>
               <option value="dark">Koyu</option>
@@ -1522,7 +1575,7 @@
           <div class="sgroup-title">Metin & Düzen</div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Yazı Boyutu</div></div>
-            <select class="sselect" id="sFontSize" onchange="applyFontSize(this.value)">
+            <select class="sselect" id="sFontSize">
               <option value="small">Küçük</option>
               <option value="medium">Orta</option>
               <option value="large">Büyük</option>
@@ -1530,7 +1583,7 @@
           </div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Kompakt Mod</div><div class="srow-desc">Daha sık satır aralığı</div></div>
-            <label class="stoggle"><input type="checkbox" id="sCompact" onchange="applyCompact(this.checked)"><span class="stoggle-slider"></span></label>
+            <label class="stoggle"><input type="checkbox" id="sCompact"><span class="stoggle-slider"></span></label>
           </div>
         </div>
       </div>
@@ -1541,7 +1594,7 @@
           <div class="sgroup-title">Varsayılanlar</div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Varsayılan Sıralama</div></div>
-            <select class="sselect" id="sDefaultSort" onchange="saveSetting('defaultSort',this.value||null)">
+            <select class="sselect" id="sDefaultSort">
               <option value="">Manuel</option>
               <option value="priority">Öncelik</option>
               <option value="due_at">Bitiş Tarihi</option>
@@ -1550,7 +1603,7 @@
           </div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Varsayılan Öncelik</div></div>
-            <select class="sselect" id="sDefaultPriority" onchange="saveSetting('defaultPriority',this.value||null)">
+            <select class="sselect" id="sDefaultPriority">
               <option value="">Yok</option>
               <option value="p1">🔴 Acil & Önemli</option>
               <option value="p2">🟡 Önemli</option>
@@ -1563,11 +1616,11 @@
           <div class="sgroup-title">Davranış</div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Tamamlananları Otomatik Gizle</div><div class="srow-desc">Görev tamamlandığında listeden kaldır</div></div>
-            <label class="stoggle"><input type="checkbox" id="sAutoHide" onchange="saveSetting('autoHide',this.checked)"><span class="stoggle-slider"></span></label>
+            <label class="stoggle"><input type="checkbox" id="sAutoHide"><span class="stoggle-slider"></span></label>
           </div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Tamamlanma Animasyonu</div></div>
-            <label class="stoggle"><input type="checkbox" id="sCompletionAnim" onchange="saveSetting('completionAnim',this.checked)"><span class="stoggle-slider"></span></label>
+            <label class="stoggle"><input type="checkbox" id="sCompletionAnim"><span class="stoggle-slider"></span></label>
           </div>
         </div>
       </div>
@@ -1578,11 +1631,11 @@
           <div class="sgroup-title">Push Bildirimleri</div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Tarayıcı Bildirimleri</div><div class="srow-desc">Görev hatırlatmaları için izin gerekir</div></div>
-            <label class="stoggle"><input type="checkbox" id="sNotifEnabled" onchange="toggleNotifications(this.checked)"><span class="stoggle-slider"></span></label>
+            <label class="stoggle"><input type="checkbox" id="sNotifEnabled"><span class="stoggle-slider"></span></label>
           </div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Bitiş Tarihi Hatırlatıcı</div></div>
-            <select class="sselect" id="sDueReminder" onchange="saveSetting('dueReminder',this.value)">
+            <select class="sselect" id="sDueReminder">
               <option value="none">Kapalı</option>
               <option value="30min">30 dk önce</option>
               <option value="1hour">1 saat önce</option>
@@ -1605,7 +1658,7 @@
           <div class="sgroup-title">Bölge Ayarları</div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Tarih Formatı</div></div>
-            <select class="sselect" id="sDateFormat" onchange="saveSetting('dateFormat',this.value);render()">
+            <select class="sselect" id="sDateFormat">
               <option value="DD/MM">GG/AA/YYYY</option>
               <option value="MM/DD">AA/GG/YYYY</option>
               <option value="YYYY-MM-DD">YYYY-AA-GG</option>
@@ -1613,14 +1666,14 @@
           </div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Saat Formatı</div></div>
-            <select class="sselect" id="sTimeFormat" onchange="saveSetting('timeFormat',this.value);render()">
+            <select class="sselect" id="sTimeFormat">
               <option value="24h">24 saat (14:30)</option>
               <option value="12h">12 saat (2:30 PM)</option>
             </select>
           </div>
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Haftanın Başlangıcı</div></div>
-            <select class="sselect" id="sWeekStart" onchange="saveSetting('weekStart',this.value)">
+            <select class="sselect" id="sWeekStart">
               <option value="monday">Pazartesi</option>
               <option value="sunday">Pazar</option>
             </select>
@@ -1662,6 +1715,10 @@
       </div>
 
     </div>
+  </div>
+  <div class="settings-footer">
+    <button class="sfooter-cancel" onclick="cancelSettings()">İptal</button>
+    <button class="sfooter-save" onclick="saveAllSettings()">Kaydet</button>
   </div>
 </div>
 
@@ -3703,49 +3760,93 @@ function loadSettings() {
   applyAllSettings();
 }
 
+let _settingsSnapshot = null;
+
 function saveSetting(key, val) {
   appSettings[key] = val;
   localStorage.setItem('app_settings', JSON.stringify(appSettings));
 }
 
 function applyAllSettings() {
-  applyTheme(appSettings.theme);
-  applyFontSize(appSettings.fontSize);
-  applyCompact(appSettings.compact);
-  applyAccent(appSettings.accentColor);
+  applyTheme(appSettings.theme, true);
+  applyFontSize(appSettings.fontSize, true);
+  applyCompact(appSettings.compact, true);
+  applyAccent(appSettings.accentColor, true);
   if (appSettings.notifEnabled) scheduleReminders();
 }
 
-function applyTheme(val) {
-  saveSetting('theme', val);
+function applyTheme(val, persist) {
+  if (persist) saveSetting('theme', val);
   const isDark = val === 'dark' || (val === 'system' && window.matchMedia('(prefers-color-scheme:dark)').matches);
   document.body.classList.toggle('theme-dark', isDark);
 }
 
-function applyFontSize(val) {
-  saveSetting('fontSize', val);
+function applyFontSize(val, persist) {
+  if (persist) saveSetting('fontSize', val);
   document.body.classList.remove('font-small','font-medium','font-large');
   if (val !== 'medium') document.body.classList.add('font-'+val);
 }
 
-function applyCompact(val) {
-  saveSetting('compact', val);
+function applyCompact(val, persist) {
+  if (persist) saveSetting('compact', val);
   document.body.classList.toggle('compact', !!val);
 }
 
-function applyAccent(val) {
-  saveSetting('accentColor', val);
+function applyAccent(val, persist) {
+  if (persist) saveSetting('accentColor', val);
   document.documentElement.style.setProperty('--accent', val);
   document.documentElement.style.setProperty('--accent-bg', val+'22');
   document.querySelectorAll('.accent-chip').forEach(c => c.classList.toggle('active', c.dataset.color === val));
 }
 
+function saveAllSettings() {
+  // Visual settings (already previewed live)
+  saveSetting('theme', document.getElementById('sTheme').value);
+  saveSetting('fontSize', document.getElementById('sFontSize').value);
+  saveSetting('compact', document.getElementById('sCompact').checked);
+  const activeChip = document.querySelector('.accent-chip.active');
+  if (activeChip) saveSetting('accentColor', activeChip.dataset.color);
+  // Data settings
+  saveSetting('displayName', document.getElementById('sDisplayName').value);
+  saveSetting('defaultSort', document.getElementById('sDefaultSort').value || null);
+  saveSetting('defaultPriority', document.getElementById('sDefaultPriority').value || null);
+  saveSetting('autoHide', document.getElementById('sAutoHide').checked);
+  saveSetting('completionAnim', document.getElementById('sCompletionAnim').checked);
+  saveSetting('dueReminder', document.getElementById('sDueReminder').value);
+  saveSetting('dateFormat', document.getElementById('sDateFormat').value);
+  saveSetting('timeFormat', document.getElementById('sTimeFormat').value);
+  saveSetting('weekStart', document.getElementById('sWeekStart').value);
+  // Apply all now
+  applyAllSettings();
+  render();
+  _settingsSnapshot = null;
+  showToast('Ayarlar kaydedildi.');
+  closeSettings();
+}
+
+function cancelSettings() {
+  // Revert any live-previewed visual changes
+  if (_settingsSnapshot) {
+    applyTheme(_settingsSnapshot.theme, false);
+    applyFontSize(_settingsSnapshot.fontSize, false);
+    applyCompact(_settingsSnapshot.compact, false);
+    applyAccent(_settingsSnapshot.accentColor, false);
+    _settingsSnapshot = null;
+  }
+  closeSettings();
+}
+
 function openSettings() {
+  _settingsSnapshot = { ...appSettings };
   const modal = document.getElementById('settingsModal');
   const overlay = document.getElementById('settingsOverlay');
   overlay.classList.add('open');
   modal.classList.add('open');
   populateSettings();
+  // Wire live-preview for visual settings
+  document.getElementById('sTheme').onchange = e => applyTheme(e.target.value, false);
+  document.getElementById('sFontSize').onchange = e => applyFontSize(e.target.value, false);
+  document.getElementById('sCompact').onchange = e => applyCompact(e.target.checked, false);
 }
 
 function closeSettings() {
@@ -3776,7 +3877,7 @@ function populateSettings() {
     el.className = 'accent-chip' + (appSettings.accentColor === c ? ' active' : '');
     el.style.background = c; el.dataset.color = c;
     el.title = c;
-    el.onclick = () => applyAccent(c);
+    el.onclick = () => applyAccent(c, false);
     chips.appendChild(el);
   });
   // Görevler
