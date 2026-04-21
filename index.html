@@ -273,7 +273,7 @@
     /* ── Task card ── */
     .task-card {
       background:#fff; border-radius:10px;
-      margin-bottom:2px;
+      margin-bottom:2px; position:relative; overflow:hidden;
       transition:box-shadow .15s;
       border-left:3px solid transparent;
     }
@@ -388,6 +388,17 @@
     .priority-btn.p2.active { box-shadow:0 0 0 3px #fde047; }
     .priority-btn.p3.active { box-shadow:0 0 0 3px #fdba74; }
     .priority-btn.p4.active { box-shadow:0 0 0 3px #e2e8f0; }
+    /* Swipe background (mobile) */
+    .swipe-bg {
+      position:absolute; inset:0; display:flex;
+      align-items:center; justify-content:space-between;
+      padding:0 20px; pointer-events:none; border-radius:inherit;
+    }
+    .swipe-l, .swipe-r {
+      color:#fff; font-size:1.25rem; font-weight:700;
+      opacity:0; transition:none;
+    }
+
     .task-side {
       display:flex; align-items:center; gap:2px; flex-shrink:0; padding-top:1px;
     }
@@ -712,8 +723,101 @@
 
     @media (max-width: 600px) {
       .sidebar { width:180px; }
-      .main-body { padding:12px 14px 40px; }
       .main-header { padding:16px 14px 0; }
+
+      /* Google Tasks–style flat task rows */
+      #addWrap { display:none !important; }
+      #mainBody { padding:0 0 90px; }
+      .task-card {
+        border-radius:0 !important; border-left:none !important;
+        border-bottom:1px solid #f0f2f8; margin-bottom:0;
+        box-shadow:none !important;
+      }
+      .task-card.prio-p1 { border-left:none !important; border-top:2px solid #dc2626 !important; }
+      .task-card.prio-p2 { border-left:none !important; border-top:2px solid #ca8a04 !important; }
+      .task-card.prio-p3 { border-left:none !important; border-top:2px solid #ea580c !important; }
+      .task-card.prio-p4 { border-left:none !important; border-top:2px solid #94a3b8 !important; }
+      .task-row { padding:11px 10px 11px 12px; }
+      .task-check { width:22px; height:22px; margin-top:1px; }
+      .task-title { font-size:.9rem; }
+      .btn-star  { opacity:1 !important; }
+      .btn-icon  { opacity:1 !important; }
+
+      /* Mobile add bar */
+      #mobileAddBar {
+        display:flex !important; position:fixed;
+        bottom:0; left:180px; right:0;
+        background:#fff; border-top:1px solid #e8ecf4;
+        padding:10px 14px max(10px, env(safe-area-inset-bottom));
+        z-index:150; align-items:center;
+      }
+      .mob-bar-inner {
+        flex:1; display:flex; align-items:center; gap:10px;
+        background:#f4f5f9; border-radius:24px;
+        padding:10px 16px; cursor:text;
+      }
+      .mob-bar-plus { color:#4f6ef7; font-size:1.15rem; font-weight:700; flex-shrink:0; }
+      .mob-bar-text { font-size:.9rem; color:#bbb; }
+
+      /* Bottom sheet */
+      #mobSheetOverlay {
+        position:fixed; inset:0; background:rgba(0,0,0,.4);
+        z-index:298; display:none;
+      }
+      #mobSheetOverlay.open { display:block; }
+      #mobSheet {
+        position:fixed; bottom:0; left:0; right:0;
+        background:#fff; border-radius:18px 18px 0 0;
+        box-shadow:0 -6px 30px rgba(0,0,0,.13);
+        transform:translateY(100%);
+        transition:transform .32s cubic-bezier(.4,0,.2,1);
+        z-index:299;
+        padding-bottom:max(20px, env(safe-area-inset-bottom));
+      }
+      #mobSheet.open { transform:translateY(0); }
+      .mob-handle {
+        width:38px; height:4px; background:#e0e4ef;
+        border-radius:2px; margin:10px auto 14px;
+      }
+      .mob-sheet-body { padding:0 18px 10px; }
+      #mobTitleInput {
+        width:100%; font-size:1.02rem; border:none; outline:none;
+        padding:4px 0 12px; border-bottom:1.5px solid #e8ecf4;
+        font-family:inherit; color:#1a1a2e; background:transparent;
+      }
+      #mobNotesInput {
+        width:100%; font-size:.88rem; border:none; outline:none;
+        padding:10px 0 6px; font-family:inherit; color:#666;
+        resize:none; min-height:38px; background:transparent;
+      }
+      .mob-meta-row {
+        display:flex; align-items:center; gap:8px;
+        padding:8px 0 10px; border-top:1px solid #f0f2f8;
+        flex-wrap:wrap;
+      }
+      #mobDueBtn {
+        width:32px; height:32px; border:1.5px solid #e0e4ef;
+        border-radius:8px; background:#fff; font-size:.95rem;
+        cursor:pointer; display:flex; align-items:center; justify-content:center;
+        flex-shrink:0;
+      }
+      #mobDueBtn.has-date { border-color:#4f6ef7; background:#f0f3ff; }
+      #mobDueLabel { font-size:.77rem; color:#4f6ef7; font-weight:500; }
+      .mob-prio-row { display:flex; gap:4px; margin-left:4px; }
+      .mob-footer {
+        display:flex; justify-content:flex-end; gap:10px;
+        padding:10px 0 0; border-top:1px solid #f0f2f8;
+      }
+      .mob-btn-cancel {
+        padding:9px 18px; border:1.5px solid #e8ecf4; border-radius:20px;
+        background:#fff; color:#888; font-size:.88rem; cursor:pointer;
+        font-family:inherit;
+      }
+      .mob-btn-save {
+        padding:9px 22px; border:none; border-radius:20px;
+        background:#4f6ef7; color:#fff; font-size:.88rem;
+        font-weight:600; cursor:pointer; font-family:inherit;
+      }
     }
     @media (max-width: 480px) {
       .app-layout { flex-direction:column; }
@@ -721,6 +825,7 @@
       .sidebar-lists { flex:1; overflow-x:auto; overflow-y:hidden; display:flex; padding:6px; }
       .list-item { flex-shrink:0; }
       .sidebar-header, .sidebar-stats, .sidebar-footer { display:none; }
+      #mobileAddBar { left:0; }
     }
   </style>
 </head>
@@ -883,6 +988,34 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Mobile: bottom add bar -->
+<div id="mobileAddBar" style="display:none">
+  <div class="mob-bar-inner" onclick="openMobileSheet()">
+    <span class="mob-bar-plus">+</span>
+    <span class="mob-bar-text">Görev ekle...</span>
+  </div>
+</div>
+
+<!-- Mobile: bottom sheet -->
+<div id="mobSheetOverlay" onclick="closeMobileSheet()"></div>
+<div id="mobSheet">
+  <div class="mob-handle"></div>
+  <div class="mob-sheet-body">
+    <input id="mobTitleInput" type="text" placeholder="Görev başlığı..." autocomplete="off">
+    <textarea id="mobNotesInput" placeholder="Notlar (isteğe bağlı)" rows="2"></textarea>
+    <div class="mob-meta-row">
+      <button id="mobDueBtn" title="Bitiş tarihi seç"
+        onclick="dtpOpen(this, mobDueValue||null, v=>{mobDueValue=v; renderMobDueLabel();})">📅</button>
+      <span id="mobDueLabel"></span>
+      <div class="mob-prio-row" id="mobPrioRow"></div>
+    </div>
+    <div class="mob-footer">
+      <button class="mob-btn-cancel" onclick="closeMobileSheet()">İptal</button>
+      <button class="mob-btn-save" onclick="saveMobileTask()">Kaydet</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const SB      = 'https://uzkscrrqyxftbtwkiyra.supabase.co';
@@ -1352,6 +1485,7 @@ function selectList(id) {
   document.getElementById('addWrap').style.display     = isBoard ? 'none' : 'block';
   document.getElementById('mainBody').style.display    = isBoard ? 'none' : '';
   document.getElementById('boardArea').style.display   = isBoard ? 'flex' : 'none';
+  document.getElementById('mobileAddBar').style.display = isBoard ? 'none' : '';
   renderSidebar();
   render();
 }
@@ -1438,6 +1572,11 @@ function closeAddDetail() { document.getElementById('addDetail').classList.remov
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('taskInput').addEventListener('focus', openAddDetail);
   document.getElementById('taskInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); });
+
+  document.getElementById('mobTitleInput').addEventListener('keydown', e => {
+    if (e.key==='Enter')  saveMobileTask();
+    if (e.key==='Escape') closeMobileSheet();
+  });
 
   ['mainBody','boardArea'].forEach(id => {
     document.getElementById(id).addEventListener('click', e => {
@@ -1543,6 +1682,10 @@ function buildTaskCard(task, isDone) {
   card.className = 'task-card'+(isDone?' task-done':'')+(task.priority?' prio-'+task.priority:'');
   card.dataset.taskId = task.id;
   if (task.id === recentlyAddedId) { card.classList.add('new'); recentlyAddedId = null; }
+  const swipeBg = document.createElement('div');
+  swipeBg.className = 'swipe-bg';
+  swipeBg.innerHTML = '<span class="swipe-l">✓</span><span class="swipe-r">🗑️</span>';
+  card.appendChild(swipeBg);
 
   const row = document.createElement('div');
   row.className = 'task-row';
@@ -1716,6 +1859,7 @@ function buildTaskCard(task, isDone) {
   if (!isDone) { detail.appendChild(subList); detail.appendChild(subInputRow); detail.appendChild(addSubBtn); }
 
   row.addEventListener('click', e => {
+    if (card._swipeMoved) { card._swipeMoved = false; return; }
     if (e.target.closest('.task-side') || e.target.closest('.task-check')) return;
     const wasOpen = detail.classList.contains('open');
     closeAllDetails();
@@ -1725,6 +1869,7 @@ function buildTaskCard(task, isDone) {
       notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px';
     }
   });
+  initSwipe(card, task);
 
   card.appendChild(row);
   card.appendChild(detail);
@@ -2092,6 +2237,125 @@ async function dropTask(task, targetListId, insertBeforeId) {
     await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify(patch)});
     Object.assign(task, patch);
     renderBoard(); renderSidebar();
+  } catch(e) { showToast('Hata: '+e.message); }
+}
+
+/* ── Mobile swipe ── */
+function initSwipe(card, task) {
+  const bg = card.querySelector('.swipe-bg');
+  let startX, startY, dx = 0, active = false;
+
+  card.addEventListener('pointerdown', e => {
+    if (window.innerWidth > 600) return;
+    if (activeListId === BOARD_LIST_ID) return;
+    if (e.target.closest('button,input,textarea')) return;
+    startX = e.clientX; startY = e.clientY; dx = 0; active = false;
+  }, { passive:true });
+
+  card.addEventListener('pointermove', e => {
+    if (!startX || window.innerWidth > 600) return;
+    const dxR = e.clientX - startX, dyR = e.clientY - startY;
+    if (!active && Math.abs(dyR) > Math.abs(dxR)) { startX = null; return; }
+    if (!active && Math.abs(dxR) > 8) { active = true; card._swipeMoved = true; card.setPointerCapture(e.pointerId); }
+    if (!active) return;
+    dx = Math.max(-115, Math.min(115, dxR));
+    const row = card.querySelector('.task-row');
+    row.style.cssText = `transform:translateX(${dx}px);transition:none;position:relative;z-index:1;background:#fff;border-radius:inherit;`;
+    const ratio = Math.abs(dx) / 90;
+    if (dx > 20) {
+      bg.style.background = `rgba(34,197,94,${Math.min(ratio,.88)})`;
+      bg.querySelector('.swipe-l').style.opacity = Math.min(dx/50,1);
+      bg.querySelector('.swipe-r').style.opacity = 0;
+    } else if (dx < -20) {
+      bg.style.background = `rgba(239,68,68,${Math.min(ratio,.88)})`;
+      bg.querySelector('.swipe-r').style.opacity = Math.min(-dx/50,1);
+      bg.querySelector('.swipe-l').style.opacity = 0;
+    } else {
+      bg.style.background = 'transparent';
+      bg.querySelector('.swipe-l').style.opacity = 0;
+      bg.querySelector('.swipe-r').style.opacity = 0;
+    }
+  }, { passive:true });
+
+  card.addEventListener('pointerup', e => {
+    if (!startX || !active) { startX = null; return; }
+    startX = null; active = false;
+    const row = card.querySelector('.task-row');
+    const snap = () => {
+      row.style.cssText = `transform:translateX(0);transition:transform .25s ease;position:relative;z-index:1;background:#fff;border-radius:inherit;`;
+      bg.style.background = 'transparent';
+      bg.querySelector('.swipe-l').style.opacity = 0;
+      bg.querySelector('.swipe-r').style.opacity = 0;
+      card._swipeMoved = false;
+    };
+    if (dx > 80) {
+      row.style.cssText = `transform:translateX(115%);transition:transform .2s ease;position:relative;z-index:1;background:#fff;`;
+      setTimeout(() => toggleTask(task), 180);
+    } else if (dx < -80) {
+      row.style.cssText = `transform:translateX(-115%);transition:transform .2s ease;position:relative;z-index:1;background:#fff;`;
+      setTimeout(() => deleteTask(task.id), 180);
+    } else {
+      snap();
+    }
+    dx = 0;
+  });
+}
+
+/* ── Mobile bottom sheet ── */
+let mobDueValue = '', mobPriority = null;
+
+function openMobileSheet() {
+  if (!activeListId || activeListId === BOARD_LIST_ID) return;
+  document.getElementById('mobSheet').classList.add('open');
+  document.getElementById('mobSheetOverlay').classList.add('open');
+  renderMobPrioButtons();
+  setTimeout(() => document.getElementById('mobTitleInput').focus(), 320);
+}
+function closeMobileSheet() {
+  document.getElementById('mobSheet').classList.remove('open');
+  document.getElementById('mobSheetOverlay').classList.remove('open');
+  document.getElementById('mobTitleInput').value = '';
+  document.getElementById('mobNotesInput').value = '';
+  mobDueValue = ''; mobPriority = null;
+  renderMobDueLabel(); renderMobPrioButtons();
+}
+function renderMobDueLabel() {
+  const lbl = document.getElementById('mobDueLabel');
+  const btn = document.getElementById('mobDueBtn');
+  if (!lbl || !btn) return;
+  lbl.textContent = mobDueValue ? fmtShort(mobDueValue) : '';
+  btn.classList.toggle('has-date', !!mobDueValue);
+}
+function renderMobPrioButtons() {
+  const row = document.getElementById('mobPrioRow');
+  if (!row) return;
+  row.innerHTML = '';
+  Object.entries(PRIORITIES).forEach(([key, prio]) => {
+    const btn = document.createElement('button');
+    btn.className   = `priority-btn ${key}` + (mobPriority===key?' active':'');
+    btn.textContent = prio.icon; btn.title = prio.label;
+    btn.style.cssText = 'width:28px;height:28px;';
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      mobPriority = mobPriority===key ? null : key;
+      renderMobPrioButtons();
+    };
+    row.appendChild(btn);
+  });
+}
+async function saveMobileTask() {
+  const text = document.getElementById('mobTitleInput').value.trim();
+  if (!text || !activeListId) { document.getElementById('mobTitleInput').focus(); return; }
+  const payload = { text, done:false, category:activeListId, sort_order:Date.now() };
+  const notes = document.getElementById('mobNotesInput').value.trim();
+  if (notes)       payload.notes    = notes;
+  if (mobDueValue) payload.due_at   = mobDueValue;
+  if (mobPriority) payload.priority = mobPriority;
+  closeMobileSheet();
+  try {
+    const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
+    tasks.unshift(t); recentlyAddedId = t.id;
+    render(); renderSidebar();
   } catch(e) { showToast('Hata: '+e.message); }
 }
 
