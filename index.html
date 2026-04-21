@@ -293,8 +293,8 @@
     }
     .task-card:hover { box-shadow:0 2px 6px rgba(0,0,0,0.06); }
     .task-card.prio-p1 { border-left-color:#dc2626; }
-    .task-card.prio-p2 { border-left-color:#ca8a04; }
-    .task-card.prio-p3 { border-left-color:#ea580c; }
+    .task-card.prio-p2 { border-left-color:#eab308; }
+    .task-card.prio-p3 { border-left-color:#22c55e; }
     .task-card.prio-p4 { border-left-color:#94a3b8; }
     .task-row {
       display:flex; align-items:flex-start; gap:9px;
@@ -356,8 +356,8 @@
     /* Always show label for due and subtask chips */
     .tib-due .tib-lbl, .tib-subs .tib-lbl { max-width:110px; }
     .tib-prio.p1 .mi { color:#dc2626; }
-    .tib-prio.p2 .mi { color:#ca8a04; }
-    .tib-prio.p3 .mi { color:#ea580c; }
+    .tib-prio.p2 .mi { color:#eab308; }
+    .tib-prio.p3 .mi { color:#22c55e; }
     .tib-prio.p4 .mi { color:#94a3b8; }
     .tib-due.today .mi, .tib-due.today .tib-lbl   { color:#c2410c; }
     .tib-due.overdue .mi, .tib-due.overdue .tib-lbl { color:#dc2626; }
@@ -443,9 +443,13 @@
     .priority-btn:hover { transform:scale(1.2); }
     .priority-btn.active { transform:scale(1.1); }
     .priority-btn.p1.active { box-shadow:0 0 0 3px #fca5a5; }
-    .priority-btn.p2.active { box-shadow:0 0 0 3px #fde047; }
-    .priority-btn.p3.active { box-shadow:0 0 0 3px #fdba74; }
+    .priority-btn.p2.active { box-shadow:0 0 0 3px #fef08a; }
+    .priority-btn.p3.active { box-shadow:0 0 0 3px #86efac; }
     .priority-btn.p4.active { box-shadow:0 0 0 3px #e2e8f0; }
+    .priority-btn.p1 .mi { color:#dc2626; }
+    .priority-btn.p2 .mi { color:#eab308; }
+    .priority-btn.p3 .mi { color:#22c55e; }
+    .priority-btn.p4 .mi { color:#94a3b8; }
     .task-side {
       display:flex; align-items:center; flex-shrink:0; padding-top:1px;
     }
@@ -892,8 +896,8 @@
         box-shadow:none !important;
       }
       .task-card.prio-p1 { border-left:3px solid #dc2626 !important; border-top:none !important; }
-      .task-card.prio-p2 { border-left:3px solid #ca8a04 !important; border-top:none !important; }
-      .task-card.prio-p3 { border-left:3px solid #ea580c !important; border-top:none !important; }
+      .task-card.prio-p2 { border-left:3px solid #eab308 !important; border-top:none !important; }
+      .task-card.prio-p3 { border-left:3px solid #22c55e !important; border-top:none !important; }
       .task-card.prio-p4 { border-left:3px solid #94a3b8 !important; border-top:none !important; }
       .task-row { padding:8px 10px 8px 12px; }
       .task-check { width:22px; height:22px; margin-top:1px; }
@@ -2135,7 +2139,7 @@ function buildTaskCard(task, isDone) {
   };
 
   if (task.priority && PRIORITIES[task.priority]) {
-    const chip = mkChip(`tib-prio ${task.priority}`, 'priority_high', PRIORITIES[task.priority].label);
+    const chip = mkChip(`tib-prio ${task.priority}`, 'flag', PRIORITIES[task.priority].label);
     chip.title = PRIORITIES[task.priority].label;
     infoBar.appendChild(chip);
   }
@@ -2399,10 +2403,10 @@ function openTaskCtxMenu(anchor, task) {
 /* ── Priority ── */
 const mi = (name, sz) => `<span class="mi${sz?' s'+sz:''}">${name}</span>`;
 const PRIORITIES = {
-  p1: { label:'Acil & Önemli (Hemen yap)',                mi:'priority_high' },
+  p1: { label:'Acil & Önemli (Hemen yap)',                mi:'flag' },
   p2: { label:'Önemli, Acil Değil (Gün ve saati planla)', mi:'flag' },
-  p3: { label:'Acil, Önemsiz (Hızlı yönet, devret)',      mi:'bolt' },
-  p4: { label:'Ertelenebilir (Silinebilir)',               mi:'remove' },
+  p3: { label:'Acil, Önemsiz (Hızlı yönet, devret)',      mi:'flag' },
+  p4: { label:'Ertelenebilir (Silinebilir)',               mi:'flag' },
 };
 
 async function updatePriority(task, val) {
