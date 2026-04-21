@@ -350,8 +350,8 @@
     }
     /* Star button on card */
     .btn-star {
-      width:26px; height:26px; border:none; background:transparent;
-      cursor:pointer; font-size:.95rem; border-radius:6px;
+      width:36px; height:36px; border:none; background:transparent;
+      cursor:pointer; font-size:.95rem; border-radius:8px;
       display:flex; align-items:center; justify-content:center;
       color:#ddd; transition:all .15s; flex-shrink:0;
       opacity:0;
@@ -421,17 +421,8 @@
     .priority-btn.p3.active { box-shadow:0 0 0 3px #fdba74; }
     .priority-btn.p4.active { box-shadow:0 0 0 3px #e2e8f0; }
     .task-side {
-      display:flex; align-items:center; gap:2px; flex-shrink:0; padding-top:1px;
+      display:flex; align-items:center; flex-shrink:0; padding-top:1px;
     }
-    .btn-icon {
-      width:28px; height:28px; border:none; background:transparent;
-      cursor:pointer; border-radius:7px; display:flex; align-items:center;
-      justify-content:center; font-size:1rem; color:#bbb;
-      transition:all .15s; opacity:0;
-    }
-    .task-card:hover .btn-icon { opacity:1; color:#888; }
-    .btn-icon:hover { background:#eef1fd; color:#4f6ef7; }
-    .btn-icon.del:hover { background:#fff0f0; color:#e53e3e; }
 
     /* ── Task detail ── */
     .task-detail {
@@ -2176,12 +2167,7 @@ function buildTaskCard(task, isDone) {
   starBtn.innerHTML = mi('star', 18);
   starBtn.onclick   = (e) => { e.stopPropagation(); toggleStar(task); };
 
-  const expandBtn = document.createElement('button');
-  expandBtn.className='btn-icon'; expandBtn.title='Seçenekler'; expandBtn.innerHTML=mi('more_horiz');
-  expandBtn.onclick = (e) => { e.stopPropagation(); openTaskCtxMenu(expandBtn, task); };
-
   side.appendChild(starBtn);
-  side.appendChild(expandBtn);
 
   row.appendChild(chk);
   row.appendChild(body);
