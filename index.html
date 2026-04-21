@@ -366,7 +366,9 @@
     .task-notes-preview {
       font-size:.73rem; color:#999; line-height:1.45; margin-top:3px;
       word-break:break-word; overflow-wrap:break-word;
+      display:none;
     }
+    .task-card:hover .task-notes-preview { display:block; }
     .task-card.detail-open .task-notes-preview { display:none; }
     .task-done .task-notes-preview { opacity:.5; }
     /* Star button on card */
