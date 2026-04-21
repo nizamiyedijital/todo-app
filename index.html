@@ -1700,7 +1700,10 @@ async function addTask() {
     lastAddTaskTime = Date.now();
     addingTask = false;
     openAddDetail();
-    document.getElementById('taskInput').focus();
+    setTimeout(() => {
+      openAddDetail();
+      document.getElementById('taskInput').focus();
+    }, 0);
   }
 }
 
@@ -1764,7 +1767,7 @@ function closeAddDetail() {
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('taskInput').addEventListener('focus', openAddDetail);
   document.getElementById('taskInput').addEventListener('keydown', e=>{
-    if (e.key==='Enter') addTask();
+    if (e.key==='Enter') { e.preventDefault(); e.stopPropagation(); addTask(); }
     if (e.key==='Escape') { closeAddDetail(); e.target.blur(); }
   });
 
