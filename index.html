@@ -1807,6 +1807,45 @@ function renderSidebar() {
   });
 }
 
+/* ── FLIP animations for list reorder ── */
+function flipSidebar() {
+  const old = {};
+  document.querySelectorAll('#sidebarLists .list-item[data-id]').forEach(el => {
+    old[el.dataset.id] = el.getBoundingClientRect().top;
+  });
+  renderSidebar();
+  document.querySelectorAll('#sidebarLists .list-item[data-id]').forEach(el => {
+    const delta = (old[el.dataset.id] ?? null) !== null ? old[el.dataset.id] - el.getBoundingClientRect().top : 0;
+    if (Math.abs(delta) < 1) return;
+    el.style.transition = 'none';
+    el.style.transform  = `translateY(${delta}px)`;
+    requestAnimationFrame(() => {
+      el.style.transition = 'transform .22s ease';
+      el.style.transform  = '';
+      el.addEventListener('transitionend', () => { el.style.transition = ''; el.style.transform = ''; }, { once:true });
+    });
+  });
+}
+
+function flipBoard() {
+  const old = {};
+  document.querySelectorAll('.board-col[data-col-id]').forEach(el => {
+    old[el.dataset.colId] = el.getBoundingClientRect().left;
+  });
+  renderBoard();
+  document.querySelectorAll('.board-col[data-col-id]').forEach(el => {
+    const delta = (old[el.dataset.colId] ?? null) !== null ? old[el.dataset.colId] - el.getBoundingClientRect().left : 0;
+    if (Math.abs(delta) < 1) return;
+    el.style.transition = 'none';
+    el.style.transform  = `translateX(${delta}px)`;
+    requestAnimationFrame(() => {
+      el.style.transition = 'transform .25s ease';
+      el.style.transform  = '';
+      el.addEventListener('transitionend', () => { el.style.transition = ''; el.style.transform = ''; }, { once:true });
+    });
+  });
+}
+
 /* ── Sidebar list drag-to-reorder ── */
 function initListDrag(item, listId) {
   item.addEventListener('pointerdown', e => {
@@ -1870,8 +1909,8 @@ function initListDrag(item, listId) {
       reordered.splice(toIdx, 0, moved);
       reordered.forEach((l, i) => { l.sort_order = i * 10; });
       lists = reordered;
-      renderSidebar();
-      render();
+      flipSidebar();
+      if (activeListId === BOARD_LIST_ID) flipBoard();
 
       try {
         await Promise.all(reordered.map(l =>
