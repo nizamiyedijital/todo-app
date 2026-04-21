@@ -1691,6 +1691,7 @@ async function addTask() {
   input.value=''; notesEl.value='';
   addDueValue=''; renderAddDueLabel();
   addingTask = true;
+  keepInputFocused = true;
   lastAddTaskTime = Date.now();
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
@@ -1700,10 +1701,10 @@ async function addTask() {
     lastAddTaskTime = Date.now();
     addingTask = false;
     openAddDetail();
+    document.getElementById('taskInput').focus();
     setTimeout(() => {
-      openAddDetail();
-      document.getElementById('taskInput').focus();
-    }, 0);
+      keepInputFocused = false;
+    }, 800);
   }
 }
 
@@ -1758,9 +1759,10 @@ async function updateDue(task, val) {
 
 /* ── Add form helpers ── */
 let lastAddTaskTime = 0;
+let keepInputFocused = false;
 function openAddDetail()  { document.getElementById('addDetail').classList.add('open'); }
 function closeAddDetail() {
-  if (Date.now() - lastAddTaskTime < 600) return;
+  if (Date.now() - lastAddTaskTime < 800) return;
   document.getElementById('addDetail').classList.remove('open');
 }
 
@@ -1768,12 +1770,20 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('taskInput').addEventListener('focus', openAddDetail);
   document.getElementById('taskInput').addEventListener('keydown', e=>{
     if (e.key==='Enter') { e.preventDefault(); e.stopPropagation(); addTask(); }
-    if (e.key==='Escape') { closeAddDetail(); e.target.blur(); }
+    if (e.key==='Escape') { keepInputFocused=false; closeAddDetail(); e.target.blur(); }
+  });
+  document.getElementById('taskInput').addEventListener('focusout', () => {
+    if (keepInputFocused) {
+      setTimeout(() => {
+        openAddDetail();
+        document.getElementById('taskInput').focus();
+      }, 0);
+    }
   });
 
   // Görev listesine tıklanınca kapat (görev kartı dışı tıklama)
   document.getElementById('mainBody').addEventListener('pointerdown', e=>{
-    if (addingTask) return;
+    if (addingTask || keepInputFocused) return;
     if (!e.target.closest('#addWrap')) {
       if (!document.getElementById('taskInput').value.trim()) closeAddDetail();
     }
