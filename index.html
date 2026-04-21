@@ -1210,11 +1210,12 @@ function defaultTaskSort(a, b) {
     if (a.due_at && b.due_at) return new Date(a.due_at) - new Date(b.due_at);
     return (a.sort_order||0) - (b.sort_order||0);
   }
-  // Önceliksiz (ve p4 kendi içi): tarihi olan önce
+  // Önceliksiz: tarihi olan önce
   if (a.due_at && !b.due_at) return -1;
   if (!a.due_at && b.due_at) return 1;
   if (a.due_at && b.due_at) return new Date(a.due_at) - new Date(b.due_at);
-  return (a.sort_order||0) - (b.sort_order||0);
+  // Tarifsiz önceliksiz: en yeni üstte (created_at DESC)
+  return new Date(b.created_at) - new Date(a.created_at);
 }
 
 function sortedActiveTasks(listId, activeTasks) {
@@ -1684,9 +1685,7 @@ async function addTask() {
   const notesEl = document.getElementById('addNotes');
   const text    = input.value.trim();
   if (!text || !activeListId) { input.focus(); return; }
-  const noPrioNoDates = tasks.filter(t=>!t.parent_id && !t.done && t.category===activeListId && !t.priority && !t.due_at);
-  const minOrder = noPrioNoDates.reduce((m,t)=>Math.min(m, t.sort_order??0), 0);
-  const payload = { text, done:false, category:activeListId, sort_order: minOrder - 10000 };
+  const payload = { text, done:false, category:activeListId, sort_order: Date.now() };
   if (notesEl.value.trim()) payload.notes  = notesEl.value.trim();
   if (addDueValue)          payload.due_at = addDueValue;
   input.value=''; notesEl.value='';
@@ -2756,9 +2755,7 @@ function renderMobPrioButtons() {
 async function saveMobileTask() {
   const text = document.getElementById('mobTitleInput').value.trim();
   if (!text || !activeListId) { document.getElementById('mobTitleInput').focus(); return; }
-  const mobNoPrioNoDates = tasks.filter(t=>!t.parent_id && !t.done && t.category===activeListId && !t.priority && !t.due_at);
-  const mobMinOrder = mobNoPrioNoDates.reduce((m,t)=>Math.min(m, t.sort_order??0), 0);
-  const payload = { text, done:false, category:activeListId, sort_order: mobMinOrder - 10000 };
+  const payload = { text, done:false, category:activeListId, sort_order: Date.now() };
   const notes = document.getElementById('mobNotesInput').value.trim();
   if (notes)       payload.notes    = notes;
   if (mobDueValue) payload.due_at   = mobDueValue;
