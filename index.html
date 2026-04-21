@@ -2462,6 +2462,29 @@ async function addTask() {
   }
 }
 
+async function addTaskKeepFocus() {
+  const input   = document.getElementById('taskInput');
+  const notesEl = document.getElementById('addNotes');
+  const text    = input.value.trim();
+  if (!text || !activeListId) { input.focus(); return; }
+  const payload = { text, done:false, category:activeListId, sort_order: Date.now() };
+  if (notesEl.value.trim()) payload.notes  = notesEl.value.trim();
+  if (addDueValue)          payload.due_at = addDueValue;
+  if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
+  input.value = '';
+  keepInputFocused = true;
+  addingTask = true;
+  try {
+    const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
+    tasks.unshift(t); recentlyAddedId = t.id; render(); renderSidebar();
+  } catch(e) { alert(e.message); }
+  finally {
+    addingTask = false;
+    openAddDetail();
+    input.focus();
+  }
+}
+
 async function addSubtask(parentId, text) {
   if (!text.trim()) return;
   const parent  = tasks.find(t=>t.id===parentId);
@@ -2525,7 +2548,11 @@ function closeAddDetail() {
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('taskInput').addEventListener('focus', openAddDetail);
   document.getElementById('taskInput').addEventListener('keydown', e=>{
-    if (e.key==='Enter') { e.preventDefault(); e.stopPropagation(); addTask(); }
+    if (e.key==='Enter') {
+      e.preventDefault(); e.stopPropagation();
+      if (e.shiftKey) addTaskKeepFocus();
+      else addTask();
+    }
     if (e.key==='Escape') { keepInputFocused=false; closeAddDetail(); e.target.blur(); }
   });
   document.getElementById('taskInput').addEventListener('focusout', () => {
