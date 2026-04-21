@@ -314,6 +314,14 @@
     }
     .task-done .task-title-preview { text-decoration:line-through; color:#bbb; }
     .task-done .task-title { text-decoration:line-through; color:#bbb; }
+    .task-title-preview { cursor:default; }
+    .task-body:hover .task-title-preview { cursor:text; text-decoration:underline; text-decoration-style:dotted; text-decoration-color:#c0c8e0; }
+    .task-done .task-body:hover .task-title-preview { cursor:default; text-decoration:line-through; }
+    .task-card.editing-title .task-title-preview { display:none !important; }
+    .task-card.editing-title .task-title {
+      display:block !important; border-bottom:1.5px solid #4f6ef7;
+      padding:1px 0; border-radius:0; background:transparent;
+    }
     .task-meta {
       display:flex; align-items:center; gap:4px; margin-top:3px; flex-wrap:wrap;
     }
@@ -665,7 +673,8 @@
     }
 
     /* Mobile-only elements — hidden on desktop */
-    #mobSheet, #mobSheetOverlay { display:none; }
+    #mobSheet, #mobSheetOverlay,
+    #mobTaskSheet, #mobTaskSheetOverlay { display:none; }
 
     /* ── Board view ── */
     .board-area {
@@ -950,6 +959,50 @@
         background:#4f6ef7; color:#fff; font-size:.88rem;
         font-weight:600; cursor:pointer; font-family:inherit;
       }
+      /* Task edit sheet (reuses mob sheet base styles) */
+      #mobTaskSheetOverlay {
+        position:fixed; inset:0; background:rgba(0,0,0,.4);
+        z-index:298; display:none;
+      }
+      #mobTaskSheetOverlay.open { display:block; }
+      #mobTaskSheet {
+        display:block; position:fixed; bottom:0; left:0; right:0;
+        background:#fff; border-radius:18px 18px 0 0;
+        box-shadow:0 -6px 30px rgba(0,0,0,.13);
+        transform:translateY(100%);
+        transition:transform .32s cubic-bezier(.4,0,.2,1);
+        z-index:300; padding-bottom:max(20px, env(safe-area-inset-bottom));
+      }
+      #mobTaskSheet.open { transform:translateY(0); }
+      #mobTaskTitleInput {
+        width:100%; font-size:1.02rem; border:none; outline:none;
+        padding:4px 0 12px; border-bottom:1.5px solid #e8ecf4;
+        font-family:inherit; color:#1a1a2e; background:transparent;
+      }
+      #mobTaskNotesInput {
+        width:100%; font-size:.88rem; border:none; outline:none;
+        padding:10px 0 6px; font-family:inherit; color:#666;
+        resize:none; min-height:38px; background:transparent;
+      }
+      #mobTaskDueBtn {
+        width:32px; height:32px; border:1.5px solid #e0e4ef;
+        border-radius:8px; background:#fff; font-size:.95rem;
+        cursor:pointer; display:flex; align-items:center; justify-content:center;
+        flex-shrink:0;
+      }
+      #mobTaskDueBtn.has-date { border-color:#4f6ef7; background:#f0f3ff; }
+      #mobTaskDueLabel { font-size:.77rem; color:#4f6ef7; font-weight:500; }
+      .mob-task-sheet-header {
+        display:flex; align-items:center; justify-content:space-between;
+        padding:0 18px 8px; border-bottom:1px solid #f0f2f8; margin-bottom:4px;
+      }
+      .mob-task-sheet-header span { font-size:.78rem; color:#aaa; font-weight:500; }
+      .mob-task-sheet-header .btn-del-mob-task {
+        background:none; border:none; color:#e53e3e; font-size:1rem;
+        cursor:pointer; padding:4px 6px; border-radius:6px;
+      }
+      /* Disable desktop hover-edit on mobile */
+      .task-body:hover .task-title-preview { text-decoration:none; cursor:default; }
     }
     @media (max-width: 480px) {
       .app-layout { flex-direction:column; }
@@ -1131,7 +1184,7 @@
   </div>
 </div>
 
-<!-- Mobile: bottom sheet -->
+<!-- Mobile: bottom sheet (add task) -->
 <div id="mobSheetOverlay" onclick="closeMobileSheet()"></div>
 <div id="mobSheet">
   <div class="mob-handle"></div>
@@ -1147,6 +1200,29 @@
     <div class="mob-footer">
       <button class="mob-btn-cancel" onclick="closeMobileSheet()">İptal</button>
       <button class="mob-btn-save" onclick="saveMobileTask()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile: task edit sheet -->
+<div id="mobTaskSheetOverlay" onclick="closeMobTaskSheet()"></div>
+<div id="mobTaskSheet">
+  <div class="mob-handle"></div>
+  <div class="mob-task-sheet-header">
+    <span>Görevi düzenle</span>
+    <button class="btn-del-mob-task" onclick="deleteMobTask()" title="Görevi sil">🗑️</button>
+  </div>
+  <div class="mob-sheet-body">
+    <input id="mobTaskTitleInput" type="text" placeholder="Görev başlığı..." autocomplete="off" maxlength="1071">
+    <textarea id="mobTaskNotesInput" placeholder="Notlar" rows="2"></textarea>
+    <div class="mob-meta-row">
+      <button id="mobTaskDueBtn" title="Bitiş tarihi seç">📅</button>
+      <span id="mobTaskDueLabel"></span>
+      <div class="mob-prio-row" id="mobTaskPrioRow"></div>
+    </div>
+    <div class="mob-footer">
+      <button class="mob-btn-cancel" onclick="closeMobTaskSheet()">İptal</button>
+      <button class="mob-btn-save" onclick="saveMobTaskSheet()">Kaydet</button>
     </div>
   </div>
 </div>
@@ -1793,6 +1869,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     if (e.key==='Enter')  saveMobileTask();
     if (e.key==='Escape') closeMobileSheet();
   });
+  document.getElementById('mobTaskTitleInput').addEventListener('keydown', e => {
+    if (e.key==='Enter')  saveMobTaskSheet();
+    if (e.key==='Escape') closeMobTaskSheet();
+  });
 
   ['mainBody','boardArea'].forEach(id => {
     document.getElementById(id).addEventListener('click', e => {
@@ -1925,6 +2005,15 @@ function buildTaskCard(task, isDone) {
   titlePreview.dataset.shortText = task.text.length > 50 ? task.text.slice(0,50) + '…' : task.text;
   titlePreview.textContent = titlePreview.dataset.shortText;
 
+  // Desktop: click title to edit inline
+  titlePreview.addEventListener('click', e => {
+    if (isDone || window.innerWidth <= 600) return;
+    e.stopPropagation();
+    card.classList.add('editing-title');
+    titleInput.value = task.text;
+    setTimeout(() => { titleInput.focus(); titleInput.select(); }, 0);
+  });
+
   const titleInput = document.createElement('input');
   titleInput.className = 'task-title';
   titleInput.type      = 'text';
@@ -1932,18 +2021,34 @@ function buildTaskCard(task, isDone) {
   titleInput.maxLength = 1071;
   if (isDone) titleInput.disabled = true;
   titleInput.addEventListener('change', ()=>{
-    const v = titleInput.value;
+    const v = titleInput.value.trim() || task.text;
+    titleInput.value = v;
     scheduleUpdate(task,{text:v});
     task.text = v;
     titlePreview.dataset.fullText  = v;
     titlePreview.dataset.shortText = v.length>50 ? v.slice(0,50)+'…' : v;
+    titlePreview.textContent = card.classList.contains('detail-open') ? v : titlePreview.dataset.shortText;
+  });
+  titleInput.addEventListener('blur', ()=>{
+    card.classList.remove('editing-title');
   });
   titleInput.addEventListener('keydown', e=>{
-    if (e.key==='Enter'&&e.shiftKey&&!isDone) {
+    if (e.key==='Enter') {
       e.preventDefault();
-      detail.classList.add('open');
-      subInputRow.classList.add('open');
-      subInput.focus();
+      if (e.shiftKey && !isDone) {
+        titleInput.blur();
+        detail.classList.add('open');
+        subInputRow.classList.add('open');
+        subInput.focus();
+      } else {
+        titleInput.blur();
+      }
+    }
+    if (e.key==='Escape') {
+      e.stopPropagation();
+      titleInput.value = task.text;
+      card.classList.remove('editing-title');
+      titleInput.blur();
     }
   });
 
@@ -2095,6 +2200,8 @@ function buildTaskCard(task, isDone) {
 
   row.addEventListener('click', e => {
     if (e.target.closest('.task-side') || e.target.closest('.task-check')) return;
+    if (e.target.closest('.task-title-preview')) return; // handled by titlePreview click
+    if (window.innerWidth <= 600) { openMobTaskSheet(task); return; }
     const wasOpen = detail.classList.contains('open');
     closeAllDetails();
     if (!wasOpen) {
@@ -2791,6 +2898,79 @@ async function saveMobileTask() {
     tasks.unshift(t); recentlyAddedId = t.id;
     render(); renderSidebar();
   } catch(e) { showToast('Hata: '+e.message); }
+}
+
+/* ── Mobile task edit sheet ── */
+let mobTaskEditTarget = null;
+let mobTaskDueValue   = '';
+let mobTaskPriority   = null;
+
+function openMobTaskSheet(task) {
+  mobTaskEditTarget = task;
+  mobTaskDueValue   = task.due_at   || '';
+  mobTaskPriority   = task.priority || null;
+  document.getElementById('mobTaskTitleInput').value = task.text;
+  document.getElementById('mobTaskNotesInput').value = task.notes || '';
+  const dueBtn = document.getElementById('mobTaskDueBtn');
+  dueBtn.onclick = () => dtpOpen(dueBtn, mobTaskDueValue||null, v => { mobTaskDueValue = v; renderMobTaskDueLabel(); });
+  renderMobTaskDueLabel();
+  renderMobTaskPrioButtons();
+  document.getElementById('mobTaskSheet').classList.add('open');
+  document.getElementById('mobTaskSheetOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('mobTaskTitleInput').focus(), 320);
+}
+
+function closeMobTaskSheet() {
+  document.getElementById('mobTaskSheet').classList.remove('open');
+  document.getElementById('mobTaskSheetOverlay').classList.remove('open');
+  mobTaskEditTarget = null;
+}
+
+function renderMobTaskDueLabel() {
+  const lbl = document.getElementById('mobTaskDueLabel');
+  lbl.textContent = mobTaskDueValue ? fmtShort(mobTaskDueValue) : '';
+  document.getElementById('mobTaskDueBtn').classList.toggle('has-date', !!mobTaskDueValue);
+}
+
+function renderMobTaskPrioButtons() {
+  const row = document.getElementById('mobTaskPrioRow');
+  row.innerHTML = '';
+  Object.entries(PRIORITIES).forEach(([key, prio]) => {
+    const btn = document.createElement('button');
+    btn.className   = `priority-btn ${key}` + (mobTaskPriority === key ? ' active' : '');
+    btn.textContent = prio.icon;
+    btn.title       = prio.label;
+    btn.onclick     = () => { mobTaskPriority = mobTaskPriority === key ? null : key; renderMobTaskPrioButtons(); };
+    row.appendChild(btn);
+  });
+}
+
+async function saveMobTaskSheet() {
+  if (!mobTaskEditTarget) return;
+  const task   = mobTaskEditTarget;
+  const titleEl = document.getElementById('mobTaskTitleInput');
+  const title   = titleEl.value.trim();
+  if (!title) { titleEl.focus(); return; }
+  const notes   = document.getElementById('mobTaskNotesInput').value.trim();
+  const updates = {};
+  if (title !== task.text)                    { updates.text     = title;              task.text     = title; }
+  if (notes !== (task.notes||''))             { updates.notes    = notes||null;        task.notes    = notes||null; }
+  if (mobTaskDueValue !== (task.due_at||''))  { updates.due_at   = mobTaskDueValue||null; task.due_at= mobTaskDueValue||null; }
+  if (mobTaskPriority !== (task.priority||null)) { updates.priority = mobTaskPriority; task.priority = mobTaskPriority; }
+  closeMobTaskSheet();
+  if (Object.keys(updates).length > 0) {
+    try {
+      await db(`/todos?id=eq.${task.id}`, {method:'PATCH', body:JSON.stringify(updates)});
+      render(); renderSidebar();
+    } catch(e) { showToast('Hata: '+e.message); }
+  }
+}
+
+async function deleteMobTask() {
+  if (!mobTaskEditTarget) return;
+  const task = mobTaskEditTarget;
+  closeMobTaskSheet();
+  await deleteTask(task.id);
 }
 
 /* ── Boot ── */
