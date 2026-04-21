@@ -362,6 +362,13 @@
     .tib-due.today .mi, .tib-due.today .tib-lbl   { color:#c2410c; }
     .tib-due.overdue .mi, .tib-due.overdue .tib-lbl { color:#dc2626; }
     .tib-list-lbl { font-size:11.5px; color:#999; flex-shrink:0; opacity:.85; }
+    /* Notes preview on card */
+    .task-notes-preview {
+      font-size:.73rem; color:#999; line-height:1.45; margin-top:3px;
+      word-break:break-word; overflow-wrap:break-word;
+    }
+    .task-card.detail-open .task-notes-preview { display:none; }
+    .task-done .task-notes-preview { opacity:.5; }
     /* Star button on card */
     .btn-star {
       width:36px; height:36px; border:none; background:transparent;
@@ -2173,6 +2180,14 @@ function buildTaskCard(task, isDone) {
   body.appendChild(titlePreview);
   body.appendChild(titleInput);
   if (infoBar.children.length) body.appendChild(infoBar);
+
+  if (task.notes?.trim()) {
+    const notesPrev = document.createElement('div');
+    notesPrev.className = 'task-notes-preview';
+    const raw = task.notes.trim();
+    notesPrev.textContent = raw.length > 171 ? raw.slice(0, 171) + '…' : raw;
+    body.appendChild(notesPrev);
+  }
 
   /* Inline subtask section */
   const subSect = document.createElement('div');
