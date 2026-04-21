@@ -673,7 +673,8 @@
     }
 
     /* Mobile-only elements — hidden on desktop */
-    #mobSheet, #mobSheetOverlay, #mobTaskPage { display:none; }
+    #mobSheet, #mobSheetOverlay,
+    #mobTaskSheet, #mobTaskSheetOverlay { display:none; }
 
     /* ── Board view ── */
     .board-area {
@@ -958,66 +959,49 @@
         background:#4f6ef7; color:#fff; font-size:.88rem;
         font-weight:600; cursor:pointer; font-family:inherit;
       }
-      /* Full-page task detail (Google Tasks style) */
-      #mobTaskPage {
-        display:flex; flex-direction:column;
-        position:fixed; inset:0;
-        background:#fff; z-index:400;
-        transform:translateX(100%);
-        transition:transform .28s cubic-bezier(.4,0,.2,1);
-        overflow:hidden;
+      /* Task edit bottom sheet */
+      #mobTaskSheetOverlay {
+        position:fixed; inset:0; background:rgba(0,0,0,.4);
+        z-index:298; display:none;
       }
-      #mobTaskPage.open { transform:translateX(0); }
-      .mob-page-header {
+      #mobTaskSheetOverlay.open { display:block; }
+      #mobTaskSheet {
+        display:block; position:fixed; bottom:0; left:0; right:0;
+        background:#fff; border-radius:18px 18px 0 0;
+        box-shadow:0 -6px 30px rgba(0,0,0,.13);
+        transform:translateY(100%);
+        transition:transform .32s cubic-bezier(.4,0,.2,1);
+        z-index:300;
+        padding-bottom:max(20px, env(safe-area-inset-bottom));
+      }
+      #mobTaskSheet.open { transform:translateY(0); }
+      .mob-task-sheet-top {
         display:flex; align-items:center; justify-content:space-between;
-        padding:12px 16px; border-bottom:1px solid #f0f2f8;
-        background:#fff; flex-shrink:0;
-        padding-top:max(12px, env(safe-area-inset-top));
+        padding:6px 16px 10px; border-bottom:1px solid #f0f2f8;
       }
-      .mob-page-back {
-        display:flex; align-items:center; gap:6px;
-        background:none; border:none; font-size:1rem; color:#4f6ef7;
-        cursor:pointer; padding:6px 4px; font-family:inherit; font-weight:600;
+      .mob-task-sheet-top span { font-size:.8rem; color:#aaa; font-weight:500; }
+      .mob-task-del-btn {
+        background:none; border:none; color:#e53e3e;
+        font-size:1rem; cursor:pointer; padding:4px 6px; border-radius:6px;
       }
-      .mob-page-back::before { content:'‹'; font-size:1.4rem; line-height:1; }
-      .mob-page-del {
-        background:none; border:none; font-size:1.1rem;
-        color:#aaa; cursor:pointer; padding:6px 4px;
+      #mobTaskTitleInput {
+        width:100%; font-size:1.02rem; border:none; outline:none;
+        padding:4px 0 12px; border-bottom:1.5px solid #e8ecf4;
+        font-family:inherit; color:#1a1a2e; background:transparent;
       }
-      .mob-page-body {
-        flex:1; overflow-y:auto; padding:20px 20px 40px;
-        padding-bottom:max(40px, env(safe-area-inset-bottom));
+      #mobTaskNotesInput {
+        width:100%; font-size:.88rem; border:none; outline:none;
+        padding:10px 0 6px; font-family:inherit; color:#666;
+        resize:none; min-height:38px; background:transparent;
       }
-      #mobTaskPageTitle {
-        width:100%; font-size:1.15rem; font-weight:600;
-        border:none; outline:none; border-bottom:2px solid #e8ecf4;
-        padding:4px 0 12px; font-family:inherit; color:#1a1a2e;
-        background:transparent; margin-bottom:4px;
+      #mobTaskDueBtn {
+        width:32px; height:32px; border:1.5px solid #e0e4ef;
+        border-radius:8px; background:#fff; font-size:.95rem;
+        cursor:pointer; display:flex; align-items:center; justify-content:center;
+        flex-shrink:0;
       }
-      #mobTaskPageTitle:focus { border-bottom-color:#4f6ef7; }
-      #mobTaskPageNotes {
-        width:100%; font-size:.92rem; border:none; outline:none;
-        padding:10px 0 8px; font-family:inherit; color:#555;
-        resize:none; min-height:80px; background:transparent;
-        border-bottom:1px solid #f0f2f8; line-height:1.5;
-      }
-      .mob-page-meta {
-        padding:14px 0 0; display:flex; flex-direction:column; gap:14px;
-      }
-      .mob-page-meta-row {
-        display:flex; align-items:center; gap:12px; padding:10px 0;
-        border-bottom:1px solid #f4f5fb;
-      }
-      .mob-page-meta-row .meta-icon { font-size:1.1rem; width:22px; text-align:center; flex-shrink:0; }
-      .mob-page-meta-row .meta-label { font-size:.85rem; color:#888; min-width:60px; }
-      .mob-page-meta-row .meta-val { font-size:.88rem; color:#4f6ef7; font-weight:500; }
-      #mobTaskPageDueBtn {
-        background:none; border:none; cursor:pointer; padding:0;
-        font-size:.88rem; color:#4f6ef7; font-weight:500; font-family:inherit;
-      }
-      #mobTaskPageDueBtn.empty { color:#bbb; }
-      .mob-page-prio-row { display:flex; gap:8px; }
-      .mob-page-prio-row .priority-btn { width:36px; height:36px; font-size:1.1rem; }
+      #mobTaskDueBtn.has-date { border-color:#4f6ef7; background:#f0f3ff; }
+      #mobTaskDueLabel { font-size:.77rem; color:#4f6ef7; font-weight:500; }
       /* Disable desktop hover styles on mobile */
       .task-body:hover .task-title-preview { text-decoration:none; cursor:default; }
     }
@@ -1221,27 +1205,25 @@
   </div>
 </div>
 
-<!-- Mobile: task detail page (full-screen, Google Tasks style) -->
-<div id="mobTaskPage">
-  <div class="mob-page-header">
-    <button class="mob-page-back" onclick="closeMobTaskPage()">Geri</button>
-    <button class="mob-page-del" onclick="deleteMobTaskPage()" title="Görevi sil">🗑️</button>
+<!-- Mobile: task edit bottom sheet -->
+<div id="mobTaskSheetOverlay" onclick="closeMobTaskSheet()"></div>
+<div id="mobTaskSheet">
+  <div class="mob-handle"></div>
+  <div class="mob-task-sheet-top">
+    <span>Görevi düzenle</span>
+    <button class="mob-task-del-btn" onclick="deleteMobTaskSheet()" title="Görevi sil">🗑️</button>
   </div>
-  <div class="mob-page-body">
-    <input id="mobTaskPageTitle" type="text" placeholder="Görev başlığı..." autocomplete="off" maxlength="1071">
-    <textarea id="mobTaskPageNotes" placeholder="Notlar ekle..." rows="4"></textarea>
-    <div class="mob-page-meta">
-      <div class="mob-page-meta-row">
-        <span class="meta-icon">📅</span>
-        <span class="meta-label">Tarih</span>
-        <button id="mobTaskPageDueBtn" class="empty">Tarih ekle</button>
-        <span id="mobTaskPageDueLabel"></span>
-      </div>
-      <div class="mob-page-meta-row">
-        <span class="meta-icon">🏷️</span>
-        <span class="meta-label">Öncelik</span>
-        <div class="mob-page-prio-row" id="mobTaskPagePrioRow"></div>
-      </div>
+  <div class="mob-sheet-body">
+    <input id="mobTaskTitleInput" type="text" placeholder="Görev başlığı..." autocomplete="off" maxlength="1071">
+    <textarea id="mobTaskNotesInput" placeholder="Notlar" rows="2"></textarea>
+    <div class="mob-meta-row">
+      <button id="mobTaskDueBtn" title="Bitiş tarihi seç">📅</button>
+      <span id="mobTaskDueLabel"></span>
+      <div class="mob-prio-row" id="mobTaskPrioRow"></div>
+    </div>
+    <div class="mob-footer">
+      <button class="mob-btn-cancel" onclick="closeMobTaskSheet()">İptal</button>
+      <button class="mob-btn-save" onclick="saveMobTaskSheet()">Kaydet</button>
     </div>
   </div>
 </div>
@@ -1888,8 +1870,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     if (e.key==='Enter')  saveMobileTask();
     if (e.key==='Escape') closeMobileSheet();
   });
-  document.getElementById('mobTaskPageTitle').addEventListener('keydown', e => {
-    if (e.key==='Escape') closeMobTaskPage();
+  document.getElementById('mobTaskTitleInput').addEventListener('keydown', e => {
+    if (e.key==='Enter')  saveMobTaskSheet();
+    if (e.key==='Escape') closeMobTaskSheet();
   });
 
   ['mainBody','boardArea'].forEach(id => {
@@ -2218,7 +2201,7 @@ function buildTaskCard(task, isDone) {
 
   row.addEventListener('click', e => {
     if (e.target.closest('.task-side') || e.target.closest('.task-check')) return;
-    if (window.innerWidth <= 600) { openMobTaskPage(task); return; }
+    if (window.innerWidth <= 600) { openMobTaskSheet(task); return; }
     const wasOpen = detail.classList.contains('open');
     closeAllDetails();
     if (!wasOpen) {
@@ -2917,44 +2900,63 @@ async function saveMobileTask() {
   } catch(e) { showToast('Hata: '+e.message); }
 }
 
-/* ── Mobile task detail page ── */
-let mobTaskPageTask  = null;
-let mobTaskPageDue   = '';
-let mobTaskPagePrio  = null;
+/* ── Mobile task edit sheet ── */
+let mobTaskSheetTask = null;
+let mobTaskSheetDue  = '';
+let mobTaskSheetPrio = null;
 
-function openMobTaskPage(task) {
-  mobTaskPageTask = task;
-  mobTaskPageDue  = task.due_at   || '';
-  mobTaskPagePrio = task.priority || null;
-  document.getElementById('mobTaskPageTitle').value = task.text;
-  document.getElementById('mobTaskPageNotes').value = task.notes || '';
-  const dueBtn = document.getElementById('mobTaskPageDueBtn');
-  dueBtn.onclick = () => dtpOpen(dueBtn, mobTaskPageDue||null, v => { mobTaskPageDue = v; renderMobTaskPageDue(); });
-  renderMobTaskPageDue();
-  renderMobTaskPagePrio();
-  document.getElementById('mobTaskPage').classList.add('open');
-  history.pushState({ mobTaskPage: true }, '');
+function openMobTaskSheet(task) {
+  mobTaskSheetTask = task;
+  mobTaskSheetDue  = task.due_at   || '';
+  mobTaskSheetPrio = task.priority || null;
+  document.getElementById('mobTaskTitleInput').value = task.text;
+  document.getElementById('mobTaskNotesInput').value = task.notes || '';
+  const dueBtn = document.getElementById('mobTaskDueBtn');
+  dueBtn.onclick = () => dtpOpen(dueBtn, mobTaskSheetDue||null, v => { mobTaskSheetDue = v; renderMobTaskSheetDue(); });
+  renderMobTaskSheetDue();
+  renderMobTaskSheetPrio();
+  document.getElementById('mobTaskSheet').classList.add('open');
+  document.getElementById('mobTaskSheetOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('mobTaskTitleInput').focus(), 320);
 }
 
-async function closeMobTaskPage(fromPopState) {
-  const page = document.getElementById('mobTaskPage');
-  if (!page.classList.contains('open')) return;
-  page.classList.remove('open');
-  await _saveMobTaskPage();
-  mobTaskPageTask = null;
-  if (!fromPopState && history.state?.mobTaskPage) history.back();
+function closeMobTaskSheet() {
+  document.getElementById('mobTaskSheet').classList.remove('open');
+  document.getElementById('mobTaskSheetOverlay').classList.remove('open');
+  mobTaskSheetTask = null;
 }
 
-async function _saveMobTaskPage() {
-  if (!mobTaskPageTask) return;
-  const task  = mobTaskPageTask;
-  const title = document.getElementById('mobTaskPageTitle').value.trim();
-  const notes = document.getElementById('mobTaskPageNotes').value.trim();
+function renderMobTaskSheetDue() {
+  const lbl = document.getElementById('mobTaskDueLabel');
+  lbl.textContent = mobTaskSheetDue ? fmtShort(mobTaskSheetDue) : '';
+  document.getElementById('mobTaskDueBtn').classList.toggle('has-date', !!mobTaskSheetDue);
+}
+
+function renderMobTaskSheetPrio() {
+  const row = document.getElementById('mobTaskPrioRow');
+  row.innerHTML = '';
+  Object.entries(PRIORITIES).forEach(([key, prio]) => {
+    const btn = document.createElement('button');
+    btn.className   = `priority-btn ${key}` + (mobTaskSheetPrio === key ? ' active' : '');
+    btn.textContent = prio.icon;
+    btn.title       = prio.label;
+    btn.onclick     = () => { mobTaskSheetPrio = mobTaskSheetPrio === key ? null : key; renderMobTaskSheetPrio(); };
+    row.appendChild(btn);
+  });
+}
+
+async function saveMobTaskSheet() {
+  if (!mobTaskSheetTask) return;
+  const task  = mobTaskSheetTask;
+  const title = document.getElementById('mobTaskTitleInput').value.trim();
+  if (!title) { document.getElementById('mobTaskTitleInput').focus(); return; }
+  const notes = document.getElementById('mobTaskNotesInput').value.trim();
   const updates = {};
-  if (title && title !== task.text)               { updates.text     = title;             task.text     = title; }
-  if (notes !== (task.notes||''))                 { updates.notes    = notes||null;       task.notes    = notes||null; }
-  if (mobTaskPageDue  !== (task.due_at||''))      { updates.due_at   = mobTaskPageDue||null; task.due_at = mobTaskPageDue||null; }
-  if (mobTaskPagePrio !== (task.priority||null))  { updates.priority = mobTaskPagePrio;   task.priority = mobTaskPagePrio; }
+  if (title !== task.text)                      { updates.text     = title;                task.text     = title; }
+  if (notes !== (task.notes||''))               { updates.notes    = notes||null;          task.notes    = notes||null; }
+  if (mobTaskSheetDue  !== (task.due_at||''))   { updates.due_at   = mobTaskSheetDue||null; task.due_at  = mobTaskSheetDue||null; }
+  if (mobTaskSheetPrio !== (task.priority||null)){ updates.priority = mobTaskSheetPrio;    task.priority = mobTaskSheetPrio; }
+  closeMobTaskSheet();
   if (Object.keys(updates).length > 0) {
     try {
       await db(`/todos?id=eq.${task.id}`, {method:'PATCH', body:JSON.stringify(updates)});
@@ -2963,50 +2965,12 @@ async function _saveMobTaskPage() {
   }
 }
 
-function renderMobTaskPageDue() {
-  const lbl    = document.getElementById('mobTaskPageDueLabel');
-  const dueBtn = document.getElementById('mobTaskPageDueBtn');
-  if (mobTaskPageDue) {
-    dueBtn.textContent = '✕ Kaldır';
-    dueBtn.className   = '';
-    dueBtn.onclick     = () => { mobTaskPageDue = ''; renderMobTaskPageDue(); };
-    lbl.textContent    = fmtShort(mobTaskPageDue);
-  } else {
-    dueBtn.textContent = 'Tarih ekle';
-    dueBtn.className   = 'empty';
-    const btn = document.getElementById('mobTaskPageDueBtn');
-    btn.onclick = () => dtpOpen(btn, null, v => { mobTaskPageDue = v; renderMobTaskPageDue(); });
-    lbl.textContent = '';
-  }
-}
-
-function renderMobTaskPagePrio() {
-  const row = document.getElementById('mobTaskPagePrioRow');
-  row.innerHTML = '';
-  Object.entries(PRIORITIES).forEach(([key, prio]) => {
-    const btn = document.createElement('button');
-    btn.className   = `priority-btn ${key}` + (mobTaskPagePrio === key ? ' active' : '');
-    btn.textContent = prio.icon;
-    btn.title       = prio.label;
-    btn.onclick     = () => { mobTaskPagePrio = mobTaskPagePrio === key ? null : key; renderMobTaskPagePrio(); };
-    row.appendChild(btn);
-  });
-}
-
-async function deleteMobTaskPage() {
-  if (!mobTaskPageTask) return;
-  const taskId = mobTaskPageTask.id;
-  const page   = document.getElementById('mobTaskPage');
-  page.classList.remove('open');
-  mobTaskPageTask = null;
-  if (history.state?.mobTaskPage) history.back();
+async function deleteMobTaskSheet() {
+  if (!mobTaskSheetTask) return;
+  const taskId = mobTaskSheetTask.id;
+  closeMobTaskSheet();
   await deleteTask(taskId);
 }
-
-window.addEventListener('popstate', e => {
-  const page = document.getElementById('mobTaskPage');
-  if (page && page.classList.contains('open')) closeMobTaskPage(true);
-});
 
 /* ── Boot ── */
 window.onerror = (msg, src, line, col, err) => {
