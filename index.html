@@ -334,20 +334,32 @@
       display:block !important; border-bottom:1.5px solid #4f6ef7;
       padding:1px 0; border-radius:0; background:transparent;
     }
-    .task-meta {
-      display:flex; align-items:center; gap:4px; margin-top:3px; flex-wrap:wrap;
+    /* ── Task info bar ── */
+    .task-info-bar {
+      display:flex; align-items:center; gap:5px; margin-top:3px;
+      overflow:hidden; white-space:nowrap; min-height:16px;
     }
-    .due-tag {
-      font-size:.63rem; font-weight:500; padding:1px 5px; border-radius:5px;
-      display:inline-flex; align-items:center; white-space:nowrap;
+    .tib-chip {
+      display:inline-flex; align-items:center; gap:2px; flex-shrink:0;
+      opacity:.35; transition:opacity .15s, background .12s;
+      border-radius:4px; padding:1px 3px; cursor:pointer;
     }
-    .due-tag.future  { background:#eff6ff; color:#3b82f6; }
-    .due-tag.today   { background:#fff7ed; color:#c2410c; }
-    .due-tag.overdue { background:#fef2f2; color:#dc2626; }
-    .subtask-badge {
-      font-size:.63rem; color:#aaa;
-      background:#f4f5f9; border-radius:5px; padding:1px 5px;
+    .task-card:hover .tib-chip { opacity:1; }
+    .tib-chip .mi { color:#9aa3b5; font-size:12px; line-height:1; }
+    .tib-lbl {
+      overflow:hidden; white-space:nowrap; font-size:11px; color:#9aa3b5;
+      max-width:0; transition:max-width .2s ease; display:inline-block;
     }
+    .tib-chip:hover { background:#f0f3ff; }
+    .tib-chip:hover .mi, .tib-chip:hover .tib-lbl { color:#4f6ef7; }
+    .tib-chip:hover .tib-lbl { max-width:110px; }
+    .tib-prio.p1 .mi { color:#dc2626; }
+    .tib-prio.p2 .mi { color:#ca8a04; }
+    .tib-prio.p3 .mi { color:#ea580c; }
+    .tib-prio.p4 .mi { color:#94a3b8; }
+    .tib-due.today .mi   { color:#c2410c; }
+    .tib-due.overdue .mi { color:#dc2626; }
+    .tib-list-lbl { font-size:11px; color:#bbb; flex-shrink:0; opacity:.7; }
     /* Star button on card */
     .btn-star {
       width:36px; height:36px; border:none; background:transparent;
@@ -376,14 +388,14 @@
       height:1px; background:#f0f2f8; margin:6px 8px;
     }
 
-    /* Priority dot on card — shown in .task-meta */
-    .prio-dot {
-      width:7px; height:7px; border-radius:50%; flex-shrink:0; display:inline-block;
+    /* Link input in detail pane */
+    .detail-link-input {
+      width:100%; padding:5px 9px; border:1.5px solid #e8eaf2; border-radius:8px;
+      font-size:.78rem; color:#444; outline:none; background:#fafbff;
+      transition:border-color .15s;
     }
-    .prio-dot.p1 { background:#dc2626; }
-    .prio-dot.p2 { background:#ca8a04; }
-    .prio-dot.p3 { background:#ea580c; }
-    .prio-dot.p4 { background:#94a3b8; }
+    .detail-link-input:focus { border-color:#4f6ef7; }
+    .detail-link-input::placeholder { color:#bcc5d8; }
 
     /* Priority picker in detail */
     /* Detail meta row: due + priority side by side */
@@ -874,6 +886,7 @@
       .task-title { font-size:.9rem; }
       .btn-star  { opacity:1 !important; width:34px; height:34px; font-size:1.1rem; }
       .btn-icon  { opacity:1 !important; width:34px; height:34px; font-size:1.1rem; }
+      .task-info-bar { display:none; }
 
       /* Mobile add bar */
       #mobileAddBar {
@@ -986,6 +999,12 @@
         padding:10px 0 6px; font-family:inherit; color:#666;
         resize:none; min-height:38px; background:transparent;
       }
+      #mobTaskLinkInput {
+        width:100%; font-size:.83rem; border:none; border-top:1px solid #f0f2f8;
+        outline:none; padding:8px 0 6px; font-family:inherit; color:#4f6ef7;
+        background:transparent;
+      }
+      #mobTaskLinkInput::placeholder { color:#ccc; font-size:.83rem; }
       #mobTaskDueBtn {
         width:32px; height:32px; border:1.5px solid #e0e4ef;
         border-radius:8px; background:#fff; font-size:.95rem;
@@ -1237,6 +1256,7 @@
   <div class="mob-sheet-body">
     <input id="mobTaskTitleInput" type="text" placeholder="Görev başlığı..." autocomplete="off" maxlength="1071">
     <textarea id="mobTaskNotesInput" placeholder="Notlar" rows="2"></textarea>
+    <input id="mobTaskLinkInput" type="url" placeholder="Bağlantı (https://...)" autocomplete="off">
     <div id="mobTaskSubsList"></div>
     <div class="mob-sub-add-row">
       <button class="mob-sub-add-btn" onclick="openMobSubInp()">+ alt görev</button>
@@ -2082,36 +2102,73 @@ function buildTaskCard(task, isDone) {
     }
   });
 
-  const meta = document.createElement('div');
-  meta.className = 'task-meta';
-  if (due) {
-    const d = document.createElement('span');
-    d.className=`due-tag ${due.cls}`; d.textContent=due.label;
-    meta.appendChild(d);
-  }
-  if (subs.length>0) {
-    const sb = document.createElement('span');
-    sb.className='subtask-badge'; sb.textContent=`${subsDone}/${subs.length}`;
-    meta.appendChild(sb);
-  }
+  /* ── Info bar ── */
+  const infoBar = document.createElement('div');
+  infoBar.className = 'task-info-bar';
+
+  const mkChip = (extraCls, iconName, labelText, onClick) => {
+    const chip = document.createElement('span');
+    chip.className = 'tib-chip' + (extraCls ? ' '+extraCls : '');
+    const ico = document.createElement('span');
+    ico.className = 'mi'; ico.style.fontSize = '12px'; ico.textContent = iconName;
+    const lbl = document.createElement('span');
+    lbl.className = 'tib-lbl'; lbl.textContent = labelText;
+    chip.appendChild(ico); chip.appendChild(lbl);
+    if (onClick) chip.addEventListener('click', onClick);
+    return chip;
+  };
+
   if (task.priority && PRIORITIES[task.priority]) {
-    const dot = document.createElement('span');
-    dot.className=`prio-dot ${task.priority}`;
-    dot.title=PRIORITIES[task.priority].label;
-    meta.appendChild(dot);
+    const chip = mkChip(`tib-prio ${task.priority}`, 'priority_high', PRIORITIES[task.priority].label);
+    chip.title = PRIORITIES[task.priority].label;
+    infoBar.appendChild(chip);
   }
+
+  if (due) {
+    const chip = mkChip(`tib-due ${due.cls}`, 'calendar_today', due.label, e => {
+      e.stopPropagation();
+      dtpOpen(chip, task.due_at, async v => { await updateDue(task, v); });
+    });
+    chip.title = due.label;
+    infoBar.appendChild(chip);
+  }
+
+  if (task.notes?.trim()) {
+    const preview = task.notes.trim().slice(0, 30) + (task.notes.trim().length > 30 ? '…' : '');
+    const chip = mkChip('tib-notes', 'notes', preview);
+    chip.title = task.notes.trim();
+    infoBar.appendChild(chip);
+  }
+
+  if (task.link?.trim()) {
+    let domain = task.link.trim();
+    try { domain = new URL(task.link).hostname.replace(/^www\./, ''); } catch {}
+    const chip = mkChip('tib-link', 'link', domain, e => {
+      e.stopPropagation();
+      window.open(task.link, '_blank', 'noopener,noreferrer');
+    });
+    chip.title = task.link;
+    infoBar.appendChild(chip);
+  }
+
+  if (subs.length > 0) {
+    const chip = mkChip('tib-subs', 'check_box', `${subsDone}/${subs.length}`);
+    infoBar.appendChild(chip);
+  }
+
   if (activeListId === STARRED_LIST_ID) {
     const listObj = lists.find(l=>l.id===task.category);
     if (listObj) {
       const lbl = document.createElement('span');
-      lbl.className = 'list-label-badge';
+      lbl.className = 'tib-list-lbl';
       lbl.textContent = `${listObj.icon} ${listObj.name}`;
-      meta.appendChild(lbl);
+      infoBar.appendChild(lbl);
     }
   }
+
   body.appendChild(titlePreview);
   body.appendChild(titleInput);
-  if (meta.children.length) body.appendChild(meta);
+  if (infoBar.children.length) body.appendChild(infoBar);
 
   /* Inline subtask section */
   const subSect = document.createElement('div');
@@ -2183,6 +2240,16 @@ function buildTaskCard(task, isDone) {
   notesTA.addEventListener('input',()=>{ notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px'; });
   notesTA.addEventListener('change',()=>scheduleUpdate(task,{notes:notesTA.value}));
 
+  const linkInp = document.createElement('input');
+  linkInp.type='url'; linkInp.className='detail-link-input';
+  linkInp.placeholder='Bağlantı ekle (https://...)';
+  linkInp.value=task.link||'';
+  linkInp.addEventListener('click', e=>e.stopPropagation());
+  linkInp.addEventListener('change',()=>{
+    const v=linkInp.value.trim()||null;
+    scheduleUpdate(task,{link:v}); task.link=v;
+  });
+
   const dueRow = document.createElement('div');
   dueRow.className='detail-due-row';
   const dueCalBtn = document.createElement('button');
@@ -2232,6 +2299,7 @@ function buildTaskCard(task, isDone) {
   metaRow.appendChild(prioRow);
 
   detail.appendChild(notesTA);
+  detail.appendChild(linkInp);
   detail.appendChild(metaRow);
 
   row.addEventListener('click', e => {
@@ -2951,6 +3019,7 @@ function openMobTaskSheet(task) {
   mobTaskSheetPrio = task.priority || null;
   document.getElementById('mobTaskTitleInput').value = task.text;
   document.getElementById('mobTaskNotesInput').value = task.notes || '';
+  document.getElementById('mobTaskLinkInput').value  = task.link  || '';
   const dueBtn = document.getElementById('mobTaskDueBtn');
   dueBtn.onclick = () => dtpOpen(dueBtn, mobTaskSheetDue||null, v => { mobTaskSheetDue = v; renderMobTaskSheetDue(); });
   renderMobTaskSheetDue();
@@ -3036,7 +3105,9 @@ async function saveMobTaskSheet() {
   const notes = document.getElementById('mobTaskNotesInput').value.trim();
   const updates = {};
   if (title !== task.text)                      { updates.text     = title;                task.text     = title; }
+  const link = document.getElementById('mobTaskLinkInput').value.trim();
   if (notes !== (task.notes||''))               { updates.notes    = notes||null;          task.notes    = notes||null; }
+  if (link  !== (task.link||''))                { updates.link     = link||null;           task.link     = link||null; }
   if (mobTaskSheetDue  !== (task.due_at||''))   { updates.due_at   = mobTaskSheetDue||null; task.due_at  = mobTaskSheetDue||null; }
   if (mobTaskSheetPrio !== (task.priority||null)){ updates.priority = mobTaskSheetPrio;    task.priority = mobTaskSheetPrio; }
   closeMobTaskSheet();
