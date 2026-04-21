@@ -336,30 +336,32 @@
     }
     /* ── Task info bar ── */
     .task-info-bar {
-      display:flex; align-items:center; gap:5px; margin-top:3px;
-      overflow:hidden; white-space:nowrap; min-height:16px;
+      display:flex; align-items:center; gap:6px; margin-top:4px;
+      overflow:hidden; white-space:nowrap; min-height:18px;
     }
     .tib-chip {
-      display:inline-flex; align-items:center; gap:2px; flex-shrink:0;
-      opacity:.35; transition:opacity .15s, background .12s;
+      display:inline-flex; align-items:center; gap:3px; flex-shrink:0;
+      opacity:.4; transition:opacity .15s, background .12s;
       border-radius:4px; padding:1px 3px; cursor:pointer;
     }
     .task-card:hover .tib-chip { opacity:1; }
-    .tib-chip .mi { color:#9aa3b5; font-size:12px; line-height:1; }
+    .tib-chip .mi { color:#9aa3b5; font-size:14px; line-height:1; }
     .tib-lbl {
-      overflow:hidden; white-space:nowrap; font-size:11px; color:#9aa3b5;
+      overflow:hidden; white-space:nowrap; font-size:11.5px; color:#9aa3b5;
       max-width:0; transition:max-width .2s ease; display:inline-block;
     }
     .tib-chip:hover { background:#f0f3ff; }
     .tib-chip:hover .mi, .tib-chip:hover .tib-lbl { color:#4f6ef7; }
     .tib-chip:hover .tib-lbl { max-width:110px; }
+    /* Always show label for due and subtask chips */
+    .tib-due .tib-lbl, .tib-subs .tib-lbl { max-width:110px; }
     .tib-prio.p1 .mi { color:#dc2626; }
     .tib-prio.p2 .mi { color:#ca8a04; }
     .tib-prio.p3 .mi { color:#ea580c; }
     .tib-prio.p4 .mi { color:#94a3b8; }
-    .tib-due.today .mi   { color:#c2410c; }
-    .tib-due.overdue .mi { color:#dc2626; }
-    .tib-list-lbl { font-size:11px; color:#bbb; flex-shrink:0; opacity:.7; }
+    .tib-due.today .mi, .tib-due.today .tib-lbl   { color:#c2410c; }
+    .tib-due.overdue .mi, .tib-due.overdue .tib-lbl { color:#dc2626; }
+    .tib-list-lbl { font-size:11.5px; color:#bbb; flex-shrink:0; opacity:.7; }
     /* Star button on card */
     .btn-star {
       width:36px; height:36px; border:none; background:transparent;
@@ -2112,7 +2114,7 @@ function buildTaskCard(task, isDone) {
     const chip = document.createElement('span');
     chip.className = 'tib-chip' + (extraCls ? ' '+extraCls : '');
     const ico = document.createElement('span');
-    ico.className = 'mi'; ico.style.fontSize = '12px'; ico.textContent = iconName;
+    ico.className = 'mi'; ico.style.fontSize = '14px'; ico.textContent = iconName;
     const lbl = document.createElement('span');
     lbl.className = 'tib-lbl'; lbl.textContent = labelText;
     chip.appendChild(ico); chip.appendChild(lbl);
