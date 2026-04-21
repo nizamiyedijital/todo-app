@@ -1314,6 +1314,36 @@
     body.theme-dark .settings-footer { background:var(--surface); border-top-color:var(--border); }
     body.theme-dark ::placeholder { color:var(--text4); }
     body.theme-dark .done-item-txt { color:var(--text3); }
+    /* Board column title */
+    body.theme-dark .board-col-title { color:var(--text); }
+    /* Weekly view */
+    body.theme-dark .weekly-left { background:var(--sidebar-bg); border-right-color:var(--border); }
+    body.theme-dark .wk-panel-title { color:var(--text3); border-bottom-color:var(--border2); }
+    body.theme-dark .wk-list-group { border-bottom-color:var(--border2); }
+    body.theme-dark .wk-list-header { color:var(--text2); }
+    body.theme-dark .wk-list-header:hover { background:var(--surface2); }
+    body.theme-dark .wk-list-header.open { color:var(--accent); background:var(--accent-bg); }
+    body.theme-dark .wk-task-chip { color:var(--text2); background:var(--card-bg); border-color:var(--border); }
+    body.theme-dark .wk-task-chip:hover { background:var(--surface2); border-color:var(--border); }
+    body.theme-dark .wk-nav { background:var(--surface); border-bottom-color:var(--border); }
+    body.theme-dark .wk-nav-btn { border-color:var(--border); color:var(--text2); }
+    body.theme-dark .wk-nav-btn:hover { background:var(--surface2); }
+    body.theme-dark .wk-nav-title { color:var(--text); }
+    body.theme-dark .wk-table th,
+    body.theme-dark .wk-table td { border-color:var(--border2); }
+    body.theme-dark .wk-day-head { background:var(--surface); border-bottom-color:var(--border); }
+    body.theme-dark .wk-time-col { background:var(--surface); }
+    body.theme-dark .wk-day-name { color:var(--text3); }
+    body.theme-dark .wk-day-date { color:var(--text); }
+    body.theme-dark .wk-row-theme { background:var(--surface2); }
+    body.theme-dark .wk-row-toptask { background:#1a1500; }
+    body.theme-dark .wk-row-lbl { color:var(--text4); }
+    body.theme-dark .wk-hour-lbl { color:var(--text4); }
+    body.theme-dark .wk-theme-input { color:var(--text2); }
+    body.theme-dark .wk-toptask-input { color:#d97706; }
+    body.theme-dark .wk-slot.drag-over { background:var(--accent-bg) !important; }
+    body.theme-dark .wk-inner { background:var(--bg); }
+    body.theme-dark .weekly-grid-wrap { background:var(--bg); }
   </style>
 </head>
 <body>
@@ -2181,10 +2211,10 @@ function renderSidebar() {
   boardItem.onclick   = () => selectList(BOARD_LIST_ID);
   boardItem.innerHTML = `
     <span class="list-icon">${mi('view_kanban','18')}</span>
-    <span class="list-name" style="flex:1;font-size:.87rem;color:#333;font-weight:500;">Tüm Görevler</span>
+    <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Tüm Görevler</span>
   `;
   if (activeListId===BOARD_LIST_ID) {
-    boardItem.querySelector('.list-name').style.color='#4f6ef7';
+    boardItem.querySelector('.list-name').style.color='var(--accent)';
     boardItem.querySelector('.list-name').style.fontWeight='600';
   }
   container.appendChild(boardItem);
@@ -2195,10 +2225,10 @@ function renderSidebar() {
   weeklyItem.onclick   = () => selectList(WEEKLY_LIST_ID);
   weeklyItem.innerHTML = `
     <span class="list-icon">${mi('calendar_view_week','18')}</span>
-    <span class="list-name" style="flex:1;font-size:.87rem;color:#333;font-weight:500;">Haftalık Planlama</span>
+    <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Haftalık Planlama</span>
   `;
   if (activeListId===WEEKLY_LIST_ID) {
-    weeklyItem.querySelector('.list-name').style.color='#4f6ef7';
+    weeklyItem.querySelector('.list-name').style.color='var(--accent)';
     weeklyItem.querySelector('.list-name').style.fontWeight='600';
   }
   container.appendChild(weeklyItem);
@@ -2210,11 +2240,11 @@ function renderSidebar() {
   starItem.onclick   = () => selectList(STARRED_LIST_ID);
   starItem.innerHTML = `
     <span class="list-icon">${mi('star','18')}</span>
-    <span class="list-name" style="flex:1;font-size:.87rem;color:#333;font-weight:500;">Yıldızlı</span>
+    <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Yıldızlı</span>
     <span class="list-count">${starCount > 0 ? starCount : ''}</span>
   `;
   if (activeListId===STARRED_LIST_ID) {
-    starItem.querySelector('.list-name').style.color='#4f6ef7';
+    starItem.querySelector('.list-name').style.color='var(--accent)';
     starItem.querySelector('.list-name').style.fontWeight='600';
   }
   container.appendChild(starItem);
