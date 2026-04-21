@@ -2106,10 +2106,10 @@ function openTaskCtxMenu(anchor, task) {
 
 /* ── Priority ── */
 const PRIORITIES = {
-  p1: { label:'Acil & Önemli',      icon:'🔴' },
-  p2: { label:'Önemli, Acil Değil', icon:'🟡' },
-  p3: { label:'Acil, Önemsiz',      icon:'🟠' },
-  p4: { label:'Ertelenebilir',      icon:'⚪' },
+  p1: { label:'Acil & Önemli (Hemen yap)',            icon:'🔴' },
+  p2: { label:'Önemli, Acil Değil (Gün ve saati planla)', icon:'🟡' },
+  p3: { label:'Acil, Önemsiz (Hızlı yönet, devret)',  icon:'🟠' },
+  p4: { label:'Ertelenebilir (Silinebilir)', icon:'⚪' },
 };
 
 async function updatePriority(task, val) {
