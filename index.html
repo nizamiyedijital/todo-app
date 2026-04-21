@@ -477,52 +477,40 @@
     }
     .btn-clear-due:hover { color:#e53e3e; }
 
-    /* Subtasks */
-    .subtasks-list { display:flex; flex-direction:column; gap:3px; }
-    .subtask-row {
-      display:flex; align-items:center; gap:8px;
-      padding:5px 10px; border-radius:8px; background:#f8f9fc;
+    /* Subtasks — inline minimalist */
+    .task-sub-section { margin-top:4px; }
+    .sub-i-row {
+      display:flex; align-items:center; gap:7px; padding:2px 0;
     }
-    .sub-check {
-      width:15px; height:15px; border:2px solid #d0d5e8; border-radius:50%;
+    .sub-i-chk {
+      width:13px; height:13px; border:1.5px solid #c8cde0; border-radius:50%;
       flex-shrink:0; cursor:pointer; display:flex; align-items:center;
       justify-content:center; transition:all .15s;
     }
-    .sub-check:hover { border-color:#4f6ef7; }
-    .sub-check.checked { background:#4f6ef7; border-color:#4f6ef7; }
-    .sub-check.checked::after { content:'✓'; color:#fff; font-size:.55rem; font-weight:700; }
-    .sub-text {
-      flex:1; font-size:.87rem; color:#333; border:none; outline:none;
-      background:transparent; font-family:inherit; padding:0;
+    .sub-i-chk:hover { border-color:#4f6ef7; }
+    .sub-i-chk.done { background:#4f6ef7; border-color:#4f6ef7; }
+    .sub-i-chk.done::after { content:'✓'; color:#fff; font-size:.48rem; font-weight:700; }
+    .sub-i-txt { font-size:.77rem; color:#555; flex:1; line-height:1.3; }
+    .sub-i-txt.done { text-decoration:line-through; color:#c0c4d0; }
+    .sub-i-del {
+      background:none; border:none; color:#ccc; font-size:.68rem;
+      cursor:pointer; padding:0 2px; opacity:0; transition:opacity .15s; flex-shrink:0;
     }
-    .sub-text.done-text { text-decoration:line-through; color:#bbb; }
-    .btn-del-sub {
-      width:20px; height:20px; border:none; background:transparent;
-      cursor:pointer; color:#ccc; font-size:.72rem; border-radius:5px;
-      display:flex; align-items:center; justify-content:center;
-      opacity:0; transition:all .15s;
+    .sub-i-row:hover .sub-i-del { opacity:1; }
+    .sub-i-del:hover { color:#e53e3e; }
+    .sub-i-add-row { display:flex; align-items:center; gap:6px; margin-top:3px; }
+    .sub-i-add-btn {
+      font-size:.74rem; color:#c0c4d4; background:none; border:none;
+      cursor:pointer; padding:1px 0; font-family:inherit; transition:color .15s;
     }
-    .subtask-row:hover .btn-del-sub { opacity:1; }
-    .btn-del-sub:hover { background:#fff0f0; color:#e53e3e; }
-    .btn-add-subtask {
-      font-size:.81rem; color:#4f6ef7; background:none; border:none;
-      cursor:pointer; display:flex; align-items:center; gap:4px;
-      font-weight:500; padding:3px 0; transition:opacity .15s;
+    .sub-i-add-btn:hover { color:#4f6ef7; }
+    .sub-i-inp-row { display:none; flex:1; align-items:center; gap:5px; }
+    .sub-i-inp-row.open { display:flex; }
+    .sub-i-inp-row input {
+      flex:1; font-size:.78rem; border:none; border-bottom:1px solid #d0d5e8;
+      outline:none; background:transparent; padding:2px 0; font-family:inherit; color:#1a1a2e;
     }
-    .btn-add-subtask:hover { opacity:.7; }
-    .subtask-input-row { display:none; align-items:center; gap:6px; }
-    .subtask-input-row.open { display:flex; }
-    .subtask-input-row input {
-      flex:1; padding:7px 10px; border:1.5px solid #e8ecf4; border-radius:8px;
-      font-size:.87rem; font-family:inherit; outline:none;
-    }
-    .subtask-input-row input:focus { border-color:#4f6ef7; }
-    .subtask-input-row button {
-      padding:7px 12px; border:none; border-radius:8px;
-      font-size:.82rem; font-weight:600; cursor:pointer;
-    }
-    .sub-ok  { background:#4f6ef7; color:#fff; }
-    .sub-cxl { background:transparent; color:#aaa; border:1.5px solid #e8ecf4 !important; }
+    .sub-i-inp-row input:focus { border-bottom-color:#4f6ef7; }
 
     /* Completed */
     .done-section { margin-top:10px; }
@@ -1002,6 +990,34 @@
       }
       #mobTaskDueBtn.has-date { border-color:#4f6ef7; background:#f0f3ff; }
       #mobTaskDueLabel { font-size:.77rem; color:#4f6ef7; font-weight:500; }
+      /* Mobile subtask section */
+      #mobTaskSubsList { margin:6px 0 2px; }
+      .mob-sub-row { display:flex; align-items:center; gap:8px; padding:4px 0; }
+      .mob-sub-chk {
+        width:16px; height:16px; border:1.5px solid #c8cde0; border-radius:50%;
+        flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center;
+      }
+      .mob-sub-chk.done { background:#4f6ef7; border-color:#4f6ef7; }
+      .mob-sub-chk.done::after { content:'✓'; color:#fff; font-size:.5rem; font-weight:700; }
+      .mob-sub-txt { flex:1; font-size:.85rem; color:#444; }
+      .mob-sub-txt.done { text-decoration:line-through; color:#bbb; }
+      .mob-sub-del { background:none; border:none; color:#ccc; font-size:.8rem; cursor:pointer; padding:0 4px; }
+      .mob-sub-add-row { display:flex; align-items:center; gap:8px; padding:4px 0 6px; }
+      .mob-sub-add-btn {
+        font-size:.8rem; color:#aaa; background:none; border:none;
+        cursor:pointer; font-family:inherit; padding:0;
+      }
+      .mob-sub-inp-wrap { display:flex; flex:1; align-items:center; gap:6px; }
+      .mob-sub-inp-wrap input {
+        flex:1; font-size:.87rem; border:none; border-bottom:1px solid #d0d5e8;
+        outline:none; background:transparent; padding:2px 0; font-family:inherit;
+      }
+      .mob-sub-ok {
+        width:28px; height:28px; background:#4f6ef7; color:#fff;
+        border:none; border-radius:50%; font-size:1.1rem;
+        cursor:pointer; display:flex; align-items:center; justify-content:center;
+        flex-shrink:0;
+      }
       /* Disable desktop hover styles on mobile */
       .task-body:hover .task-title-preview { text-decoration:none; cursor:default; }
     }
@@ -1216,6 +1232,14 @@
   <div class="mob-sheet-body">
     <input id="mobTaskTitleInput" type="text" placeholder="Görev başlığı..." autocomplete="off" maxlength="1071">
     <textarea id="mobTaskNotesInput" placeholder="Notlar" rows="2"></textarea>
+    <div id="mobTaskSubsList"></div>
+    <div class="mob-sub-add-row">
+      <button class="mob-sub-add-btn" onclick="openMobSubInp()">+ alt görev</button>
+      <div class="mob-sub-inp-wrap" id="mobSubInpWrap" style="display:none">
+        <input type="text" id="mobSubInp" placeholder="Alt görev..." maxlength="200">
+        <button class="mob-sub-ok" onclick="addMobSub()">+</button>
+      </div>
+    </div>
     <div class="mob-meta-row">
       <button id="mobTaskDueBtn" title="Bitiş tarihi seç">📅</button>
       <span id="mobTaskDueLabel"></span>
@@ -1874,6 +1898,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     if (e.key==='Enter')  saveMobTaskSheet();
     if (e.key==='Escape') closeMobTaskSheet();
   });
+  document.getElementById('mobSubInp').addEventListener('keydown', e => {
+    if (e.key==='Enter')  addMobSub();
+    if (e.key==='Escape') closeMobSubInp();
+  });
 
   ['mainBody','boardArea'].forEach(id => {
     document.getElementById(id).addEventListener('click', e => {
@@ -1939,9 +1967,10 @@ function restoreOpenDetails() {
     const tid = pendingSubtaskFocus; pendingSubtaskFocus = null;
     const card = document.querySelector(`[data-task-id="${tid}"]`);
     if (card) {
-      card.querySelector('.task-detail')?.classList.add('open');
-      card.querySelector('.subtask-input-row')?.classList.add('open');
-      card.querySelector('.subtask-input-row input')?.focus();
+      const addBtn = card.querySelector('.sub-i-add-btn');
+      const inpRow = card.querySelector('.sub-i-inp-row');
+      if (addBtn) addBtn.style.display = 'none';
+      if (inpRow) { inpRow.classList.add('open'); setTimeout(() => inpRow.querySelector('input')?.focus(), 0); }
     }
   }
 }
@@ -2034,17 +2063,7 @@ function buildTaskCard(task, isDone) {
     card.classList.remove('editing-title');
   });
   titleInput.addEventListener('keydown', e=>{
-    if (e.key==='Enter') {
-      e.preventDefault();
-      if (e.shiftKey && !isDone) {
-        titleInput.blur();
-        detail.classList.add('open');
-        subInputRow.classList.add('open');
-        subInput.focus();
-      } else {
-        titleInput.blur();
-      }
-    }
+    if (e.key==='Enter') { e.preventDefault(); titleInput.blur(); }
     if (e.key==='Escape') {
       e.stopPropagation();
       titleInput.value = task.text;
@@ -2083,6 +2102,51 @@ function buildTaskCard(task, isDone) {
   body.appendChild(titlePreview);
   body.appendChild(titleInput);
   if (meta.children.length) body.appendChild(meta);
+
+  /* Inline subtask section */
+  const subSect = document.createElement('div');
+  subSect.className = 'task-sub-section';
+  subs.forEach(s => {
+    const r = document.createElement('div'); r.className = 'sub-i-row';
+    const c = document.createElement('span');
+    c.className = 'sub-i-chk' + (s.done ? ' done' : '');
+    c.onclick = e => { e.stopPropagation(); toggleTask(s); };
+    const t = document.createElement('span');
+    t.className = 'sub-i-txt' + (s.done ? ' done' : '');
+    t.textContent = s.text;
+    const d = document.createElement('button');
+    d.className = 'sub-i-del'; d.textContent = '✕';
+    d.onclick = e => { e.stopPropagation(); deleteTask(s.id); };
+    r.appendChild(c); r.appendChild(t); r.appendChild(d);
+    subSect.appendChild(r);
+  });
+  if (!isDone) {
+    const addRow = document.createElement('div'); addRow.className = 'sub-i-add-row';
+    const addBtn = document.createElement('button');
+    addBtn.className = 'sub-i-add-btn'; addBtn.textContent = '+ alt görev';
+    const inpRow = document.createElement('div'); inpRow.className = 'sub-i-inp-row';
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.placeholder = 'Alt görev...'; inp.maxLength = 200;
+    inp.addEventListener('click', e => e.stopPropagation());
+    inp.addEventListener('keydown', e => {
+      e.stopPropagation();
+      if (e.key === 'Enter') {
+        if (!inp.value.trim()) { inpRow.classList.remove('open'); addBtn.style.display = ''; return; }
+        pendingSubtaskFocus = task.id;
+        addSubtask(task.id, inp.value.trim());
+      }
+      if (e.key === 'Escape') { inp.value = ''; inpRow.classList.remove('open'); addBtn.style.display = ''; }
+    });
+    addBtn.onclick = e => {
+      e.stopPropagation();
+      inpRow.classList.add('open'); addBtn.style.display = 'none';
+      setTimeout(() => inp.focus(), 0);
+    };
+    inpRow.appendChild(inp);
+    addRow.appendChild(addBtn); addRow.appendChild(inpRow);
+    subSect.appendChild(addRow);
+  }
+  body.appendChild(subSect);
 
   const side = document.createElement('div');
   side.className = 'task-side';
@@ -2134,39 +2198,6 @@ function buildTaskCard(task, isDone) {
   dueRow.appendChild(dueCalBtn); dueRow.appendChild(dueDateLabel);
   if (task.due_at) dueRow.appendChild(clearDueBtn);
 
-  const subList = document.createElement('div');
-  subList.className='subtasks-list';
-  subs.forEach(s=>buildSubRow(s,subList));
-
-  const subInputRow = document.createElement('div');
-  subInputRow.className='subtask-input-row';
-  const subInput = document.createElement('input');
-  subInput.type='text'; subInput.placeholder='Alt görev ekle...';
-  const subOk  = document.createElement('button');
-  subOk.className='sub-ok'; subOk.title='Alt görevi ekle'; subOk.textContent='Ekle';
-  const subCxl = document.createElement('button');
-  subCxl.className='sub-cxl'; subCxl.title='İptal'; subCxl.textContent='İptal';
-  subOk.onclick =async()=>{ if(!subInput.value.trim())return; await addSubtask(task.id,subInput.value); subInput.value=''; subInputRow.classList.remove('open'); };
-  subCxl.onclick=()=>{ subInput.value=''; subInputRow.classList.remove('open'); };
-  subInput.addEventListener('keydown', e=>{
-    if (e.key==='Enter' && e.shiftKey) {
-      e.preventDefault();
-      if (!subInput.value.trim()) { subCxl.click(); return; }
-      pendingSubtaskFocus = task.id;
-      addSubtask(task.id, subInput.value);
-    } else if (e.key==='Enter') {
-      if (!subInput.value.trim()) { subCxl.click(); return; }
-      subOk.click();
-    } else if (e.key==='Escape') {
-      subCxl.click();
-    }
-  });
-  subInputRow.appendChild(subInput); subInputRow.appendChild(subOk); subInputRow.appendChild(subCxl);
-
-  const addSubBtn = document.createElement('button');
-  addSubBtn.className='btn-add-subtask'; addSubBtn.title='Alt görev ekle'; addSubBtn.textContent='+ Alt görev ekle';
-  addSubBtn.onclick=()=>{ subInputRow.classList.add('open'); subInput.focus(); };
-
   /* Priority picker */
   const prioRow = document.createElement('div');
   prioRow.className = 'priority-row';
@@ -2197,7 +2228,6 @@ function buildTaskCard(task, isDone) {
 
   detail.appendChild(notesTA);
   detail.appendChild(metaRow);
-  if (!isDone) { detail.appendChild(subList); detail.appendChild(subInputRow); detail.appendChild(addSubBtn); }
 
   row.addEventListener('click', e => {
     if (e.target.closest('.task-side') || e.target.closest('.task-check')) return;
@@ -2920,9 +2950,52 @@ function openMobTaskSheet(task) {
   dueBtn.onclick = () => dtpOpen(dueBtn, mobTaskSheetDue||null, v => { mobTaskSheetDue = v; renderMobTaskSheetDue(); });
   renderMobTaskSheetDue();
   renderMobTaskSheetPrio();
+  renderMobSubsList();
+  closeMobSubInp();
   document.getElementById('mobTaskSheet').classList.add('open');
   document.getElementById('mobTaskSheetOverlay').classList.add('open');
   setTimeout(() => document.getElementById('mobTaskTitleInput').focus(), 320);
+}
+
+function renderMobSubsList() {
+  const list = document.getElementById('mobTaskSubsList');
+  list.innerHTML = '';
+  if (!mobTaskSheetTask) return;
+  tasks.filter(t => t.parent_id === mobTaskSheetTask.id).forEach(s => {
+    const row = document.createElement('div'); row.className = 'mob-sub-row';
+    const chk = document.createElement('span');
+    chk.className = 'mob-sub-chk' + (s.done ? ' done' : '');
+    chk.onclick = async () => { await toggleTask(s); renderMobSubsList(); };
+    const txt = document.createElement('span');
+    txt.className = 'mob-sub-txt' + (s.done ? ' done' : '');
+    txt.textContent = s.text;
+    const del = document.createElement('button');
+    del.className = 'mob-sub-del'; del.textContent = '✕';
+    del.onclick = async () => { await deleteTask(s.id); renderMobSubsList(); };
+    row.appendChild(chk); row.appendChild(txt); row.appendChild(del);
+    list.appendChild(row);
+  });
+}
+
+function openMobSubInp() {
+  document.getElementById('mobSubInpWrap').style.display = 'flex';
+  document.querySelector('.mob-sub-add-btn').style.display = 'none';
+  setTimeout(() => document.getElementById('mobSubInp').focus(), 0);
+}
+
+function closeMobSubInp() {
+  document.getElementById('mobSubInp').value = '';
+  document.getElementById('mobSubInpWrap').style.display = 'none';
+  const btn = document.querySelector('.mob-sub-add-btn');
+  if (btn) btn.style.display = '';
+}
+
+async function addMobSub() {
+  const inp = document.getElementById('mobSubInp');
+  if (!inp.value.trim() || !mobTaskSheetTask) return;
+  await addSubtask(mobTaskSheetTask.id, inp.value.trim());
+  inp.value = '';
+  renderMobSubsList();
 }
 
 function closeMobTaskSheet() {
