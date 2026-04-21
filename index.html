@@ -1549,6 +1549,7 @@ function buildTaskCard(task, isDone) {
 
   const chk = document.createElement('div');
   chk.className = `task-check${task.done?' checked':''}`;
+  chk.title     = task.done ? 'Tamamlandıyı geri al' : 'Tamamlandı yap';
   chk.onclick   = () => toggleTask(task);
 
   const body = document.createElement('div');
@@ -1734,6 +1735,7 @@ function buildSubRow(sub,container) {
   const row=document.createElement('div'); row.className='subtask-row';
   const chk=document.createElement('div');
   chk.className=`sub-check${sub.done?' checked':''}`;
+  chk.title=sub.done ? 'Tamamlandıyı geri al' : 'Tamamlandı yap';
   chk.onclick=()=>toggleTask(sub);
   const txt=document.createElement('input');
   txt.type='text'; txt.className=`sub-text${sub.done?' done-text':''}`;
