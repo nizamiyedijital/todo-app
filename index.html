@@ -1135,6 +1135,39 @@
       /* Disable desktop-only styles on mobile */
       .task-body:hover .task-title-preview { text-decoration:none; cursor:default; }
       .task-card:hover .task-sub-section { display:none; }
+      /* List picker in mob task sheet */
+      .mob-list-row {
+        display:flex; align-items:center; gap:8px;
+        padding:8px 0 6px; border-top:1px solid #f0f2f8;
+        cursor:pointer; user-select:none;
+      }
+      .mob-list-chip {
+        display:flex; align-items:center; gap:5px; flex:1;
+        font-size:.82rem; color:#555; font-weight:500;
+      }
+      .mob-list-chip-icon { font-size:1rem; line-height:1; }
+      .mob-list-chip-name { flex:1; }
+      .mob-list-toggle {
+        width:26px; height:26px; border:1.5px solid #e0e4ef;
+        border-radius:7px; background:transparent; display:flex;
+        align-items:center; justify-content:center; flex-shrink:0;
+        color:#aaa; transition:all .15s;
+      }
+      .mob-list-row.open .mob-list-toggle { background:#f0f3ff; border-color:#4f6ef7; color:#4f6ef7; }
+      .mob-list-picker {
+        display:none; flex-wrap:wrap; gap:6px;
+        padding:6px 0 8px; border-top:1px solid #f4f5f9;
+      }
+      .mob-list-picker.open { display:flex; }
+      .mob-list-opt {
+        display:flex; align-items:center; gap:4px;
+        padding:5px 10px; border-radius:20px; font-size:.79rem;
+        border:1.5px solid #e0e4ef; background:#fff;
+        cursor:pointer; transition:all .15s; font-weight:500; color:#555;
+      }
+      .mob-list-opt.active {
+        border-color:#4f6ef7; background:#f0f3ff; color:#4f6ef7;
+      }
     }
     @media (max-width: 480px) {
       .app-layout { flex-direction:column; }
@@ -1314,6 +1347,13 @@
     body.theme-dark .settings-footer { background:var(--surface); border-top-color:var(--border); }
     body.theme-dark ::placeholder { color:var(--text4); }
     body.theme-dark .done-item-txt { color:var(--text3); }
+    body.theme-dark .mob-list-row { border-top-color:var(--border2); }
+    body.theme-dark .mob-list-chip { color:var(--text2); }
+    body.theme-dark .mob-list-toggle { border-color:var(--border); color:var(--text3); background:transparent; }
+    body.theme-dark .mob-list-row.open .mob-list-toggle { background:var(--accent-bg); border-color:var(--accent); color:var(--accent); }
+    body.theme-dark .mob-list-picker { border-top-color:var(--border2); }
+    body.theme-dark .mob-list-opt { border-color:var(--border); background:var(--surface2); color:var(--text2); }
+    body.theme-dark .mob-list-opt.active { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); }
     /* Board column title */
     body.theme-dark .board-col-title { color:var(--text); }
     /* Weekly view */
@@ -1771,6 +1811,14 @@
         <button class="mob-sub-ok" onclick="addMobSub()">+</button>
       </div>
     </div>
+    <div class="mob-list-row" id="mobListRow" onclick="toggleMobListPicker()">
+      <div class="mob-list-chip">
+        <span class="mob-list-chip-icon" id="mobListChipIcon">📋</span>
+        <span class="mob-list-chip-name" id="mobListChipName">Liste</span>
+      </div>
+      <div class="mob-list-toggle"><span class="mi s14">swap_vert</span></div>
+    </div>
+    <div class="mob-list-picker" id="mobListPicker"></div>
     <div class="mob-meta-row">
       <button id="mobTaskDueBtn" title="Bitiş tarihi seç"><span class="mi s18">calendar_today</span></button>
       <span id="mobTaskDueLabel"></span>
@@ -3707,11 +3755,13 @@ async function saveMobileTask() {
 let mobTaskSheetTask = null;
 let mobTaskSheetDue  = '';
 let mobTaskSheetPrio = null;
+let mobTaskSheetCat  = null;
 
 function openMobTaskSheet(task) {
   mobTaskSheetTask = task;
   mobTaskSheetDue  = task.due_at   || '';
   mobTaskSheetPrio = task.priority || null;
+  mobTaskSheetCat  = task.category || activeListId;
   document.getElementById('mobTaskTitleInput').value = task.text;
   document.getElementById('mobTaskNotesInput').value = task.notes || '';
   document.getElementById('mobTaskLinkInput').value  = task.link  || '';
@@ -3719,11 +3769,43 @@ function openMobTaskSheet(task) {
   dueBtn.onclick = () => dtpOpen(dueBtn, mobTaskSheetDue||null, v => { mobTaskSheetDue = v; renderMobTaskSheetDue(); });
   renderMobTaskSheetDue();
   renderMobTaskSheetPrio();
+  renderMobListChip();
   renderMobSubsList();
   closeMobSubInp();
+  document.getElementById('mobListPicker').classList.remove('open');
+  document.getElementById('mobListRow').classList.remove('open');
   document.getElementById('mobTaskSheet').classList.add('open');
   document.getElementById('mobTaskSheetOverlay').classList.add('open');
   setTimeout(() => document.getElementById('mobTaskTitleInput').focus(), 320);
+}
+
+function renderMobListChip() {
+  const cat  = lists.find(l => l.id === mobTaskSheetCat);
+  document.getElementById('mobListChipIcon').textContent = cat?.icon || '📋';
+  document.getElementById('mobListChipName').textContent = cat?.name || 'Liste';
+}
+
+function toggleMobListPicker() {
+  const row    = document.getElementById('mobListRow');
+  const picker = document.getElementById('mobListPicker');
+  const isOpen = picker.classList.contains('open');
+  if (!isOpen) {
+    picker.innerHTML = '';
+    lists.forEach(l => {
+      const opt = document.createElement('button');
+      opt.className = 'mob-list-opt' + (l.id === mobTaskSheetCat ? ' active' : '');
+      opt.innerHTML = `<span>${l.icon||'📋'}</span><span>${l.name}</span>`;
+      opt.onclick = () => {
+        mobTaskSheetCat = l.id;
+        renderMobListChip();
+        picker.classList.remove('open');
+        row.classList.remove('open');
+      };
+      picker.appendChild(opt);
+    });
+  }
+  picker.classList.toggle('open', !isOpen);
+  row.classList.toggle('open', !isOpen);
 }
 
 function renderMobSubsList() {
@@ -3804,8 +3886,9 @@ async function saveMobTaskSheet() {
   const link = document.getElementById('mobTaskLinkInput').value.trim();
   if (notes !== (task.notes||''))               { updates.notes    = notes||null;          task.notes    = notes||null; }
   if (link  !== (task.link||''))                { updates.link     = link||null;           task.link     = link||null; }
-  if (mobTaskSheetDue  !== (task.due_at||''))   { updates.due_at   = mobTaskSheetDue||null; task.due_at  = mobTaskSheetDue||null; }
-  if (mobTaskSheetPrio !== (task.priority||null)){ updates.priority = mobTaskSheetPrio;    task.priority = mobTaskSheetPrio; }
+  if (mobTaskSheetDue  !== (task.due_at||''))    { updates.due_at   = mobTaskSheetDue||null;  task.due_at   = mobTaskSheetDue||null; }
+  if (mobTaskSheetPrio !== (task.priority||null)) { updates.priority = mobTaskSheetPrio;      task.priority = mobTaskSheetPrio; }
+  if (mobTaskSheetCat  !== task.category)         { updates.category = mobTaskSheetCat;       task.category = mobTaskSheetCat; }
   closeMobTaskSheet();
   if (Object.keys(updates).length > 0) {
     try {
