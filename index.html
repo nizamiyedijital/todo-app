@@ -1006,125 +1006,130 @@
         border-top:none; border-bottom:1px solid var(--border2);
         padding-bottom:10px;
       }
+      /* ── Mob task sheet ── */
       .mob-handle {
-        width:38px; height:4px; background:#e0e4ef;
-        border-radius:2px; margin:10px auto 14px;
+        width:36px; height:4px; background:var(--border);
+        border-radius:2px; margin:10px auto 0;
       }
-      .mob-sheet-body { padding:0 18px 10px; }
-      #mobTitleInput {
-        width:100%; font-size:1.02rem; border:none; outline:none;
-        padding:4px 0 12px; border-bottom:1.5px solid #e8ecf4;
-        font-family:inherit; color:#1a1a2e; background:transparent;
-      }
-      #mobNotesInput {
-        width:100%; font-size:.88rem; border:none; outline:none;
-        padding:10px 0 6px; font-family:inherit; color:#666;
-        resize:none; min-height:38px; background:transparent;
-      }
-      .mob-meta-row {
-        display:flex; align-items:center; gap:8px;
-        padding:8px 0 10px; border-top:1px solid #f0f2f8;
-        flex-wrap:wrap;
-      }
-      #mobDueBtn {
-        width:32px; height:32px; border:1.5px solid #e0e4ef;
-        border-radius:8px; background:#fff; font-size:.95rem;
-        cursor:pointer; display:flex; align-items:center; justify-content:center;
-        flex-shrink:0;
-      }
-      #mobDueBtn.has-date { border-color:#4f6ef7; background:#f0f3ff; }
-      #mobDueLabel { font-size:.77rem; color:#4f6ef7; font-weight:500; }
-      .mob-prio-row { display:flex; gap:4px; margin-left:4px; }
-      .mob-footer {
-        display:flex; justify-content:flex-end; gap:10px;
-        padding:10px 0 0; border-top:1px solid #f0f2f8;
-      }
-      .mob-btn-cancel {
-        padding:9px 18px; border:1.5px solid #e8ecf4; border-radius:20px;
-        background:#fff; color:#888; font-size:.88rem; cursor:pointer;
-        font-family:inherit;
-      }
-      .mob-btn-save {
-        padding:9px 22px; border:none; border-radius:20px;
-        background:#4f6ef7; color:#fff; font-size:.88rem;
-        font-weight:600; cursor:pointer; font-family:inherit;
-      }
+      .mob-sheet-body { padding:0 16px 10px; }
+
       /* Task edit bottom sheet */
       #mobTaskSheetOverlay {
-        position:fixed; inset:0; background:rgba(0,0,0,.4);
-        z-index:298; display:none;
+        position:fixed; inset:0; background:rgba(0,0,0,.45);
+        z-index:298; display:none; backdrop-filter:blur(1px);
       }
       #mobTaskSheetOverlay.open { display:block; }
       #mobTaskSheet {
         display:block; position:fixed; bottom:0; left:0; right:0;
-        background:#fff; border-radius:18px 18px 0 0;
-        box-shadow:0 -6px 30px rgba(0,0,0,.13);
-        transform:translateY(100%);
-        transition:transform .32s cubic-bezier(.4,0,.2,1);
-        z-index:300;
-        padding-bottom:max(20px, env(safe-area-inset-bottom));
+        background:var(--surface); border-radius:20px 20px 0 0;
+        box-shadow:0 -6px 32px rgba(0,0,0,.18);
+        transform:translateY(110%);
+        transition:transform .28s cubic-bezier(.4,0,.2,1);
+        z-index:300; max-height:92vh; display:flex; flex-direction:column;
+        padding-bottom:max(16px, env(safe-area-inset-bottom));
       }
       #mobTaskSheet.open { transform:translateY(0); }
+
+      /* Header */
       .mob-task-sheet-top {
         display:flex; align-items:center; justify-content:space-between;
-        padding:6px 16px 10px; border-bottom:1px solid #f0f2f8;
+        padding:14px 16px 12px; flex-shrink:0;
       }
-      .mob-task-sheet-top span { font-size:.8rem; color:#aaa; font-weight:500; }
+      .mob-task-sheet-top span { font-size:.78rem; color:var(--text3); font-weight:600; letter-spacing:.04em; text-transform:uppercase; }
       .mob-task-del-btn {
-        background:none; border:none; color:#e53e3e;
-        font-size:1rem; cursor:pointer; padding:4px 6px; border-radius:6px;
+        background:none; border:none; color:var(--text3);
+        cursor:pointer; padding:4px 6px; border-radius:6px;
+        transition:color .15s, background .15s;
       }
+      .mob-task-del-btn:hover { color:#e53e3e; background:#fff0f0; }
+
+      /* Scrollable body */
+      #mobSheetScroll { overflow-y:auto; flex:1; padding:0 16px 8px; }
+
+      /* Title */
       #mobTaskTitleInput {
-        width:100%; font-size:1.02rem; border:none; outline:none;
-        padding:4px 0 12px; border-bottom:1.5px solid #e8ecf4;
-        font-family:inherit; color:#1a1a2e; background:transparent;
+        width:100%; font-size:1.05rem; font-weight:600; border:none; outline:none;
+        padding:4px 0 14px; border-bottom:1.5px solid var(--border2);
+        font-family:inherit; color:var(--text); background:transparent;
       }
+      #mobTaskTitleInput::placeholder { color:var(--text4); font-weight:400; }
+
+      /* Notes */
       #mobTaskNotesInput {
         width:100%; font-size:.88rem; border:none; outline:none;
-        padding:10px 0 6px; font-family:inherit; color:#666;
-        resize:none; min-height:38px; background:transparent;
+        padding:12px 0 8px; font-family:inherit; color:var(--text2);
+        resize:none; min-height:40px; background:transparent;
+        border-bottom:1px solid var(--border2);
       }
+      #mobTaskNotesInput::placeholder { color:var(--text4); }
+
+      /* Link */
       #mobTaskLinkInput {
-        width:100%; font-size:.83rem; border:none; border-top:1px solid #f0f2f8;
-        outline:none; padding:8px 0 6px; font-family:inherit; color:#4f6ef7;
-        background:transparent;
+        width:100%; font-size:.83rem; border:none;
+        outline:none; padding:10px 0 8px; font-family:inherit; color:var(--accent);
+        background:transparent; border-bottom:1px solid var(--border2);
       }
-      #mobTaskLinkInput::placeholder { color:#ccc; font-size:.83rem; }
-      #mobTaskDueBtn {
-        width:32px; height:32px; border:1.5px solid #e0e4ef;
-        border-radius:8px; background:#fff; font-size:.95rem;
-        cursor:pointer; display:flex; align-items:center; justify-content:center;
-        flex-shrink:0;
-      }
-      #mobTaskDueBtn.has-date { border-color:#4f6ef7; background:#f0f3ff; }
-      #mobTaskDueLabel { font-size:.77rem; color:#4f6ef7; font-weight:500; }
-      /* Mobile subtask section */
-      #mobTaskSubsList { margin:6px 0 2px; }
-      .mob-sub-row { display:flex; align-items:center; gap:8px; padding:4px 0; }
+      #mobTaskLinkInput::placeholder { color:var(--text4); font-size:.83rem; }
+
+      /* Subtasks */
+      #mobTaskSubsList { padding:6px 0 0; }
+      .mob-sub-row { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border2); }
       .mob-sub-chk {
-        width:16px; height:16px; border:1.5px solid #c8cde0; border-radius:50%;
+        width:18px; height:18px; border:1.5px solid var(--border); border-radius:50%;
         flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center;
+        transition:all .15s;
       }
-      .mob-sub-chk.done { background:#4f6ef7; border-color:#4f6ef7; }
-      .mob-sub-chk.done::after { content:'✓'; color:#fff; font-size:.5rem; font-weight:700; }
-      .mob-sub-txt { flex:1; font-size:.85rem; color:#444; }
-      .mob-sub-txt.done { text-decoration:line-through; color:#bbb; }
-      .mob-sub-del { background:none; border:none; color:#ccc; font-size:.8rem; cursor:pointer; padding:0 4px; }
-      .mob-sub-add-row { display:flex; align-items:center; gap:8px; padding:4px 0 6px; }
+      .mob-sub-chk.done { background:var(--accent); border-color:var(--accent); }
+      .mob-sub-chk.done::after { content:'✓'; color:#fff; font-size:.55rem; font-weight:700; }
+      .mob-sub-txt { flex:1; font-size:.86rem; color:var(--text2); }
+      .mob-sub-txt.done { text-decoration:line-through; color:var(--text4); }
+      .mob-sub-del { background:none; border:none; color:var(--text4); cursor:pointer; padding:2px 4px; border-radius:4px; }
+      .mob-sub-del:hover { color:#e53e3e; }
+      .mob-sub-add-row { display:flex; align-items:center; gap:8px; padding:8px 0 4px; }
       .mob-sub-add-btn {
-        font-size:.8rem; color:#aaa; background:none; border:none;
-        cursor:pointer; font-family:inherit; padding:0;
+        font-size:.82rem; color:var(--accent); background:none; border:none;
+        cursor:pointer; font-family:inherit; padding:0; font-weight:500;
       }
-      .mob-sub-inp-wrap { display:flex; flex:1; align-items:center; gap:6px; }
+      .mob-sub-inp-wrap { display:flex; flex:1; align-items:center; gap:8px; }
       .mob-sub-inp-wrap input {
-        flex:1; font-size:.87rem; border:none; border-bottom:1px solid #d0d5e8;
-        outline:none; background:transparent; padding:2px 0; font-family:inherit;
+        flex:1; font-size:.87rem; border:none; border-bottom:1.5px solid var(--accent);
+        outline:none; background:transparent; padding:3px 0; font-family:inherit; color:var(--text);
       }
       .mob-sub-ok {
-        width:28px; height:28px; background:#4f6ef7; color:#fff;
+        width:28px; height:28px; background:var(--accent); color:#fff;
         border:none; border-radius:50%; font-size:1.1rem;
-        cursor:pointer; display:flex; align-items:center; justify-content:center;
-        flex-shrink:0;
+        cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      }
+
+      /* Meta bar (due + priority) */
+      .mob-meta-row {
+        display:flex; align-items:center; gap:8px;
+        padding:10px 0 8px; flex-wrap:wrap;
+      }
+      #mobDueBtn, #mobTaskDueBtn {
+        height:32px; padding:0 10px; border:1.5px solid var(--border);
+        border-radius:8px; background:var(--surface2); font-size:.8rem;
+        cursor:pointer; display:flex; align-items:center; gap:4px;
+        color:var(--text3); font-family:inherit; flex-shrink:0; transition:all .15s;
+      }
+      #mobDueBtn.has-date, #mobTaskDueBtn.has-date { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); }
+      #mobDueLabel, #mobTaskDueLabel { font-size:.77rem; color:var(--accent); font-weight:500; }
+      .mob-prio-row { display:flex; gap:4px; margin-left:auto; }
+
+      /* Footer */
+      .mob-footer {
+        display:flex; gap:10px; padding:10px 16px 0; border-top:1px solid var(--border2); flex-shrink:0;
+      }
+      .mob-btn-cancel {
+        flex:1; padding:11px; border:1.5px solid var(--border); border-radius:12px;
+        background:transparent; color:var(--text2); font-size:.88rem; cursor:pointer;
+        font-family:inherit; transition:background .15s;
+      }
+      .mob-btn-cancel:hover { background:var(--surface2); }
+      .mob-btn-save {
+        flex:2; padding:11px; border:none; border-radius:12px;
+        background:var(--accent); color:#fff; font-size:.88rem;
+        font-weight:600; cursor:pointer; font-family:inherit;
       }
       /* Disable desktop-only styles on mobile */
       .task-body:hover .task-title-preview { text-decoration:none; cursor:default; }
@@ -1164,35 +1169,35 @@
       /* List picker in mob task sheet */
       .mob-list-row {
         display:flex; align-items:center; gap:8px;
-        padding:8px 0 6px; border-top:1px solid #f0f2f8;
+        padding:10px 0 8px; border-bottom:1px solid var(--border2);
         cursor:pointer; user-select:none;
       }
       .mob-list-chip {
-        display:flex; align-items:center; gap:5px; flex:1;
-        font-size:.82rem; color:#555; font-weight:500;
+        display:flex; align-items:center; gap:6px; flex:1;
+        font-size:.83rem; color:var(--text2); font-weight:500;
       }
-      .mob-list-chip-icon { font-size:1rem; line-height:1; }
+      .mob-list-chip-icon { font-size:.95rem; line-height:1; }
       .mob-list-chip-name { flex:1; }
       .mob-list-toggle {
-        width:26px; height:26px; border:1.5px solid #e0e4ef;
+        width:26px; height:26px; border:1.5px solid var(--border);
         border-radius:7px; background:transparent; display:flex;
         align-items:center; justify-content:center; flex-shrink:0;
-        color:#aaa; transition:all .15s;
+        color:var(--text4); transition:all .15s;
       }
-      .mob-list-row.open .mob-list-toggle { background:#f0f3ff; border-color:#4f6ef7; color:#4f6ef7; }
+      .mob-list-row.open .mob-list-toggle { background:var(--accent-bg); border-color:var(--accent); color:var(--accent); }
       .mob-list-picker {
         display:none; flex-wrap:wrap; gap:6px;
-        padding:6px 0 8px; border-top:1px solid #f4f5f9;
+        padding:8px 0 4px;
       }
       .mob-list-picker.open { display:flex; }
       .mob-list-opt {
         display:flex; align-items:center; gap:4px;
-        padding:5px 10px; border-radius:20px; font-size:.79rem;
-        border:1.5px solid #e0e4ef; background:#fff;
-        cursor:pointer; transition:all .15s; font-weight:500; color:#555;
+        padding:6px 12px; border-radius:20px; font-size:.8rem;
+        border:1.5px solid var(--border); background:var(--surface2);
+        cursor:pointer; transition:all .15s; font-weight:500; color:var(--text2);
       }
       .mob-list-opt.active {
-        border-color:#4f6ef7; background:#f0f3ff; color:#4f6ef7;
+        border-color:var(--accent); background:var(--accent-bg); color:var(--accent);
       }
     }
     @media (max-width: 480px) {
@@ -1475,13 +1480,7 @@
     body.theme-dark .settings-footer { background:var(--surface); border-top-color:var(--border); }
     body.theme-dark ::placeholder { color:var(--text4); }
     body.theme-dark .done-item-txt { color:var(--text3); }
-    body.theme-dark .mob-list-row { border-top-color:var(--border2); }
-    body.theme-dark .mob-list-chip { color:var(--text2); }
-    body.theme-dark .mob-list-toggle { border-color:var(--border); color:var(--text3); background:transparent; }
-    body.theme-dark .mob-list-row.open .mob-list-toggle { background:var(--accent-bg); border-color:var(--accent); color:var(--accent); }
-    body.theme-dark .mob-list-picker { border-top-color:var(--border2); }
-    body.theme-dark .mob-list-opt { border-color:var(--border); background:var(--surface2); color:var(--text2); }
-    body.theme-dark .mob-list-opt.active { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); }
+    body.theme-dark .mob-task-del-btn:hover { background:rgba(229,62,62,.15); }
     /* Board column title */
     body.theme-dark .board-col-title { color:var(--text); }
     /* Weekly view */
@@ -1895,13 +1894,13 @@
     <span>Görevi düzenle</span>
     <button class="mob-task-del-btn" onclick="deleteMobTaskSheet()" title="Görevi sil"><span class="mi s20">delete</span></button>
   </div>
-  <div class="mob-sheet-body">
+  <div id="mobSheetScroll">
     <input id="mobTaskTitleInput" type="text" placeholder="Görev başlığı..." autocomplete="off" maxlength="1071">
-    <textarea id="mobTaskNotesInput" placeholder="Notlar" rows="2"></textarea>
-    <input id="mobTaskLinkInput" type="url" placeholder="Bağlantı (https://...)" autocomplete="off">
+    <textarea id="mobTaskNotesInput" placeholder="Notlar ekle..." rows="2"></textarea>
+    <input id="mobTaskLinkInput" type="url" placeholder="Bağlantı ekle..." autocomplete="off">
     <div id="mobTaskSubsList"></div>
     <div class="mob-sub-add-row">
-      <button class="mob-sub-add-btn" onclick="openMobSubInp()">+ alt görev</button>
+      <button class="mob-sub-add-btn" onclick="openMobSubInp()">+ Alt görev ekle</button>
       <div class="mob-sub-inp-wrap" id="mobSubInpWrap" style="display:none">
         <input type="text" id="mobSubInp" placeholder="Alt görev..." maxlength="200">
         <button class="mob-sub-ok" onclick="addMobSub()">+</button>
@@ -1916,14 +1915,13 @@
     </div>
     <div class="mob-list-picker" id="mobListPicker"></div>
     <div class="mob-meta-row">
-      <button id="mobTaskDueBtn" title="Bitiş tarihi seç"><span class="mi s18">calendar_today</span></button>
-      <span id="mobTaskDueLabel"></span>
+      <button id="mobTaskDueBtn" title="Bitiş tarihi seç"><span class="mi s16">calendar_today</span><span id="mobTaskDueLabel"></span></button>
       <div class="mob-prio-row" id="mobTaskPrioRow"></div>
     </div>
-    <div class="mob-footer">
-      <button class="mob-btn-cancel" onclick="closeMobTaskSheet()">İptal</button>
-      <button class="mob-btn-save" onclick="saveMobTaskSheet()">Kaydet</button>
-    </div>
+  </div>
+  <div class="mob-footer">
+    <button class="mob-btn-cancel" onclick="closeMobTaskSheet()">İptal</button>
+    <button class="mob-btn-save" onclick="saveMobTaskSheet()">Kaydet</button>
   </div>
 </div>
 
