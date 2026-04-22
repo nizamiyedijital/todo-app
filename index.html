@@ -555,13 +555,32 @@
     }
 
     /* Link input in detail pane */
+    .link-wrap { display:flex; align-items:center; gap:6px; width:100%; }
     .detail-link-input {
-      width:100%; padding:5px 9px; border:1.5px solid #e8eaf2; border-radius:8px;
+      flex:1; padding:5px 9px; border:1.5px solid #e8eaf2; border-radius:8px;
       font-size:.78rem; color:#444; outline:none; background:#fafbff;
-      transition:border-color .15s;
+      transition:border-color .15s; min-width:0;
     }
     .detail-link-input:focus { border-color:#4f6ef7; }
     .detail-link-input::placeholder { color:#bcc5d8; }
+    .link-display {
+      flex:1; display:none; align-items:center; overflow:hidden;
+      padding:5px 9px; border:1.5px solid #e8eaf2; border-radius:8px;
+      background:#fafbff; cursor:text; font-size:.78rem; white-space:nowrap; gap:0;
+    }
+    .link-display:hover { border-color:#c5cbdf; }
+    .link-scheme { color:#bcc5d8; flex-shrink:0; }
+    .link-domain { color:#4f6ef7; font-weight:500; flex-shrink:0; }
+    .link-path   { color:#bcc5d8; overflow:hidden; text-overflow:ellipsis; }
+    .link-go-icon {
+      display:none; align-items:center; justify-content:center; flex-shrink:0;
+      width:30px; height:30px; border-radius:8px; color:#4f6ef7;
+      text-decoration:none; transition:background .15s;
+    }
+    .link-go-icon:hover { background:#eef0ff; }
+    body.theme-dark .link-display { background:var(--input-bg); border-color:var(--input-border); }
+    body.theme-dark .link-go-icon { color:var(--accent); }
+    body.theme-dark .link-go-icon:hover { background:rgba(79,110,247,.15); }
 
     /* Priority picker in detail */
     /* Detail meta row: due + priority side by side */
@@ -1145,11 +1164,20 @@
 
       /* Link */
       #mobTaskLinkInput {
-        width:100%; font-size:.83rem; border:none;
+        flex:1; font-size:.83rem; border:none;
         outline:none; padding:10px 0 8px; font-family:inherit; color:var(--accent);
-        background:transparent; border-bottom:1px solid var(--border2);
+        background:transparent; min-width:0;
       }
       #mobTaskLinkInput::placeholder { color:var(--text4); font-size:.83rem; }
+      #mobLinkWrap {
+        border-bottom:1px solid var(--border2);
+        display:flex; align-items:center; gap:4px;
+      }
+      #mobLinkWrap .link-display {
+        background:transparent; border:none; border-radius:0;
+        padding:10px 0 8px; font-size:.83rem;
+      }
+      #mobLinkWrap .link-go-icon { width:26px; height:26px; border-radius:6px; }
 
       /* Subtasks */
       #mobTaskSubsList { padding:6px 0 0; }
@@ -2026,7 +2054,9 @@
   <div id="mobSheetScroll">
     <input id="mobTaskTitleInput" type="text" placeholder="Görev başlığı..." autocomplete="off" maxlength="1071">
     <textarea id="mobTaskNotesInput" placeholder="Notlar ekle..." rows="2"></textarea>
-    <input id="mobTaskLinkInput" type="url" placeholder="Bağlantı ekle..." autocomplete="off">
+    <div id="mobLinkWrap">
+      <input id="mobTaskLinkInput" type="url" placeholder="Bağlantı ekle..." autocomplete="off">
+    </div>
     <div id="mobTaskSubsList"></div>
     <div class="mob-sub-add-row">
       <button class="mob-sub-add-btn" onclick="openMobSubInp()">+ Alt görev ekle</button>
@@ -2902,6 +2932,40 @@ function updateMobTabBar() {
   document.getElementById('mobTabYildizli').classList.toggle('active', isStarred);
 }
 
+function setupLinkDisplay(inp, wrap) {
+  const display = document.createElement('div');
+  display.className = 'link-display';
+  const goIcon = document.createElement('a');
+  goIcon.className = 'link-go-icon';
+  goIcon.innerHTML = mi('open_in_new', 18);
+  goIcon.target = '_blank'; goIcon.rel = 'noopener noreferrer';
+  goIcon.addEventListener('click', e => e.stopPropagation());
+  wrap.appendChild(display);
+  wrap.appendChild(goIcon);
+
+  function refresh() {
+    const val = inp.value.trim();
+    if (!val) { display.style.display='none'; goIcon.style.display='none'; inp.style.display=''; return; }
+    let href = /^https?:\/\//i.test(val) ? val : 'https://' + val;
+    try {
+      const u = new URL(href);
+      const path = u.pathname + u.search + u.hash;
+      display.innerHTML =
+        `<span class="link-scheme">${u.protocol}//</span>` +
+        `<span class="link-domain">${u.hostname}</span>` +
+        `<span class="link-path">${path === '/' ? '' : path}</span>`;
+      display.style.display = 'flex';
+      goIcon.href = href;
+      goIcon.style.display = 'flex';
+      inp.style.display = 'none';
+    } catch { display.style.display='none'; goIcon.style.display='none'; inp.style.display=''; }
+  }
+
+  inp.addEventListener('blur', refresh);
+  display.addEventListener('click', () => { display.style.display='none'; goIcon.style.display='none'; inp.style.display=''; inp.focus(); });
+  if (inp.value.trim()) refresh();
+}
+
 function selectList(id) {
   const isSpecial = id === BOARD_LIST_ID || id === WEEKLY_LIST_ID || id === STARRED_LIST_ID;
   if (!isSpecial && !lists.some(l => String(l.id) === String(id))) id = BOARD_LIST_ID;
@@ -3406,6 +3470,8 @@ function buildTaskCard(task, isDone) {
   notesTA.addEventListener('input',()=>{ notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px'; });
   notesTA.addEventListener('change',()=>scheduleUpdate(task,{notes:notesTA.value}));
 
+  const linkWrap = document.createElement('div');
+  linkWrap.className = 'link-wrap';
   const linkInp = document.createElement('input');
   linkInp.type='url'; linkInp.className='detail-link-input';
   linkInp.placeholder='Bağlantı ekle (https://...)';
@@ -3415,6 +3481,8 @@ function buildTaskCard(task, isDone) {
     const v=linkInp.value.trim()||null;
     scheduleUpdate(task,{link:v}); task.link=v;
   });
+  linkWrap.appendChild(linkInp);
+  setupLinkDisplay(linkInp, linkWrap);
 
   const dueRow = document.createElement('div');
   dueRow.className='detail-due-row';
@@ -3466,7 +3534,7 @@ function buildTaskCard(task, isDone) {
   metaRow.appendChild(prioRow);
 
   detail.appendChild(notesTA);
-  detail.appendChild(linkInp);
+  detail.appendChild(linkWrap);
   detail.appendChild(metaRow);
 
   row.addEventListener('click', e => {
@@ -4200,7 +4268,14 @@ function openMobTaskSheet(task) {
   mobTaskSheetCat  = task.category || activeListId;
   document.getElementById('mobTaskTitleInput').value = task.text;
   document.getElementById('mobTaskNotesInput').value = task.notes || '';
-  document.getElementById('mobTaskLinkInput').value  = task.link  || '';
+  const _mobLinkInp = document.getElementById('mobTaskLinkInput');
+  _mobLinkInp.value = task.link || '';
+  if (!document.getElementById('mobLinkWrap')._linkSetup) {
+    document.getElementById('mobLinkWrap')._linkSetup = true;
+    setupLinkDisplay(_mobLinkInp, document.getElementById('mobLinkWrap'));
+  } else {
+    _mobLinkInp.dispatchEvent(new Event('blur'));
+  }
   const dueBtn = document.getElementById('mobTaskDueBtn');
   dueBtn.onclick = () => dtpOpen(dueBtn, mobTaskSheetDue||null, v => { mobTaskSheetDue = v; renderMobTaskSheetDue(); });
   renderMobTaskSheetDue();
