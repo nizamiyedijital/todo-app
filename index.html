@@ -93,8 +93,19 @@
     body.compact .list-item { padding:5px 10px; }
 
     /* ── Auth ── */
-    #authBox {
+    #splashBox {
+      position:fixed; inset:0; background:var(--bg,#f7f8fc);
       display:flex; align-items:center; justify-content:center;
+      z-index:9999; transition:opacity .2s;
+    }
+    #splashBox .splash-spinner {
+      width:36px; height:36px; border:3px solid var(--border2,#e2e8f0);
+      border-top-color:var(--accent,#4f46e5); border-radius:50%;
+      animation:spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    #authBox {
+      display:none; align-items:center; justify-content:center;
       min-height:100vh; padding:24px;
     }
     .auth-card {
@@ -1588,6 +1599,7 @@
   </style>
 </head>
 <body>
+<div id="splashBox"><div class="splash-spinner"></div></div>
 
 <!-- Auth -->
 <div id="authBox">
@@ -2234,16 +2246,17 @@ async function submitAuth() {
   finally    { btn.disabled=false; }
 }
 function logout() { clearSession(); showAuth(); }
-function showAuth() { document.getElementById('authBox').style.display='flex'; document.getElementById('appBox').style.display='none'; }
+function hideSplash() { const s=document.getElementById('splashBox'); if(s) s.style.display='none'; }
+function showAuth() { hideSplash(); document.getElementById('authBox').style.display='flex'; document.getElementById('appBox').style.display='none'; }
 
 /* ── Init ── */
 async function initApp() {
+  hideSplash();
   document.getElementById('authBox').style.display='none';
   document.getElementById('appBox').style.display='block';
   loadSettings();
   scheduleTokenRefresh();
-  await loadLists();
-  await loadTasks();
+  await Promise.all([loadLists(), loadTasks()]);
   const _savedList = localStorage.getItem('activeListId');
   selectList(_savedList || BOARD_LIST_ID);
   if (appSettings.notifEnabled) setTimeout(scheduleReminders, 2000);
