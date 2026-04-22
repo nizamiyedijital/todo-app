@@ -76,7 +76,6 @@
     body.theme-dark .add-wrap { background:var(--bg); }
     body.theme-dark #taskInput { background:var(--input-bg); border-color:var(--input-border); color:var(--text); }
     body.theme-dark .add-detail { background:var(--surface2); border-color:var(--border); }
-    body.theme-dark #addNotes { background:var(--input-bg); color:var(--text2); }
     body.theme-dark .done-toggle { color:var(--text3); }
     body.theme-dark .done-badge { background:var(--surface2); color:var(--text3); }
     body.theme-dark .auth-card { background:var(--surface); }
@@ -721,7 +720,6 @@
     .done-list.open { display:flex; }
 
     .empty { text-align:center; color:#ccc; padding:40px 0; font-size:.9rem; }
-    .loading-wrap { text-align:center; color:#ccc; padding:28px 0; }
 
     /* ── Date-Time Picker ── */
     .dtp-overlay { position:fixed; inset:0; z-index:500; display:none; }
@@ -1690,7 +1688,7 @@
         <button id="btnSidebarToggle" onclick="toggleSidebar()" title="Menü">
           <span class="mi s20">menu</span>
         </button>
-        <span class="main-list-title" id="mainListTitle">Liste seçin</span>
+        <span class="main-list-title" id="mainListTitle"></span>
       </div>
 
       <div class="main-body" id="mainBody">
@@ -1703,7 +1701,6 @@
             <button class="btn-add" onclick="addTask()" title="Görevi ekle">Ekle</button>
           </div>
           <div class="add-detail" id="addDetail">
-            <textarea id="addNotes" placeholder="Notlar" rows="2" autocomplete="off"></textarea>
             <div class="add-bottom-row">
               <button class="btn-cal" id="addDueBtn"
                 onclick="dtpOpen(this, null, v=>{addDueValue=v;renderAddDueLabel();})"
@@ -1718,7 +1715,6 @@
         <div id="taskList"></div>
 
         <div class="empty" id="empty" style="display:none">Bu listede henüz görev yok.</div>
-        <div class="loading-wrap" id="loadingWrap" style="display:none">Yükleniyor...</div>
 
         <div class="done-section" id="doneSection" style="display:none">
           <button class="done-toggle" id="doneToggle" onclick="toggleDoneList()" title="Tamamlananları göster/gizle">
@@ -2938,14 +2934,12 @@ async function loadTasks() {
 let addingTask = false;
 async function addTask() {
   const input   = document.getElementById('taskInput');
-  const notesEl = document.getElementById('addNotes');
   const text    = input.value.trim();
   if (!text || !activeListId) { input.focus(); return; }
   const payload = { text, done:false, category:activeListId, sort_order: Date.now() };
-  if (notesEl.value.trim()) payload.notes  = notesEl.value.trim();
-  if (addDueValue)          payload.due_at = addDueValue;
+  if (addDueValue) payload.due_at = addDueValue;
   if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
-  input.value=''; notesEl.value='';
+  input.value='';
   addDueValue=''; renderAddDueLabel();
   addingTask = true;
   keepInputFocused = true;
@@ -2967,12 +2961,10 @@ async function addTask() {
 
 async function addTaskKeepFocus() {
   const input   = document.getElementById('taskInput');
-  const notesEl = document.getElementById('addNotes');
   const text    = input.value.trim();
   if (!text || !activeListId) { input.focus(); return; }
   const payload = { text, done:false, category:activeListId, sort_order: Date.now() };
-  if (notesEl.value.trim()) payload.notes  = notesEl.value.trim();
-  if (addDueValue)          payload.due_at = addDueValue;
+  if (addDueValue) payload.due_at = addDueValue;
   if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
   input.value = '';
   keepInputFocused = true;
