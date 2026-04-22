@@ -2244,7 +2244,9 @@ async function initApp() {
   scheduleTokenRefresh();
   await loadLists();
   await loadTasks();
-  if (!activeListId) selectList(BOARD_LIST_ID);
+  const savedList = localStorage.getItem('activeListId');
+  const validId = savedList && (savedList === BOARD_LIST_ID || savedList === WEEKLY_LIST_ID || savedList === STARRED_LIST_ID || lists.find(l => l.id === savedList));
+  selectList(validId ? savedList : BOARD_LIST_ID);
   if (appSettings.notifEnabled) setTimeout(scheduleReminders, 2000);
   connectRealtime();
 }
@@ -2885,6 +2887,7 @@ function updateMobTabBar() {
 
 function selectList(id) {
   activeListId = id;
+  localStorage.setItem('activeListId', id);
   doneOpen     = false;
   const isBoard  = id === BOARD_LIST_ID;
   const isWeekly = id === WEEKLY_LIST_ID;
