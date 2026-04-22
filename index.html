@@ -2245,8 +2245,15 @@ async function initApp() {
   await loadLists();
   await loadTasks();
   const savedList = localStorage.getItem('activeListId');
-  const validId = savedList && (savedList === BOARD_LIST_ID || savedList === WEEKLY_LIST_ID || savedList === STARRED_LIST_ID || lists.find(l => l.id === savedList));
-  selectList(validId ? savedList : BOARD_LIST_ID);
+  let startList = BOARD_LIST_ID;
+  if (savedList) {
+    if (savedList === BOARD_LIST_ID || savedList === WEEKLY_LIST_ID || savedList === STARRED_LIST_ID) {
+      startList = savedList;
+    } else if (lists.some(l => String(l.id) === String(savedList))) {
+      startList = savedList;
+    }
+  }
+  selectList(startList);
   if (appSettings.notifEnabled) setTimeout(scheduleReminders, 2000);
   connectRealtime();
 }
