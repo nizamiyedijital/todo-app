@@ -284,6 +284,7 @@
     }
     #btnSidebarToggle:hover { background:var(--surface2); color:var(--text); }
     .sidebar-collapsed .sidebar { display:none !important; }
+    @media (max-width:480px) { #btnSidebarToggle { display:none; } }
 
     .main-header {
       padding:14px 28px 12px;
@@ -1227,49 +1228,56 @@
     .mob-tab.active { color:var(--accent); }
     .mob-tab.active .mi { color:var(--accent); }
 
-    /* ── Mobil liste drawer ── */
+    /* ── Mobil drawer (sandwich menu) ── */
     #mobDrawerOverlay {
-      display:none; position:fixed; inset:0; background:rgba(0,0,0,.4);
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,.45);
       z-index:350; backdrop-filter:blur(1px);
     }
     #mobDrawerOverlay.open { display:block; }
     #mobDrawer {
-      position:fixed; bottom:56px; left:0; right:0;
-      background:var(--surface); border-radius:18px 18px 0 0;
-      box-shadow:0 -8px 30px rgba(0,0,0,.15);
-      z-index:351; transform:translateY(100%);
-      transition:transform .3s cubic-bezier(.4,0,.2,1);
-      max-height:70vh; display:flex; flex-direction:column;
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--surface); border-radius:20px 20px 0 0;
+      box-shadow:0 -6px 32px rgba(0,0,0,.18);
+      z-index:351; transform:translateY(110%);
+      transition:transform .28s cubic-bezier(.4,0,.2,1);
+      height:72vh; display:flex; flex-direction:column;
     }
     #mobDrawer.open { transform:translateY(0); }
     .mob-drawer-hdr {
       display:flex; align-items:center; justify-content:space-between;
-      padding:16px 18px 12px; border-bottom:1px solid var(--border2); flex-shrink:0;
+      padding:14px 18px 10px; border-bottom:1px solid var(--border2); flex-shrink:0;
     }
     .mob-drawer-hdr span { font-size:.95rem; font-weight:700; color:var(--text); }
-    .mob-drawer-hdr button { background:none; border:none; color:var(--text3); cursor:pointer; padding:4px; }
-    #mobDrawerLists { overflow-y:auto; flex:1; padding:8px 0; }
+    .mob-drawer-hdr button { background:none; border:none; color:var(--text3); cursor:pointer; padding:4px; border-radius:6px; }
+    .mob-drawer-hdr button:hover { background:var(--surface2); }
+    #mobDrawerScroll { overflow-y:auto; flex:1; }
     .mob-drawer-item {
-      display:flex; align-items:center; gap:10px;
-      padding:11px 18px; font-size:.9rem; color:var(--text2);
-      cursor:pointer; transition:background .12s;
+      display:flex; align-items:center; gap:12px;
+      padding:12px 18px; font-size:.88rem; color:var(--text2);
+      cursor:pointer; transition:background .12s; border:none;
+      background:transparent; width:100%; text-align:left; font-family:inherit;
     }
     .mob-drawer-item:hover { background:var(--surface2); }
     .mob-drawer-item.active { color:var(--accent); background:var(--accent-bg); font-weight:600; }
+    .mob-drawer-item.active .mob-drawer-count { background:var(--accent-bg); color:var(--accent); }
     .mob-drawer-count {
       margin-left:auto; font-size:.72rem; color:var(--text3);
-      background:var(--surface2); padding:1px 7px; border-radius:9px;
+      background:var(--surface2); padding:1px 7px; border-radius:9px; flex-shrink:0;
     }
-    .mob-drawer-item.active .mob-drawer-count { background:var(--accent-bg); color:var(--accent); }
+    .mob-drawer-section-lbl {
+      font-size:.67rem; font-weight:700; color:var(--text3);
+      text-transform:uppercase; letter-spacing:.07em;
+      padding:12px 18px 4px;
+    }
+    .mob-drawer-sep { height:1px; background:var(--border2); margin:4px 0; }
     .mob-drawer-new-btn {
-      display:flex; align-items:center; gap:6px; width:100%;
-      padding:10px 0; border:none; background:transparent;
+      display:flex; align-items:center; gap:8px;
+      padding:12px 18px; border:none; background:transparent;
       color:var(--accent); font-size:.88rem; font-weight:600;
-      font-family:inherit; cursor:pointer;
+      font-family:inherit; cursor:pointer; width:100%; text-align:left;
     }
-    .mob-drawer-new-inp {
-      display:flex; gap:8px; margin-top:6px;
-    }
+    .mob-drawer-new-btn:hover { background:var(--surface2); }
+    .mob-drawer-new-inp { display:flex; gap:8px; padding:0 18px 10px; }
     .mob-drawer-new-inp input {
       flex:1; padding:8px 12px; border:1.5px solid var(--input-border);
       border-radius:9px; font-size:.87rem; font-family:inherit;
@@ -1281,29 +1289,22 @@
       background:var(--accent); color:#fff; font-size:.84rem;
       font-weight:600; font-family:inherit; cursor:pointer;
     }
-    .mob-drawer-section-lbl {
-      font-size:.68rem; font-weight:700; color:var(--text3);
-      text-transform:uppercase; letter-spacing:.06em;
-      padding:10px 18px 4px;
+
+    /* ── Mobile Profile Sheet ── */
+    #mobProfileOverlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,.45);
+      z-index:360; backdrop-filter:blur(1px);
     }
-    .mob-drawer-sep {
-      height:1px; background:var(--border2); margin:6px 18px;
+    #mobProfileOverlay.open { display:block; }
+    #mobProfileSheet {
+      position:fixed; bottom:0; left:0; right:0;
+      background:var(--surface); border-radius:20px 20px 0 0;
+      z-index:361; padding:20px 18px 36px;
+      box-shadow:0 -6px 32px rgba(0,0,0,.18);
+      transform:translateY(110%);
+      transition:transform .28s cubic-bezier(.4,0,.2,1);
     }
-    .mob-drawer-bottom {
-      padding:8px 10px 10px;
-      display:flex; flex-direction:column; gap:2px;
-    }
-    .mob-drawer-action {
-      display:flex; align-items:center; gap:10px;
-      width:100%; padding:11px 8px; border:none; background:transparent;
-      color:var(--text2); font-size:.88rem; font-family:inherit;
-      cursor:pointer; border-radius:9px; text-align:left;
-      transition:background .12s;
-    }
-    .mob-drawer-action:hover { background:var(--surface2); }
-    .mob-drawer-footer {
-      padding:6px 10px 2px; flex-shrink:0;
-    }
+    #mobProfileSheet.open { transform:translateY(0); }
 
     /* ── Settings Modal ── */
     #settingsOverlay {
@@ -2543,9 +2544,13 @@ function initListDrag(item, listId) {
 }
 
 /* ── Select list ── */
-/* ── Sidebar toggle (desktop hamburger) ── */
+/* ── Sidebar / hamburger toggle ── */
 function toggleSidebar() {
-  document.querySelector('.app-layout').classList.toggle('sidebar-collapsed');
+  if (window.innerWidth <= 480) {
+    toggleMobDrawer();
+  } else {
+    document.querySelector('.app-layout').classList.toggle('sidebar-collapsed');
+  }
 }
 
 /* ── Mobile Drawer ── */
@@ -2586,16 +2591,12 @@ function renderMobDrawer() {
 /* ── Mobile Profile Sheet ── */
 function openMobProfile() {
   document.getElementById('mobProfileEmail').textContent = session?.user?.email || '—';
-  document.getElementById('mobProfileOverlay').style.display = 'block';
-  document.getElementById('mobProfileSheet').style.display = 'block';
-  setTimeout(() => {
-    document.getElementById('mobProfileSheet').style.transform = 'translateY(0)';
-    document.getElementById('mobProfileSheet').style.opacity = '1';
-  }, 10);
+  document.getElementById('mobProfileOverlay').classList.add('open');
+  document.getElementById('mobProfileSheet').classList.add('open');
 }
 function closeMobProfile() {
-  document.getElementById('mobProfileOverlay').style.display = 'none';
-  document.getElementById('mobProfileSheet').style.display = 'none';
+  document.getElementById('mobProfileOverlay').classList.remove('open');
+  document.getElementById('mobProfileSheet').classList.remove('open');
 }
 function toggleMobDrawerNew() {
   const inp = document.getElementById('mobDrawerNewInp');
@@ -4401,74 +4402,71 @@ window.onunhandledrejection = (e) => {
   </button>
 </div>
 
-<!-- Mobile Drawer -->
+<!-- Mobile Drawer (sandwich menu) -->
 <div id="mobDrawerOverlay" onclick="closeMobDrawer()"></div>
 <div id="mobDrawer">
   <div class="mob-drawer-hdr">
     <span>Menü</span>
-    <button onclick="closeMobDrawer()"><span class="mi" style="font-size:20px">close</span></button>
+    <button onclick="closeMobDrawer()"><span class="mi s20">close</span></button>
   </div>
-  <div style="overflow-y:auto;flex:1;display:flex;flex-direction:column;">
-    <!-- Sabit listeler -->
+  <div id="mobDrawerScroll">
+    <!-- Görünümler -->
     <div class="mob-drawer-section-lbl">Görünümler</div>
-    <div class="mob-drawer-item" id="mobDrBoard" onclick="selectList(BOARD_LIST_ID);closeMobDrawer()">
+    <button class="mob-drawer-item" id="mobDrBoard" onclick="selectList(BOARD_LIST_ID);closeMobDrawer()">
       <span class="mi" style="font-size:20px;color:var(--accent)">view_kanban</span>
       <span>Tüm Görevler</span>
-    </div>
-    <div class="mob-drawer-item" id="mobDrWeekly" onclick="selectList(WEEKLY_LIST_ID);closeMobDrawer()">
+    </button>
+    <button class="mob-drawer-item" id="mobDrWeekly" onclick="selectList(WEEKLY_LIST_ID);closeMobDrawer()">
       <span class="mi" style="font-size:20px;color:var(--accent)">calendar_view_week</span>
       <span>Haftalık Planlama</span>
-    </div>
-    <div class="mob-drawer-item" id="mobDrStarred" onclick="selectList(STARRED_LIST_ID);closeMobDrawer()">
+    </button>
+    <button class="mob-drawer-item" id="mobDrStarred" onclick="selectList(STARRED_LIST_ID);closeMobDrawer()">
       <span class="mi" style="font-size:20px;color:#f5a623">star</span>
       <span>Yıldızlı</span>
-    </div>
+    </button>
+    <!-- Listelerim -->
     <div class="mob-drawer-sep"></div>
-    <!-- Özel listeler -->
     <div class="mob-drawer-section-lbl">Listelerim</div>
     <div id="mobDrawerLists"></div>
-    <div class="mob-drawer-footer">
-      <button class="mob-drawer-new-btn" id="mobDrawerNewBtn" onclick="toggleMobDrawerNew()">
-        <span class="mi" style="font-size:18px">add</span><span>Yeni Liste</span>
-      </button>
-      <div class="mob-drawer-new-inp" id="mobDrawerNewInp" style="display:none">
-        <input type="text" id="mobDrawerNewName" placeholder="Liste adı..." onkeydown="if(event.key==='Enter')saveMobDrawerList()">
-        <button onclick="saveMobDrawerList()">Ekle</button>
-      </div>
+    <button class="mob-drawer-new-btn" onclick="toggleMobDrawerNew()">
+      <span class="mi s18">add</span><span>Yeni Liste</span>
+    </button>
+    <div class="mob-drawer-new-inp" id="mobDrawerNewInp" style="display:none">
+      <input type="text" id="mobDrawerNewName" placeholder="Liste adı..." onkeydown="if(event.key==='Enter')saveMobDrawerList()">
+      <button onclick="saveMobDrawerList()">Ekle</button>
     </div>
-    <!-- Alt kısım: Ayarlar + Profil -->
-    <div class="mob-drawer-sep"></div>
-    <div class="mob-drawer-bottom">
-      <button class="mob-drawer-action" onclick="closeMobDrawer();openSettings()">
-        <span class="mi" style="font-size:20px">settings</span>
-        <span>Ayarlar</span>
-      </button>
-      <button class="mob-drawer-action" onclick="closeMobDrawer();openMobProfile()">
-        <span class="mi" style="font-size:20px">account_circle</span>
-        <span id="mobDrawerEmail" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Profil</span>
-      </button>
-    </div>
+    <!-- Ayarlar + Profil -->
+    <div class="mob-drawer-sep" style="margin-top:8px"></div>
+    <button class="mob-drawer-item" onclick="closeMobDrawer();openSettings()">
+      <span class="mi" style="font-size:20px">settings</span>
+      <span>Ayarlar</span>
+    </button>
+    <button class="mob-drawer-item" id="mobDrProfile" onclick="closeMobDrawer();openMobProfile()">
+      <span class="mi" style="font-size:20px">account_circle</span>
+      <span id="mobDrawerEmail" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left">Profil</span>
+    </button>
+    <div style="height:16px"></div>
   </div>
 </div>
 
 <!-- Mobile Profile Sheet -->
-<div id="mobProfileOverlay" onclick="closeMobProfile()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:360;backdrop-filter:blur(1px)"></div>
-<div id="mobProfileSheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:18px 18px 0 0;z-index:361;padding:20px 20px 32px;box-shadow:0 -8px 30px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1)"  >
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+<div id="mobProfileOverlay" onclick="closeMobProfile()"></div>
+<div id="mobProfileSheet">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
     <span style="font-size:1rem;font-weight:700;color:var(--text)">Profil</span>
-    <button onclick="closeMobProfile()" style="background:none;border:none;color:var(--text3);cursor:pointer"><span class="mi s20">close</span></button>
+    <button onclick="closeMobProfile()" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;border-radius:6px"><span class="mi s20">close</span></button>
   </div>
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-    <div style="width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center">
-      <span class="mi" style="font-size:24px;color:#fff">person</span>
+  <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface2);border-radius:12px;margin-bottom:18px">
+    <div style="width:40px;height:40px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <span class="mi" style="font-size:22px;color:#fff">person</span>
     </div>
-    <div>
-      <div style="font-size:.82rem;color:var(--text3);margin-bottom:2px">Hesap</div>
-      <div id="mobProfileEmail" style="font-size:.9rem;font-weight:600;color:var(--text)">—</div>
+    <div style="min-width:0">
+      <div style="font-size:.75rem;color:var(--text3);margin-bottom:3px">Giriş yapılan hesap</div>
+      <div id="mobProfileEmail" style="font-size:.88rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
     </div>
   </div>
-  <button onclick="logout()" style="display:flex;align-items:center;gap:8px;width:100%;padding:12px 14px;border:1.5px solid #e53e3e22;border-radius:10px;background:#fff0f0;color:#e53e3e;font-size:.88rem;font-weight:600;font-family:inherit;cursor:pointer">
-    <span class="mi" style="font-size:18px">logout</span> Çıkış Yap
+  <button onclick="logout()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px 14px;border:none;border-radius:10px;background:#e53e3e;color:#fff;font-size:.88rem;font-weight:600;font-family:inherit;cursor:pointer">
+    <span class="mi" style="font-size:18px;color:#fff">logout</span>Çıkış Yap
   </button>
 </div>
 </body>
