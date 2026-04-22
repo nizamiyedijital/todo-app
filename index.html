@@ -2258,10 +2258,10 @@ async function initApp() {
   loadSettings();
   scheduleTokenRefresh();
   await Promise.all([loadLists(), loadTasks()]);
-  const _urlParams = new URLSearchParams(location.search);
-  const _urlList   = _urlParams.get('list');
-  const _urlCol    = _urlParams.get('col');
-  const _savedList = _urlList
+  const _hashParams = new URLSearchParams(location.hash.replace(/^#/, ''));
+  const _urlList    = _hashParams.get('list');
+  const _urlCol     = _hashParams.get('col');
+  const _savedList  = _urlList
     || history.state?.activeListId
     || sessionStorage.getItem('activeListId')
     || localStorage.getItem('activeListId');
@@ -2912,7 +2912,7 @@ function selectList(id) {
   activeListId = id;
   try { localStorage.setItem('activeListId', id); } catch {}
   try { sessionStorage.setItem('activeListId', id); } catch {}
-  try { history.replaceState({ activeListId: id }, '', location.pathname + '?list=' + encodeURIComponent(id)); } catch {}
+  try { history.replaceState({ activeListId: id }, '', location.pathname + '#list=' + encodeURIComponent(id)); } catch {}
   doneOpen     = false;
   const isBoard  = id === BOARD_LIST_ID;
   const isWeekly = id === WEEKLY_LIST_ID;
@@ -3710,7 +3710,7 @@ function renderBoard() {
       try {
         const p = new URLSearchParams(location.search);
         p.set('list', '__board__'); p.set('col', col.id);
-        history.replaceState({ activeListId: '__board__', activeBoardColId: col.id }, '', location.pathname + '?' + p.toString());
+        history.replaceState({ activeListId: '__board__', activeBoardColId: col.id }, '', location.pathname + '#list=__board__&col=' + encodeURIComponent(col.id));
       } catch {}
     }
   };
@@ -4842,6 +4842,13 @@ window.addEventListener('beforeunload', () => {
   if (activeListId) {
     try { sessionStorage.setItem('activeListId', activeListId); } catch {}
     try { localStorage.setItem('activeListId', activeListId); } catch {}
+  }
+});
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted && session && activeListId) {
+    const hp = new URLSearchParams(location.hash.replace(/^#/, ''));
+    const id = hp.get('list') || sessionStorage.getItem('activeListId') || activeListId;
+    if (id !== activeListId) selectList(id);
   }
 });
 
