@@ -2257,7 +2257,8 @@ async function initApp() {
   loadSettings();
   scheduleTokenRefresh();
   await Promise.all([loadLists(), loadTasks()]);
-  const _savedList = history.state?.activeListId || localStorage.getItem('activeListId');
+  const _urlList   = new URLSearchParams(location.search).get('list');
+  const _savedList = _urlList || history.state?.activeListId || localStorage.getItem('activeListId');
   selectList(_savedList || BOARD_LIST_ID);
   if (appSettings.notifEnabled) setTimeout(scheduleReminders, 2000);
   connectRealtime();
@@ -2902,7 +2903,7 @@ function selectList(id) {
   if (!isSpecial && !lists.some(l => String(l.id) === String(id))) id = BOARD_LIST_ID;
   activeListId = id;
   try { localStorage.setItem('activeListId', id); } catch {}
-  try { history.replaceState({ activeListId: id }, ''); } catch {}
+  try { history.replaceState({ activeListId: id }, '', '?list=' + encodeURIComponent(id)); } catch {}
   doneOpen     = false;
   const isBoard  = id === BOARD_LIST_ID;
   const isWeekly = id === WEEKLY_LIST_ID;
