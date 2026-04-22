@@ -4833,13 +4833,17 @@ window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change', () =
 /* ── Boot ── */
 window.onerror = (msg, src, line, col, err) => {
   console.error('Global error:', msg, 'line:', line, err);
-  showAuth();
 };
 window.onunhandledrejection = (e) => {
   console.error('Unhandled rejection:', e.reason);
-  // Only logout on auth errors, not on API/network errors
   if (e.reason?.message?.includes('Oturum')) showAuth();
 };
+window.addEventListener('beforeunload', () => {
+  if (activeListId) {
+    try { sessionStorage.setItem('activeListId', activeListId); } catch {}
+    try { localStorage.setItem('activeListId', activeListId); } catch {}
+  }
+});
 
 (async function init(){
   try {
