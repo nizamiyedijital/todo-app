@@ -1157,7 +1157,8 @@
       #mobTaskNotesInput {
         width:100%; font-size:.88rem; border:none; outline:none;
         padding:12px 0 8px; font-family:inherit; color:var(--text2);
-        resize:none; min-height:40px; background:transparent;
+        resize:none; min-height:120px; max-height:180px;
+        overflow-y:auto; background:transparent;
         border-bottom:1px solid var(--border2);
       }
       #mobTaskNotesInput::placeholder { color:var(--text4); }
@@ -2052,16 +2053,16 @@
     <button class="mob-task-del-btn" onclick="deleteMobTaskSheet()" title="Görevi sil"><span class="mi s20">delete</span></button>
   </div>
   <div id="mobSheetScroll">
-    <input id="mobTaskTitleInput" type="text" placeholder="Görev başlığı..." autocomplete="off" maxlength="1071">
-    <textarea id="mobTaskNotesInput" placeholder="Notlar ekle..." rows="2"></textarea>
+    <input id="mobTaskTitleInput" type="text" placeholder="Görev başlığı..." autocomplete="off" autocapitalize="sentences" data-form-type="other" maxlength="1071">
+    <textarea id="mobTaskNotesInput" placeholder="Notlar ekle..." rows="6" autocomplete="off" autocorrect="on" spellcheck="true"></textarea>
     <div id="mobLinkWrap">
-      <input id="mobTaskLinkInput" type="url" placeholder="Bağlantı ekle..." autocomplete="off">
+      <input id="mobTaskLinkInput" type="url" placeholder="Bağlantı ekle..." autocomplete="off" data-form-type="other">
     </div>
     <div id="mobTaskSubsList"></div>
     <div class="mob-sub-add-row">
       <button class="mob-sub-add-btn" onclick="openMobSubInp()">+ Alt görev ekle</button>
       <div class="mob-sub-inp-wrap" id="mobSubInpWrap" style="display:none">
-        <input type="text" id="mobSubInp" placeholder="Alt görev..." maxlength="200">
+        <input type="text" id="mobSubInp" placeholder="Alt görev..." autocomplete="off" data-form-type="other" maxlength="200">
         <button class="mob-sub-ok" onclick="addMobSub()">+</button>
       </div>
     </div>
