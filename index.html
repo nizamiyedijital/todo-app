@@ -2252,9 +2252,7 @@ function showAuth() { hideSplash(); document.getElementById('authBox').style.dis
 
 /* ── Init ── */
 async function initApp() {
-  hideSplash();
   document.getElementById('authBox').style.display='none';
-  document.getElementById('appBox').style.display='block';
   loadSettings();
   scheduleTokenRefresh();
   await Promise.all([loadLists(), loadTasks()]);
@@ -2268,6 +2266,8 @@ async function initApp() {
   if (_urlCol) activeBoardColId = _urlCol;
   else if (history.state?.activeBoardColId) activeBoardColId = history.state.activeBoardColId;
   selectList(_savedList || BOARD_LIST_ID);
+  hideSplash();
+  document.getElementById('appBox').style.display='block';
   if (appSettings.notifEnabled) setTimeout(scheduleReminders, 2000);
   connectRealtime();
 }
@@ -2930,10 +2930,8 @@ function selectList(id) {
 
 /* ── Load tasks ── */
 async function loadTasks() {
-  document.getElementById('loadingWrap').style.display='block';
   try { tasks = await db('/todos?order=sort_order.asc,created_at.asc&select=*') || []; }
   catch(e) { console.error(e); }
-  finally  { document.getElementById('loadingWrap').style.display='none'; render(); renderSidebar(); }
 }
 
 /* ── CRUD ── */
