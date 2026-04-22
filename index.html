@@ -494,8 +494,9 @@
     .tib-chip:hover { background:#f0f3ff; }
     .tib-chip:hover .mi, .tib-chip:hover .tib-lbl { color:#4f6ef7; }
     .tib-chip:hover .tib-lbl { max-width:110px; }
-    /* Always show label for due and subtask chips */
-    .tib-due .tib-lbl, .tib-subs .tib-lbl { max-width:110px; }
+    /* Always show label for due; subtask only on mobile */
+    .tib-due .tib-lbl { max-width:110px; }
+    .tib-subs .tib-lbl { max-width:0; }
     .tib-prio.p1 .mi { color:#dc2626; }
     .tib-prio.p2 .mi { color:#eab308; }
     .tib-prio.p3 .mi { color:#22c55e; }
@@ -1053,8 +1054,9 @@
       .tib-chip { opacity:1 !important; padding:1px 4px; gap:3px; }
       /* İkonlar: sadece icon, etiket yok */
       .tib-lbl { max-width:0 !important; }
-      /* Tarih: tam yaz */
+      /* Tarih ve alt görev sayısı: göster */
       .tib-due .tib-lbl { max-width:120px !important; }
+      .tib-subs .tib-lbl { max-width:60px !important; }
       .tib-chip:hover { background:transparent; }
       .tib-chip:hover .mi, .tib-chip:hover .tib-lbl { color:inherit; }
       /* Notes preview mobilde kapalı */
