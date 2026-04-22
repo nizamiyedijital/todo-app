@@ -444,24 +444,8 @@
       display:flex; align-items:flex-start; gap:9px;
       padding:4px 10px 4px 11px; position:relative;
     }
-    /* Sol sütun: checkbox + priority flag */
-    .task-chk-col {
-      display:flex; flex-direction:column; align-items:center;
-      gap:4px; flex-shrink:0; margin-top:2px;
-    }
-    .task-prio-flag {
-      font-size:13px; line-height:1; display:block;
-    }
-    /* Masaüstünde priority chip info bar'dan gizle */
-    .tib-prio-mob { display:none; }
-    @media (max-width:600px) {
-      .tib-prio-mob { display:inline-flex; }
-      .task-prio-flag { display:none; }
-      .task-chk-col { flex-direction:row; align-items:flex-start; gap:0; margin-top:0; }
-    }
-
     .task-check {
-      width:17px; height:17px; flex-shrink:0;
+      width:17px; height:17px; flex-shrink:0; margin-top:2px;
       border:2px solid #d0d5e8; border-radius:50%; cursor:pointer;
       display:flex; align-items:center; justify-content:center;
       transition:all .18s; background:transparent;
@@ -3123,7 +3107,6 @@ function buildTaskCard(task, isDone) {
     const chip = mkChip(`tib-prio ${task.priority}`, 'flag', PRIORITIES[task.priority].label);
     chip.title = PRIORITIES[task.priority].label;
     chip.querySelector('.mi').style.fontVariationSettings = "'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20";
-    chip.classList.add('tib-prio-mob'); // mobile: info bar
     infoBar.appendChild(chip);
   }
 
@@ -3258,19 +3241,7 @@ function buildTaskCard(task, isDone) {
 
   side.appendChild(starBtn);
 
-  // Masaüstü: checkbox + priority flag sol sütunda
-  const chkCol = document.createElement('div');
-  chkCol.className = 'task-chk-col';
-  chkCol.appendChild(chk);
-  if (task.priority && PRIORITIES[task.priority]) {
-    const flagEl = document.createElement('span');
-    flagEl.className = `task-prio-flag mi tib-prio ${task.priority}`;
-    flagEl.style.fontVariationSettings = "'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20";
-    flagEl.textContent = 'flag';
-    flagEl.title = PRIORITIES[task.priority].label;
-    chkCol.appendChild(flagEl);
-  }
-  row.appendChild(chkCol);
+  row.appendChild(chk);
   row.appendChild(body);
   row.appendChild(side);
 
