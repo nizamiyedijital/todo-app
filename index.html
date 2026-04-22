@@ -989,7 +989,15 @@
       .task-title { font-size:.9rem; }
       .btn-star  { opacity:1 !important; width:34px; height:34px; font-size:1.1rem; }
       .btn-icon  { opacity:1 !important; width:34px; height:34px; font-size:1.1rem; }
-      .task-info-bar { display:none; }
+      /* Info bar: mobilde her zaman göster, hover gerekmez */
+      .task-info-bar { display:flex; margin-top:5px; }
+      .tib-chip { opacity:1 !important; }
+      .tib-lbl { max-width:120px !important; }
+      .tib-chip:hover { background:transparent; }
+      .tib-chip:hover .mi, .tib-chip:hover .tib-lbl { color:#6b7a99; }
+      .tib-prio.p1 .tib-chip:hover .mi { color:#dc2626; }
+      /* Notes preview: mobilde gösterme (info bar var) */
+      .task-card:hover .task-notes-preview { max-height:0; opacity:0; margin-top:0; }
 
       /* addWrap fixed at bottom on mobile */
       #addWrap {
