@@ -2235,6 +2235,7 @@ function renderSidebar() {
   boardItem.className = 'list-item' + (activeListId===BOARD_LIST_ID?' active':'');
   boardItem.onclick   = () => selectList(BOARD_LIST_ID);
   boardItem.innerHTML = `
+    <span class="list-icon">${mi('view_kanban','18')}</span>
     <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Tüm Görevler</span>
   `;
   if (activeListId===BOARD_LIST_ID) {
@@ -2248,6 +2249,7 @@ function renderSidebar() {
   weeklyItem.className = 'list-item' + (activeListId===WEEKLY_LIST_ID?' active':'');
   weeklyItem.onclick   = () => selectList(WEEKLY_LIST_ID);
   weeklyItem.innerHTML = `
+    <span class="list-icon">${mi('calendar_view_week','18')}</span>
     <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Haftalık Planlama</span>
   `;
   if (activeListId===WEEKLY_LIST_ID) {
@@ -2262,6 +2264,7 @@ function renderSidebar() {
   starItem.className = 'list-item' + (activeListId===STARRED_LIST_ID?' active':'');
   starItem.onclick   = () => selectList(STARRED_LIST_ID);
   starItem.innerHTML = `
+    <span class="list-icon">${mi('star','18')}</span>
     <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Yıldızlı</span>
     <span class="list-count">${starCount > 0 ? starCount : ''}</span>
   `;
