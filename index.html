@@ -2079,8 +2079,9 @@ const DEFAULT_LISTS = [
 let session      = null;
 let tasks        = [];
 let lists        = [];
-let activeListId = null;
-let doneOpen     = false;
+let activeListId     = null;
+let activeBoardColId = null;
+let doneOpen         = false;
 let addDueValue  = '';
 let editTimers   = {};
 let isRegMode    = false;
@@ -2257,8 +2258,12 @@ async function initApp() {
   loadSettings();
   scheduleTokenRefresh();
   await Promise.all([loadLists(), loadTasks()]);
-  const _urlList   = new URLSearchParams(location.search).get('list');
+  const _urlParams = new URLSearchParams(location.search);
+  const _urlList   = _urlParams.get('list');
+  const _urlCol    = _urlParams.get('col');
   const _savedList = _urlList || history.state?.activeListId || localStorage.getItem('activeListId');
+  if (_urlCol) activeBoardColId = _urlCol;
+  else if (history.state?.activeBoardColId) activeBoardColId = history.state.activeBoardColId;
   selectList(_savedList || BOARD_LIST_ID);
   if (appSettings.notifEnabled) setTimeout(scheduleReminders, 2000);
   connectRealtime();
@@ -3688,16 +3693,33 @@ function renderBoard() {
     nav.appendChild(tab);
   });
   restoreOpenDetails();
-  // Sync active tab on scroll
-  area._scrollSyncSetup = true;
+  // Sync active tab on scroll + save active column to URL
   area.onscroll = () => {
     const colW = area.clientWidth;
     const idx  = Math.round(area.scrollLeft / (colW || 1));
     nav.querySelectorAll('.board-nav-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
-    // keep active tab visible
     const activeTab = nav.children[idx];
     if (activeTab) activeTab.scrollIntoView({ inline:'center', behavior:'smooth' });
+    const col = lists[idx];
+    if (col && col.id !== activeBoardColId) {
+      activeBoardColId = col.id;
+      try {
+        const p = new URLSearchParams(location.search);
+        p.set('list', '__board__'); p.set('col', col.id);
+        history.replaceState({ activeListId: '__board__', activeBoardColId: col.id }, '', '?' + p.toString());
+      } catch {}
+    }
   };
+  // Restore saved column position
+  if (activeBoardColId) {
+    const idx = lists.findIndex(l => l.id === activeBoardColId);
+    if (idx > 0) {
+      requestAnimationFrame(() => {
+        const col = area.children[idx];
+        if (col) area.scrollTo({ left: col.offsetLeft, behavior:'instant' });
+      });
+    }
+  }
 }
 
 function buildBoardCol(list) {
