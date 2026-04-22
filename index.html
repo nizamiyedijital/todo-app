@@ -126,6 +126,66 @@
     .msg.error   { background:#fff0f0; color:#c53030; border:1px solid #fcc; display:block; }
     .msg.success { background:#f0fff4; color:#276749; border:1px solid #9ae6b4; display:block; }
 
+    /* ── MFA screen ── */
+    #mfaBox {
+      display:none; align-items:center; justify-content:center;
+      min-height:100vh; padding:24px;
+    }
+    #mfaBox.visible { display:flex; }
+    .mfa-card {
+      background:#fff; border-radius:18px;
+      padding:36px 32px; width:100%; max-width:380px;
+      box-shadow:0 2px 20px rgba(0,0,0,0.09); text-align:center;
+    }
+    .mfa-card .mi-lock { font-size:2.4rem; color:#4f6ef7; display:block; margin-bottom:12px; }
+    .mfa-card h2 { font-size:1.1rem; font-weight:700; color:#1a1a2e; margin-bottom:6px; }
+    .mfa-card p { font-size:.84rem; color:#888; margin-bottom:24px; line-height:1.5; }
+    .mfa-code-input {
+      width:100%; padding:14px; border:2px solid #e0e4ef; border-radius:12px;
+      font-size:1.6rem; font-weight:700; letter-spacing:.25em; text-align:center;
+      outline:none; font-family:monospace; transition:border-color .2s; margin-bottom:14px;
+    }
+    .mfa-code-input:focus { border-color:#4f6ef7; }
+    .mfa-back { background:none; border:none; color:#888; font-size:.84rem; cursor:pointer; margin-top:10px; }
+    .mfa-back:hover { color:#4f6ef7; }
+    body.theme-dark .mfa-card { background:var(--surface); }
+    body.theme-dark .mfa-card h2 { color:var(--text); }
+    body.theme-dark .mfa-code-input { background:var(--surface2); border-color:var(--border); color:var(--text); }
+    body.theme-dark .mfa-code-input:focus { border-color:var(--accent); }
+
+    /* ── 2FA settings panel elements ── */
+    .tfa-status {
+      display:flex; align-items:center; gap:8px;
+      font-size:.84rem; font-weight:600; padding:6px 0;
+    }
+    .tfa-status.on  { color:#16a34a; }
+    .tfa-status.off { color:var(--text3); }
+    #tfaQrWrap {
+      background:var(--surface2); border-radius:12px; padding:20px;
+      display:flex; flex-direction:column; align-items:center; gap:14px;
+      margin-top:12px;
+    }
+    #tfaQrWrap img { width:160px; height:160px; border-radius:8px; border:4px solid #fff; }
+    #tfaQrWrap p { font-size:.8rem; color:var(--text3); text-align:center; line-height:1.5; }
+    .tfa-secret {
+      font-family:monospace; font-size:.78rem; background:var(--surface);
+      border:1px solid var(--border); border-radius:8px; padding:6px 12px;
+      color:var(--text2); letter-spacing:.08em; word-break:break-all; text-align:center;
+    }
+    #tfaVerifyRow { display:flex; gap:8px; margin-top:4px; }
+    #tfaCodeInp {
+      flex:1; padding:10px 14px; border:1.5px solid var(--input-border);
+      border-radius:10px; font-size:1rem; font-weight:700; letter-spacing:.2em;
+      font-family:monospace; text-align:center;
+      background:var(--input-bg); color:var(--text); outline:none;
+    }
+    #tfaCodeInp:focus { border-color:var(--accent); }
+    #tfaVerifyBtn {
+      padding:10px 16px; border:none; border-radius:10px;
+      background:var(--accent); color:#fff; font-size:.88rem;
+      font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap;
+    }
+
     /* ── App layout ── */
     #appBox { display:none; height:100vh; overflow:hidden; }
 
@@ -1534,14 +1594,32 @@
     <div id="authMsg" class="msg"></div>
     <div class="field">
       <label>E-posta</label>
-      <input type="email" id="authEmail" placeholder="ornek@mail.com" autocomplete="email">
+      <input type="email" id="authEmail" placeholder="ornek@mail.com" autocomplete="email"
+        onkeydown="if(event.key==='Enter')document.getElementById('authPassword').focus()">
     </div>
     <div class="field">
       <label>Şifre</label>
-      <input type="password" id="authPassword" placeholder="En az 6 karakter" autocomplete="current-password">
+      <input type="password" id="authPassword" placeholder="En az 6 karakter" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')submitAuth()">
     </div>
     <button class="btn-primary" id="authBtn" onclick="submitAuth()">Giriş Yap</button>
     <div class="auth-switch">Hesabın yok mu? <a onclick="toggleMode()">Kayıt Ol</a></div>
+  </div>
+</div>
+
+<!-- MFA doğrulama ekranı -->
+<div id="mfaBox">
+  <div class="mfa-card">
+    <span class="mi mi-lock">lock</span>
+    <h2>İki Adımlı Doğrulama</h2>
+    <p>Kimlik doğrulama uygulamanızdaki 6 haneli kodu girin.</p>
+    <div id="mfaMsg" class="msg"></div>
+    <input class="mfa-code-input" id="mfaCodeInput" type="text" inputmode="numeric"
+      maxlength="6" placeholder="000000" autocomplete="one-time-code"
+      onkeydown="if(event.key==='Enter')submitMfa()"
+      oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)">
+    <button class="btn-primary" id="mfaBtn" onclick="submitMfa()">Doğrula</button>
+    <button class="mfa-back" onclick="backToLogin()">← Geri dön</button>
   </div>
 </div>
 
@@ -1718,6 +1796,35 @@
           <div class="srow">
             <div class="srow-info"><div class="srow-label">Şifre</div><div class="srow-desc">Yeni şifre belirle</div></div>
             <button class="sbtn" onclick="changePassword()">Değiştir</button>
+          </div>
+        </div>
+        <div class="sgroup">
+          <div class="sgroup-title">İki Adımlı Doğrulama (2FA)</div>
+          <div class="srow">
+            <div class="srow-info">
+              <div class="srow-label">Durum</div>
+              <div class="srow-desc" id="tfaStatusDesc">Yükleniyor...</div>
+            </div>
+            <div id="tfaStatusBadge" class="tfa-status off"><span class="mi s16">shield</span><span>Kapalı</span></div>
+          </div>
+          <div id="tfaEnrollSection" style="display:none">
+            <div id="tfaQrWrap">
+              <img id="tfaQrImg" src="" alt="QR Kodu">
+              <p>Kimlik doğrulama uygulamanızla (Google Authenticator, Authy vb.) QR kodu tarayın.</p>
+              <div class="tfa-secret" id="tfaSecret"></div>
+              <p style="font-size:.78rem;color:var(--text3)">QR tarayamıyorsanız yukarıdaki kodu uygulamaya manuel girin.</p>
+              <div id="tfaVerifyRow">
+                <input id="tfaCodeInp" type="text" inputmode="numeric" maxlength="6" placeholder="000000"
+                  oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)"
+                  onkeydown="if(event.key==='Enter')verifyTfaEnroll()">
+                <button id="tfaVerifyBtn" onclick="verifyTfaEnroll()">Doğrula</button>
+              </div>
+            </div>
+            <button class="sbtn" style="margin-top:10px" onclick="cancelTfaEnroll()">İptal</button>
+          </div>
+          <div class="srow" id="tfaActionRow" style="display:none">
+            <div class="srow-info"><div class="srow-label" id="tfaActionLabel"></div></div>
+            <button class="sbtn" id="tfaActionBtn" onclick="tfaAction()"></button>
           </div>
         </div>
         <div class="sgroup">
@@ -2080,8 +2187,15 @@ async function submitAuth() {
       setMsg('Kayıt başarılı! E-postanıza gelen onay bağlantısına tıklayın.','success');
       document.getElementById('authPassword').value='';
     } else {
-      saveSession(await authPost('/token?grant_type=password',{email,password:pass}));
-      await initApp();
+      const s = await authPost('/token?grant_type=password',{email,password:pass});
+      const needsMfa = await checkMfaRequired(s);
+      if (needsMfa) {
+        await startMfaChallenge();
+        showMfaScreen();
+      } else {
+        saveSession(s);
+        await initApp();
+      }
     }
   } catch(e) { setMsg(e.message,'error'); }
   finally    { btn.disabled=false; }
@@ -4155,6 +4269,7 @@ function openSettings() {
   overlay.classList.add('open');
   modal.classList.add('open');
   populateSettings();
+  loadTfaStatus();
   // Wire live-preview for visual settings
   document.getElementById('sTheme').onchange = e => applyTheme(e.target.value, false);
   document.getElementById('sFontSize').onchange = e => applyFontSize(e.target.value, false);
@@ -4164,6 +4279,183 @@ function openSettings() {
 function closeSettings() {
   document.getElementById('settingsModal').classList.remove('open');
   document.getElementById('settingsOverlay').classList.remove('open');
+}
+
+/* ═══════════════════════════════════════════
+   2FA / MFA  —  Supabase TOTP
+═══════════════════════════════════════════ */
+let _mfaSession    = null;  // temp session after password login, before MFA complete
+let _mfaFactorId   = null;  // factor id for login challenge
+let _mfaChallengeId= null;  // current challenge id
+let _tfaFactorId   = null;  // enrolled factor id (from settings load)
+let _tfaEnrollId   = null;  // factor id during enrollment flow
+let _tfaEnrollChId = null;  // challenge id during enrollment
+
+async function authFetch(path, method='GET', body=null, tok=null) {
+  const token = tok || session?.access_token;
+  const opts = {
+    method,
+    headers: { apikey: ANON, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(`${SB}/auth/v1${path}`, opts);
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error_description || d.msg || d.message || d.error || 'Hata');
+  return d;
+}
+
+/* ── Login flow ── */
+async function checkMfaRequired(tempSession) {
+  try {
+    const factors = await authFetch('/factors', 'GET', null, tempSession.access_token);
+    const verified = (factors || []).filter(f => f.factor_type === 'totp' && f.status === 'verified');
+    if (verified.length === 0) return false;
+    _mfaSession  = tempSession;
+    _mfaFactorId = verified[0].id;
+    return true;
+  } catch { return false; }
+}
+
+async function startMfaChallenge() {
+  const ch = await authFetch(`/factors/${_mfaFactorId}/challenge`, 'POST', {}, _mfaSession.access_token);
+  _mfaChallengeId = ch.id;
+}
+
+function showMfaScreen() {
+  document.getElementById('authBox').style.display = 'none';
+  document.getElementById('mfaBox').classList.add('visible');
+  document.getElementById('mfaCodeInput').value = '';
+  document.getElementById('mfaMsg').className = 'msg';
+  setTimeout(() => document.getElementById('mfaCodeInput').focus(), 100);
+}
+
+function backToLogin() {
+  document.getElementById('mfaBox').classList.remove('visible');
+  document.getElementById('authBox').style.display = 'flex';
+  _mfaSession = null; _mfaFactorId = null; _mfaChallengeId = null;
+}
+
+function setMfaMsg(txt, type) {
+  const e = document.getElementById('mfaMsg');
+  e.className = `msg ${type}`; e.textContent = txt;
+}
+
+async function submitMfa() {
+  const code = document.getElementById('mfaCodeInput').value.trim();
+  if (code.length !== 6) { setMfaMsg('6 haneli kodu girin.', 'error'); return; }
+  const btn = document.getElementById('mfaBtn');
+  btn.disabled = true;
+  try {
+    const result = await authFetch(
+      `/factors/${_mfaFactorId}/verify`, 'POST',
+      { challenge_id: _mfaChallengeId, code },
+      _mfaSession.access_token
+    );
+    saveSession(result);
+    document.getElementById('mfaBox').classList.remove('visible');
+    _mfaSession = null; _mfaFactorId = null; _mfaChallengeId = null;
+    await initApp();
+  } catch(e) {
+    setMfaMsg(e.message.includes('Invalid') ? 'Kod hatalı, tekrar deneyin.' : e.message, 'error');
+    document.getElementById('mfaCodeInput').value = '';
+    document.getElementById('mfaCodeInput').focus();
+  } finally { btn.disabled = false; }
+}
+
+/* ── Settings: load 2FA status ── */
+async function loadTfaStatus() {
+  const badge = document.getElementById('tfaStatusBadge');
+  const desc  = document.getElementById('tfaStatusDesc');
+  const actionRow = document.getElementById('tfaActionRow');
+  badge.innerHTML = '<span class="mi s16">shield</span><span>Yükleniyor...</span>';
+  badge.className = 'tfa-status off';
+  try {
+    const factors = await authFetch('/factors');
+    const active = (factors || []).find(f => f.factor_type === 'totp' && f.status === 'verified');
+    _tfaFactorId = active?.id || null;
+    if (active) {
+      badge.className = 'tfa-status on';
+      badge.innerHTML = '<span class="mi s16">verified_user</span><span>Açık</span>';
+      desc.textContent = 'Hesabınız iki adımlı doğrulama ile korunuyor.';
+      document.getElementById('tfaActionLabel').textContent = '2FA\'yı Devre Dışı Bırak';
+      document.getElementById('tfaActionBtn').textContent = 'Kapat';
+      document.getElementById('tfaActionBtn').className = 'sbtn danger';
+      actionRow.style.display = '';
+      document.getElementById('tfaEnrollSection').style.display = 'none';
+    } else {
+      badge.className = 'tfa-status off';
+      badge.innerHTML = '<span class="mi s16">shield</span><span>Kapalı</span>';
+      desc.textContent = '2FA etkin değil. Hesabınızı daha güvenli hale getirin.';
+      document.getElementById('tfaActionLabel').textContent = 'İki Adımlı Doğrulamayı Etkinleştir';
+      document.getElementById('tfaActionBtn').textContent = 'Etkinleştir';
+      document.getElementById('tfaActionBtn').className = 'sbtn';
+      actionRow.style.display = '';
+    }
+  } catch(e) {
+    desc.textContent = 'Durum alınamadı.';
+    actionRow.style.display = 'none';
+  }
+}
+
+async function tfaAction() {
+  if (_tfaFactorId) {
+    if (!confirm('İki adımlı doğrulamayı devre dışı bırakmak istediğinizden emin misiniz?')) return;
+    try {
+      await authFetch(`/factors/${_tfaFactorId}`, 'DELETE');
+      _tfaFactorId = null;
+      showToast('2FA devre dışı bırakıldı.');
+      loadTfaStatus();
+    } catch(e) { showToast('Hata: ' + e.message); }
+  } else {
+    startTfaEnroll();
+  }
+}
+
+async function startTfaEnroll() {
+  document.getElementById('tfaActionRow').style.display = 'none';
+  document.getElementById('tfaEnrollSection').style.display = 'block';
+  document.getElementById('tfaQrImg').src = '';
+  document.getElementById('tfaSecret').textContent = '';
+  document.getElementById('tfaCodeInp').value = '';
+  try {
+    const res = await authFetch('/factors', 'POST', { factor_type: 'totp', friendly_name: 'Yapılacaklar' });
+    _tfaEnrollId = res.id;
+    document.getElementById('tfaQrImg').src = res.totp.qr_code;
+    document.getElementById('tfaSecret').textContent = res.totp.secret;
+    const ch = await authFetch(`/factors/${_tfaEnrollId}/challenge`, 'POST');
+    _tfaEnrollChId = ch.id;
+    setTimeout(() => document.getElementById('tfaCodeInp').focus(), 100);
+  } catch(e) {
+    showToast('Hata: ' + e.message);
+    cancelTfaEnroll();
+  }
+}
+
+async function verifyTfaEnroll() {
+  const code = document.getElementById('tfaCodeInp').value.trim();
+  if (code.length !== 6) { showToast('6 haneli kodu girin.'); return; }
+  const btn = document.getElementById('tfaVerifyBtn');
+  btn.disabled = true;
+  try {
+    await authFetch(`/factors/${_tfaEnrollId}/verify`, 'POST', { challenge_id: _tfaEnrollChId, code });
+    _tfaEnrollId = null; _tfaEnrollChId = null;
+    document.getElementById('tfaEnrollSection').style.display = 'none';
+    showToast('2FA başarıyla etkinleştirildi!');
+    loadTfaStatus();
+  } catch(e) {
+    showToast(e.message.includes('Invalid') ? 'Kod hatalı, tekrar deneyin.' : e.message);
+    document.getElementById('tfaCodeInp').value = '';
+    document.getElementById('tfaCodeInp').focus();
+  } finally { btn.disabled = false; }
+}
+
+function cancelTfaEnroll() {
+  if (_tfaEnrollId) {
+    authFetch(`/factors/${_tfaEnrollId}`, 'DELETE').catch(() => {});
+    _tfaEnrollId = null; _tfaEnrollChId = null;
+  }
+  document.getElementById('tfaEnrollSection').style.display = 'none';
+  document.getElementById('tfaActionRow').style.display = '';
 }
 
 function switchStab(btn, panelId) {
