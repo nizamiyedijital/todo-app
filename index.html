@@ -1312,6 +1312,9 @@
     @media (max-width: 480px) {
       /* iOS/Android otomatik zoom önleme: tüm input/textarea/select min 16px */
       input, textarea, select { font-size: 16px !important; }
+      /* type=search temizle butonu gizle */
+      input[type="search"]::-webkit-search-cancel-button,
+      input[type="search"]::-webkit-search-decoration { display:none; -webkit-appearance:none; }
 
       /* Sidebar tamamen gizle */
       .sidebar { display:none !important; }
@@ -1726,7 +1729,7 @@
           <input style="display:none" type="password" name="prevent-autofill-pass">
           <div class="add-main-row">
             <span class="add-plus">+</span>
-            <input type="text" id="taskInput" placeholder="Görev ekle..." autocomplete="new-password" maxlength="1071">
+            <input type="search" id="taskInput" placeholder="Görev ekle..." autocomplete="off" data-form-type="other" data-lpignore="true" maxlength="1071">
             <button class="btn-add" onclick="addTask()" title="Görevi ekle">Ekle</button>
           </div>
           <div class="add-detail" id="addDetail">
@@ -2053,16 +2056,16 @@
     <button class="mob-task-del-btn" onclick="deleteMobTaskSheet()" title="Görevi sil"><span class="mi s20">delete</span></button>
   </div>
   <div id="mobSheetScroll">
-    <input id="mobTaskTitleInput" type="text" placeholder="Görev başlığı..." autocomplete="off" autocapitalize="sentences" data-form-type="other" maxlength="1071">
-    <textarea id="mobTaskNotesInput" placeholder="Notlar ekle..." rows="6" autocomplete="off" autocorrect="on" spellcheck="true"></textarea>
+    <input id="mobTaskTitleInput" type="search" placeholder="Görev başlığı..." autocomplete="off" autocapitalize="sentences" data-form-type="other" data-lpignore="true" maxlength="1071">
+    <textarea id="mobTaskNotesInput" placeholder="Notlar ekle..." rows="6" autocomplete="new-password" autocorrect="on" spellcheck="true" data-form-type="other" data-lpignore="true"></textarea>
     <div id="mobLinkWrap">
-      <input id="mobTaskLinkInput" type="url" placeholder="Bağlantı ekle..." autocomplete="off" data-form-type="other">
+      <input id="mobTaskLinkInput" type="search" placeholder="Bağlantı ekle..." autocomplete="off" data-form-type="other" data-lpignore="true">
     </div>
     <div id="mobTaskSubsList"></div>
     <div class="mob-sub-add-row">
       <button class="mob-sub-add-btn" onclick="openMobSubInp()">+ Alt görev ekle</button>
       <div class="mob-sub-inp-wrap" id="mobSubInpWrap" style="display:none">
-        <input type="text" id="mobSubInp" placeholder="Alt görev..." autocomplete="off" data-form-type="other" maxlength="200">
+        <input type="search" id="mobSubInp" placeholder="Alt görev..." autocomplete="off" data-form-type="other" data-lpignore="true" maxlength="200">
         <button class="mob-sub-ok" onclick="addMobSub()">+</button>
       </div>
     </div>
