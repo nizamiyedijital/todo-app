@@ -2157,6 +2157,8 @@ async function refreshSession() {
     });
     if (!r.ok) return false;
     saveSession(await r.json());
+    // Realtime bağlantısını yeni token ile yenile
+    if (_rtWs) { _rtWs.close(); }
     return true;
   } catch { return false; }
 }
@@ -2244,6 +2246,107 @@ async function initApp() {
   await loadTasks();
   if (!activeListId) selectList(BOARD_LIST_ID);
   if (appSettings.notifEnabled) setTimeout(scheduleReminders, 2000);
+  connectRealtime();
+}
+
+/* ══════════════════════════════════════
+   Supabase Realtime — canlı senkronizasyon
+══════════════════════════════════════ */
+let _rtWs       = null;
+let _rtRef      = 0;
+let _rtHbTimer  = null;
+let _rtReconTimer = null;
+
+function connectRealtime() {
+  if (_rtWs && (_rtWs.readyState === WebSocket.OPEN || _rtWs.readyState === WebSocket.CONNECTING)) return;
+  clearTimeout(_rtReconTimer);
+
+  const wsUrl = `${SB.replace('https://', 'wss://')}/realtime/v1/websocket?apikey=${ANON}&vsn=1.0.0`;
+  _rtWs = new WebSocket(wsUrl);
+
+  _rtWs.onopen = () => {
+    // Kanala katıl — RLS için access_token gerekli
+    _rtWs.send(JSON.stringify({
+      topic: 'realtime:db-sync',
+      event: 'phx_join',
+      payload: {
+        config: {
+          postgres_changes: [
+            { event: '*', schema: 'public', table: 'todos' },
+            { event: '*', schema: 'public', table: 'categories' }
+          ]
+        },
+        access_token: session?.access_token
+      },
+      ref: String(++_rtRef)
+    }));
+    // Heartbeat — bağlantıyı canlı tut
+    clearInterval(_rtHbTimer);
+    _rtHbTimer = setInterval(() => {
+      if (_rtWs?.readyState === WebSocket.OPEN) {
+        _rtWs.send(JSON.stringify({ topic:'phoenix', event:'heartbeat', payload:{}, ref: String(++_rtRef) }));
+      }
+    }, 25000);
+  };
+
+  _rtWs.onmessage = e => {
+    try { handleRealtimeMsg(JSON.parse(e.data)); } catch {}
+  };
+
+  _rtWs.onclose = () => {
+    clearInterval(_rtHbTimer);
+    // 4 saniye sonra yeniden bağlan
+    _rtReconTimer = setTimeout(connectRealtime, 4000);
+  };
+
+  _rtWs.onerror = () => _rtWs.close();
+}
+
+function handleRealtimeMsg(msg) {
+  if (msg.event !== 'postgres_changes') return;
+  const d = msg.payload?.data;
+  if (!d) return;
+  const { eventType, table, new: rec, old: oldRec } = d;
+  if (table === 'todos')      handleRtTodo(eventType, rec, oldRec);
+  else if (table === 'categories') handleRtList(eventType, rec, oldRec);
+}
+
+function handleRtTodo(type, rec, oldRec) {
+  if (type === 'INSERT') {
+    if (tasks.find(t => t.id === rec.id)) return; // zaten var (kendi cihazımız)
+    tasks.unshift(rec);
+    render(); renderSidebar();
+  } else if (type === 'UPDATE') {
+    if (editTimers[rec.id]) return; // bu cihazda düzenleniyor, atla
+    const idx = tasks.findIndex(t => t.id === rec.id);
+    if (idx === -1) return;
+    tasks[idx] = rec;
+    // Açık detail varsa kapat (başka cihaz değiştirdi)
+    const card = document.querySelector(`[data-task-id="${rec.id}"]`);
+    if (card && !card.classList.contains('detail-open')) render();
+    else { render(); } // her durumda yenile
+    renderSidebar();
+  } else if (type === 'DELETE') {
+    const id = oldRec?.id || rec?.id;
+    if (!id) return;
+    tasks = tasks.filter(t => t.id !== id);
+    render(); renderSidebar();
+  }
+}
+
+function handleRtList(type, rec, oldRec) {
+  if (type === 'INSERT') {
+    if (lists.find(l => l.id === rec.id)) return;
+    lists.push(rec);
+    renderSidebar();
+  } else if (type === 'UPDATE') {
+    const idx = lists.findIndex(l => l.id === rec.id);
+    if (idx !== -1) { lists[idx] = rec; renderSidebar(); }
+  } else if (type === 'DELETE') {
+    const id = oldRec?.id || rec?.id;
+    lists = lists.filter(l => l.id !== id);
+    renderSidebar();
+  }
 }
 
 /* ── Lists CRUD ── */
