@@ -1185,12 +1185,94 @@
       }
     }
     @media (max-width: 480px) {
+      /* Sidebar tamamen gizle */
+      .sidebar { display:none !important; }
       .app-layout { flex-direction:column; }
-      .sidebar { width:100%; height:auto; flex-direction:row; flex-wrap:wrap; border-right:none; border-bottom:1px solid #e8ecf4; }
-      .sidebar-lists { flex:1; overflow-x:auto; overflow-y:hidden; display:flex; padding:6px; }
-      .list-item { flex-shrink:0; }
-      .sidebar-header, .sidebar-stats, .sidebar-footer { display:none; }
-      #mobileAddBar { left:0; }
+      /* addWrap: tab bar üstünde, tam genişlik */
+      #addWrap { bottom:56px !important; left:0 !important; }
+      /* main alanı tab bar + addWrap için boşluk bırak */
+      #mainBody { padding-bottom:130px; }
+      .board-area, .weekly-area { margin-bottom:56px; }
+      /* main-header'ı sade tut */
+      .main-header { padding:12px 14px 8px; border-bottom:1px solid var(--border2); }
+    }
+
+    /* ── Mobil alt tab bar ── */
+    #mobTabBar {
+      display:none;
+      position:fixed; bottom:0; left:0; right:0; height:56px;
+      background:var(--surface); border-top:1px solid var(--border);
+      z-index:200; align-items:stretch;
+      padding-bottom:max(0px, env(safe-area-inset-bottom));
+    }
+    @media (max-width:480px) { #mobTabBar { display:flex; } }
+    .mob-tab {
+      flex:1; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; gap:2px; border:none; background:transparent;
+      color:var(--text3); font-size:.6rem; font-weight:500;
+      font-family:inherit; cursor:pointer; transition:color .15s;
+      padding:0; white-space:nowrap;
+    }
+    .mob-tab .mi { font-size:22px; transition:color .15s; }
+    .mob-tab.active { color:var(--accent); }
+    .mob-tab.active .mi { color:var(--accent); }
+
+    /* ── Mobil liste drawer ── */
+    #mobDrawerOverlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,.4);
+      z-index:350; backdrop-filter:blur(1px);
+    }
+    #mobDrawerOverlay.open { display:block; }
+    #mobDrawer {
+      position:fixed; bottom:56px; left:0; right:0;
+      background:var(--surface); border-radius:18px 18px 0 0;
+      box-shadow:0 -8px 30px rgba(0,0,0,.15);
+      z-index:351; transform:translateY(100%);
+      transition:transform .3s cubic-bezier(.4,0,.2,1);
+      max-height:70vh; display:flex; flex-direction:column;
+    }
+    #mobDrawer.open { transform:translateY(0); }
+    .mob-drawer-hdr {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:16px 18px 12px; border-bottom:1px solid var(--border2); flex-shrink:0;
+    }
+    .mob-drawer-hdr span { font-size:.95rem; font-weight:700; color:var(--text); }
+    .mob-drawer-hdr button { background:none; border:none; color:var(--text3); cursor:pointer; padding:4px; }
+    #mobDrawerLists { overflow-y:auto; flex:1; padding:8px 0; }
+    .mob-drawer-item {
+      display:flex; align-items:center; gap:10px;
+      padding:11px 18px; font-size:.9rem; color:var(--text2);
+      cursor:pointer; transition:background .12s;
+    }
+    .mob-drawer-item:hover { background:var(--surface2); }
+    .mob-drawer-item.active { color:var(--accent); background:var(--accent-bg); font-weight:600; }
+    .mob-drawer-count {
+      margin-left:auto; font-size:.72rem; color:var(--text3);
+      background:var(--surface2); padding:1px 7px; border-radius:9px;
+    }
+    .mob-drawer-item.active .mob-drawer-count { background:var(--accent-bg); color:var(--accent); }
+    .mob-drawer-footer {
+      padding:10px 18px 14px; border-top:1px solid var(--border2); flex-shrink:0;
+    }
+    .mob-drawer-new-btn {
+      display:flex; align-items:center; gap:6px; width:100%;
+      padding:10px 0; border:none; background:transparent;
+      color:var(--accent); font-size:.88rem; font-weight:600;
+      font-family:inherit; cursor:pointer;
+    }
+    .mob-drawer-new-inp {
+      display:flex; gap:8px; margin-top:6px;
+    }
+    .mob-drawer-new-inp input {
+      flex:1; padding:8px 12px; border:1.5px solid var(--input-border);
+      border-radius:9px; font-size:.87rem; font-family:inherit;
+      background:var(--input-bg); color:var(--text); outline:none;
+    }
+    .mob-drawer-new-inp input:focus { border-color:var(--accent); }
+    .mob-drawer-new-inp button {
+      padding:8px 14px; border:none; border-radius:9px;
+      background:var(--accent); color:#fff; font-size:.84rem;
+      font-weight:600; font-family:inherit; cursor:pointer;
     }
 
     /* ── Settings Modal ── */
@@ -2428,6 +2510,59 @@ function initListDrag(item, listId) {
 }
 
 /* ── Select list ── */
+/* ── Mobile Drawer ── */
+function toggleMobDrawer() {
+  const overlay = document.getElementById('mobDrawerOverlay');
+  const drawer  = document.getElementById('mobDrawer');
+  const isOpen  = drawer.classList.contains('open');
+  if (isOpen) { closeMobDrawer(); } else { renderMobDrawer(); overlay.classList.add('open'); drawer.classList.add('open'); }
+}
+function closeMobDrawer() {
+  document.getElementById('mobDrawerOverlay').classList.remove('open');
+  document.getElementById('mobDrawer').classList.remove('open');
+  document.getElementById('mobDrawerNewInp').style.display = 'none';
+  document.getElementById('mobDrawerNewName').value = '';
+}
+function renderMobDrawer() {
+  const container = document.getElementById('mobDrawerLists');
+  container.innerHTML = '';
+  lists.forEach(l => {
+    const count = tasks.filter(t=>!t.parent_id && t.category===l.id && !t.done).length;
+    const item  = document.createElement('div');
+    item.className = 'mob-drawer-item' + (l.id===activeListId ? ' active' : '');
+    item.innerHTML = `<span style="flex:1">${l.name}</span>${count>0?`<span class="mob-drawer-count">${count}</span>`:''}`;
+    item.onclick = () => { selectList(l.id); closeMobDrawer(); };
+    container.appendChild(item);
+  });
+}
+function toggleMobDrawerNew() {
+  const inp = document.getElementById('mobDrawerNewInp');
+  const isShown = inp.style.display !== 'none';
+  inp.style.display = isShown ? 'none' : 'flex';
+  if (!isShown) setTimeout(()=>document.getElementById('mobDrawerNewName').focus(), 50);
+}
+async function saveMobDrawerList() {
+  const inp  = document.getElementById('mobDrawerNewName');
+  const name = inp.value.trim();
+  if (!name) return;
+  inp.value = '';
+  document.getElementById('mobDrawerNewInp').style.display = 'none';
+  try {
+    const [l] = await db('/categories',{method:'POST',body:JSON.stringify({name,sort_order:Date.now()})});
+    lists.push(l); renderMobDrawer(); renderSidebar();
+  } catch(e) { alert(e.message); }
+}
+function updateMobTabBar() {
+  const isBoard   = activeListId === BOARD_LIST_ID;
+  const isWeekly  = activeListId === WEEKLY_LIST_ID;
+  const isStarred = activeListId === STARRED_LIST_ID;
+  const isCustom  = !isBoard && !isWeekly && !isStarred;
+  document.getElementById('mobTabListeler').classList.toggle('active', isCustom);
+  document.getElementById('mobTabTumu').classList.toggle('active', isBoard);
+  document.getElementById('mobTabHaftalik').classList.toggle('active', isWeekly);
+  document.getElementById('mobTabYildizli').classList.toggle('active', isStarred);
+}
+
 function selectList(id) {
   activeListId = id;
   doneOpen     = false;
@@ -2440,6 +2575,7 @@ function selectList(id) {
   document.getElementById('boardArea').style.display    = isBoard ? 'flex' : 'none';
   document.getElementById('boardNav').style.display     = isBoard ? '' : 'none';
   document.getElementById('weeklyArea').style.display   = isWeekly ? 'flex' : 'none';
+  updateMobTabBar();
   renderSidebar();
   render();
 }
@@ -4182,5 +4318,44 @@ window.onunhandledrejection = (e) => {
   showAuth();
 })();
 </script>
+
+<!-- Mobile Tab Bar -->
+<div id="mobTabBar">
+  <button class="mob-tab" id="mobTabListeler" onclick="toggleMobDrawer()">
+    <span class="mi">menu</span>
+    <span>Listeler</span>
+  </button>
+  <button class="mob-tab" id="mobTabTumu" onclick="selectList(BOARD_LIST_ID)">
+    <span class="mi">view_kanban</span>
+    <span>Tümü</span>
+  </button>
+  <button class="mob-tab" id="mobTabHaftalik" onclick="selectList(WEEKLY_LIST_ID)">
+    <span class="mi">calendar_view_week</span>
+    <span>Haftalık</span>
+  </button>
+  <button class="mob-tab" id="mobTabYildizli" onclick="selectList(STARRED_LIST_ID)">
+    <span class="mi">star</span>
+    <span>Yıldızlı</span>
+  </button>
+</div>
+
+<!-- Mobile Drawer -->
+<div id="mobDrawerOverlay" onclick="closeMobDrawer()"></div>
+<div id="mobDrawer">
+  <div class="mob-drawer-hdr">
+    <span>Listeler</span>
+    <button onclick="closeMobDrawer()"><span class="mi" style="font-size:20px">close</span></button>
+  </div>
+  <div id="mobDrawerLists"></div>
+  <div class="mob-drawer-footer">
+    <button class="mob-drawer-new-btn" id="mobDrawerNewBtn" onclick="toggleMobDrawerNew()">
+      <span class="mi" style="font-size:18px">add</span><span>Yeni Liste</span>
+    </button>
+    <div class="mob-drawer-new-inp" id="mobDrawerNewInp" style="display:none">
+      <input type="text" id="mobDrawerNewName" placeholder="Liste adı..." onkeydown="if(event.key==='Enter')saveMobDrawerList()">
+      <button onclick="saveMobDrawerList()">Ekle</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
