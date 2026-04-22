@@ -2245,6 +2245,7 @@ async function initApp() {
   await loadLists();
   await loadTasks();
   const _savedList = localStorage.getItem('activeListId');
+  console.log('[initApp] localStorage activeListId:', _savedList);
   selectList(_savedList || BOARD_LIST_ID);
   if (appSettings.notifEnabled) setTimeout(scheduleReminders, 2000);
   connectRealtime();
@@ -2885,6 +2886,7 @@ function updateMobTabBar() {
 }
 
 function selectList(id) {
+  console.log('[selectList] çağrıldı, id:', id, '| stack:', new Error().stack.split('\n').slice(1,3).join(' '));
   const isSpecial = id === BOARD_LIST_ID || id === WEEKLY_LIST_ID || id === STARRED_LIST_ID;
   if (!isSpecial && !lists.some(l => String(l.id) === String(id))) id = BOARD_LIST_ID;
   activeListId = id;
