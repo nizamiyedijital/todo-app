@@ -1203,8 +1203,6 @@
       .mob-sub-chk.done::after { content:'✓'; color:#fff; font-size:.55rem; font-weight:700; }
       .mob-sub-txt { flex:1; font-size:.86rem; color:var(--text2); }
       .mob-sub-txt.done { text-decoration:line-through; color:var(--text4); }
-      .mob-sub-del { background:none; border:none; color:var(--text4); cursor:pointer; padding:2px 4px; border-radius:4px; }
-      .mob-sub-del:hover { color:#e53e3e; }
       .mob-sub-add-row { display:flex; align-items:center; gap:8px; padding:8px 0 4px; }
       .mob-sub-add-btn {
         font-size:.82rem; color:var(--accent); background:none; border:none;
@@ -1239,20 +1237,6 @@
       .mob-prio-row { display:flex; gap:4px; margin-left:auto; }
 
       /* Footer */
-      .mob-footer {
-        display:flex; gap:10px; padding:10px 16px 0; border-top:1px solid var(--border2); flex-shrink:0;
-      }
-      .mob-btn-cancel {
-        flex:1; padding:11px; border:1.5px solid var(--border); border-radius:12px;
-        background:transparent; color:var(--text2); font-size:.88rem; cursor:pointer;
-        font-family:inherit; transition:background .15s;
-      }
-      .mob-btn-cancel:hover { background:var(--surface2); }
-      .mob-btn-save {
-        flex:2; padding:11px; border:none; border-radius:12px;
-        background:var(--accent); color:#fff; font-size:.88rem;
-        font-weight:600; cursor:pointer; font-family:inherit;
-      }
       /* Disable desktop-only styles on mobile */
       .task-body:hover .task-title-preview { text-decoration:none; cursor:default; }
       .task-card:hover .task-sub-section { display:none; }
@@ -2061,7 +2045,7 @@
   </div>
 </div>
 
-<div id="mobTaskSheetOverlay" onclick="closeMobTaskSheet()"></div>
+<div id="mobTaskSheetOverlay" onclick="saveMobTaskSheet()"></div>
 <div id="mobTaskSheet">
   <div class="mob-handle"></div>
   <div class="mob-task-sheet-top">
@@ -2094,10 +2078,6 @@
       <button id="mobTaskDueBtn" title="Bitiş tarihi seç"><span class="mi s16">calendar_today</span><span id="mobTaskDueLabel"></span></button>
       <div class="mob-prio-row" id="mobTaskPrioRow"></div>
     </div>
-  </div>
-  <div class="mob-footer">
-    <button class="mob-btn-cancel" onclick="closeMobTaskSheet()">İptal</button>
-    <button class="mob-btn-save" onclick="saveMobTaskSheet()">Kaydet</button>
   </div>
 </div>
 
@@ -3150,7 +3130,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   document.getElementById('mobTaskTitleInput').addEventListener('keydown', e => {
     if (e.key==='Enter')  { e.preventDefault(); saveMobTaskSheet(); }
-    if (e.key==='Escape') closeMobTaskSheet();
+    if (e.key==='Escape') saveMobTaskSheet();
   });
   document.getElementById('mobSubInp').addEventListener('keydown', e => {
     if (e.key==='Enter')  { e.preventDefault(); addMobSub(); }
@@ -3416,8 +3396,16 @@ function buildTaskCard(task, isDone) {
       inp.style.cssText = 'flex:1;font-size:.77rem;border:none;border-bottom:1.5px solid #4f6ef7;outline:none;background:transparent;font-family:inherit;color:inherit;padding:0;white-space:nowrap;overflow-x:hidden;';
       t.replaceWith(inp);
       inp.focus();
-      const finish = () => {
-        const v = (inp.innerText || '').trim() || s.text;
+      let done = false;
+      const finish = async () => {
+        if (done) return; done = true;
+        const v = (inp.innerText || '').trim();
+        if (!v) {
+          await deleteTask(s.id);
+          const card = r.closest('.task-card');
+          if (card) { card.classList.remove('detail-open'); card.querySelector('.task-detail')?.classList.remove('open'); }
+          return;
+        }
         s.text = v; scheduleUpdate(s, {text: v});
         t.textContent = v;
         inp.replaceWith(t);
@@ -3426,13 +3414,10 @@ function buildTaskCard(task, isDone) {
       inp.addEventListener('keydown', e2 => {
         e2.stopPropagation();
         if (e2.key === 'Enter') { e2.preventDefault(); inp.blur(); }
-        if (e2.key === 'Escape') { inp.innerText = s.text; inp.blur(); }
+        if (e2.key === 'Escape') { inp.innerText = s.text; done = true; inp.replaceWith(t); }
       });
     });
-    const d = document.createElement('button');
-    d.className = 'sub-i-del'; d.innerHTML = mi('close', 14);
-    d.onclick = e => { e.stopPropagation(); deleteTask(s.id); };
-    r.appendChild(c); r.appendChild(t); r.appendChild(d);
+    r.appendChild(c); r.appendChild(t);
     subSect.appendChild(r);
   });
   if (!isDone) {
@@ -4352,13 +4337,37 @@ function renderMobSubsList() {
     const chk = document.createElement('span');
     chk.className = 'mob-sub-chk' + (s.done ? ' done' : '');
     chk.onclick = async () => { await toggleTask(s); renderMobSubsList(); };
-    const txt = document.createElement('span');
-    txt.className = 'mob-sub-txt' + (s.done ? ' done' : '');
-    txt.textContent = s.text;
-    const del = document.createElement('button');
-    del.className = 'mob-sub-del'; del.innerHTML = mi('close', 14);
-    del.onclick = async () => { await deleteTask(s.id); renderMobSubsList(); };
-    row.appendChild(chk); row.appendChild(txt); row.appendChild(del);
+    if (s.done) {
+      const txt = document.createElement('span');
+      txt.className = 'mob-sub-txt done';
+      txt.textContent = s.text;
+      row.appendChild(chk); row.appendChild(txt);
+    } else {
+      const txt = document.createElement('div');
+      txt.className = 'mob-sub-txt';
+      txt.contentEditable = 'true';
+      txt.innerText = s.text;
+      txt.style.cssText = 'outline:none;white-space:nowrap;overflow-x:hidden;';
+      let done = false;
+      const finish = async () => {
+        if (done) return; done = true;
+        const v = (txt.innerText || '').trim();
+        if (!v) {
+          await deleteTask(s.id);
+          saveMobTaskSheet();
+          return;
+        }
+        if (v !== s.text) { s.text = v; scheduleUpdate(s, {text: v}); }
+        txt.innerText = v;
+      };
+      txt.addEventListener('blur', finish);
+      txt.addEventListener('keydown', e => {
+        e.stopPropagation();
+        if (e.key === 'Enter') { e.preventDefault(); txt.blur(); }
+        if (e.key === 'Escape') { txt.innerText = s.text; done = true; txt.blur(); }
+      });
+      row.appendChild(chk); row.appendChild(txt);
+    }
     list.appendChild(row);
   });
 }
