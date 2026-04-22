@@ -60,7 +60,7 @@
     body.theme-dark .task-card { background:var(--card-bg); border-bottom-color:var(--border2); }
     body.theme-dark .task-card:hover { box-shadow:0 2px 8px rgba(0,0,0,.35); }
     body.theme-dark .task-title-preview { color:var(--text); }
-    body.theme-dark .task-title { color:var(--text); background:var(--card-bg); }
+    body.theme-dark .task-title { color:var(--text); background:transparent; }
     body.theme-dark .task-notes-preview { color:var(--text3); }
     body.theme-dark .tib-chip .mi { color:var(--text3); }
     body.theme-dark .tib-lbl { color:var(--text3); }
@@ -382,27 +382,24 @@
     .task-title {
       font-size:.83rem; color:#1a1a2e; border:none; outline:none;
       background:transparent; font-family:inherit; width:100%; padding:0;
-      line-height:1.3; display:none;
+      line-height:1.4; display:none; resize:none; overflow:hidden;
+      word-break:break-word; border-bottom:1.5px solid transparent;
+      transition:border-color .15s;
     }
+    .task-title:focus { border-bottom-color:#4f6ef7; }
     .task-title-preview {
       font-size:.83rem; color:#1a1a2e; line-height:1.4;
       word-break:break-word; overflow-wrap:break-word;
       display:-webkit-box; -webkit-box-orient:vertical;
       -webkit-line-clamp:2; overflow:hidden;
     }
-    .task-card.detail-open .task-title-preview {
-      display:block; overflow:visible; -webkit-line-clamp:unset;
-    }
+    .task-card.detail-open .task-title-preview { display:none; }
+    .task-card.detail-open .task-title { display:block; }
     .task-done .task-title-preview { text-decoration:line-through; color:#bbb; }
     .task-done .task-title { text-decoration:line-through; color:#bbb; }
-    .task-title-preview { cursor:default; }
-    .task-body:hover .task-title-preview { cursor:text; text-decoration:underline; text-decoration-style:dotted; text-decoration-color:#c0c8e0; }
+    .task-title-preview { cursor:pointer; }
+    .task-body:hover .task-title-preview { text-decoration:underline; text-decoration-style:dotted; text-decoration-color:#c0c8e0; }
     .task-done .task-body:hover .task-title-preview { cursor:default; text-decoration:line-through; }
-    .task-card.editing-title .task-title-preview { display:none !important; }
-    .task-card.editing-title .task-title {
-      display:block !important; border-bottom:1.5px solid #4f6ef7;
-      padding:1px 0; border-radius:0; background:transparent;
-    }
     /* ── Task info bar ── */
     .task-info-bar {
       display:flex; align-items:center; gap:6px; margin-top:4px;
@@ -598,7 +595,7 @@
     .sub-i-chk:hover { border-color:#4f6ef7; }
     .sub-i-chk.done { background:#4f6ef7; border-color:#4f6ef7; }
     .sub-i-chk.done::after { content:'✓'; color:#fff; font-size:.48rem; font-weight:700; }
-    .sub-i-txt { font-size:.77rem; color:#555; flex:1; line-height:1.3; }
+    .sub-i-txt { font-size:.77rem; color:#555; flex:1; line-height:1.3; cursor:text; }
     .sub-i-txt.done { text-decoration:line-through; color:#c0c4d0; }
     .sub-i-del {
       background:none; border:none; color:#ccc; font-size:.68rem;
@@ -2659,8 +2656,8 @@ function restoreOpenDetails() {
     if (card) {
       card.querySelector('.task-detail')?.classList.add('open');
       card.classList.add('detail-open');
-      const prev = card.querySelector('.task-title-preview');
-      if (prev && prev.dataset.fullText) prev.textContent = prev.dataset.fullText;
+      const ta = card.querySelector('.task-title');
+      if (ta) { ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
     }
   });
   if (pendingSubtaskFocus) {
@@ -2735,42 +2732,30 @@ function buildTaskCard(task, isDone) {
   titlePreview.dataset.shortText = task.text.length > 71 ? task.text.slice(0,71) + '…' : task.text;
   titlePreview.textContent = titlePreview.dataset.shortText;
 
-  // 1. tıklama → detail açılır (row handler devralır)
-  // 2. tıklama (detail açıkken) → inline edit
-  titlePreview.addEventListener('click', e => {
-    if (isDone || window.innerWidth <= 600) return;
-    if (card.classList.contains('detail-open')) {
-      e.stopPropagation();
-      card.classList.add('editing-title');
-      titleInput.value = task.text;
-      setTimeout(() => { titleInput.focus(); titleInput.select(); }, 0);
-    }
-  });
-
-  const titleInput = document.createElement('input');
+  const titleInput = document.createElement('textarea');
   titleInput.className = 'task-title';
-  titleInput.type      = 'text';
   titleInput.value     = task.text;
   titleInput.maxLength = 1071;
+  titleInput.rows      = 1;
   if (isDone) titleInput.disabled = true;
-  titleInput.addEventListener('change', ()=>{
-    const v = titleInput.value.trim() || task.text;
-    titleInput.value = v;
-    scheduleUpdate(task,{text:v});
+  const autoGrow = () => {
+    titleInput.style.height = 'auto';
+    titleInput.style.height = titleInput.scrollHeight + 'px';
+  };
+  titleInput.addEventListener('input', () => {
+    autoGrow();
+    const v = titleInput.value || task.text;
+    scheduleUpdate(task, {text: v});
     task.text = v;
     titlePreview.dataset.fullText  = v;
-    titlePreview.dataset.shortText = v.length>71 ? v.slice(0,71)+'…' : v;
-    titlePreview.textContent = card.classList.contains('detail-open') ? v : titlePreview.dataset.shortText;
+    titlePreview.dataset.shortText = v.length > 71 ? v.slice(0,71)+'…' : v;
   });
-  titleInput.addEventListener('blur', ()=>{
-    card.classList.remove('editing-title');
-  });
-  titleInput.addEventListener('keydown', e=>{
-    if (e.key==='Enter') { e.preventDefault(); titleInput.blur(); }
-    if (e.key==='Escape') {
+  titleInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); titleInput.blur(); }
+    if (e.key === 'Escape') {
       e.stopPropagation();
       titleInput.value = task.text;
-      card.classList.remove('editing-title');
+      autoGrow();
       titleInput.blur();
     }
   });
@@ -2863,6 +2848,27 @@ function buildTaskCard(task, isDone) {
     const t = document.createElement('span');
     t.className = 'sub-i-txt' + (s.done ? ' done' : '');
     t.textContent = s.text;
+    if (!s.done) t.addEventListener('click', e => {
+      e.stopPropagation();
+      const inp = document.createElement('input');
+      inp.type = 'text'; inp.value = s.text;
+      inp.className = 'sub-i-edit-inp';
+      inp.style.cssText = 'flex:1;font-size:.77rem;border:none;border-bottom:1.5px solid #4f6ef7;outline:none;background:transparent;font-family:inherit;color:inherit;padding:0;';
+      t.replaceWith(inp);
+      inp.focus(); inp.select();
+      const finish = () => {
+        const v = inp.value.trim() || s.text;
+        s.text = v; scheduleUpdate(s, {text: v});
+        t.textContent = v;
+        inp.replaceWith(t);
+      };
+      inp.addEventListener('blur', finish);
+      inp.addEventListener('keydown', e2 => {
+        e2.stopPropagation();
+        if (e2.key === 'Enter') inp.blur();
+        if (e2.key === 'Escape') { inp.value = s.text; inp.blur(); }
+      });
+    });
     const d = document.createElement('button');
     d.className = 'sub-i-del'; d.innerHTML = mi('close', 14);
     d.onclick = e => { e.stopPropagation(); deleteTask(s.id); };
@@ -2995,7 +3001,9 @@ function buildTaskCard(task, isDone) {
       card.classList.add('detail-open');
       openDetailIds.add(task.id);
       titlePreview.textContent = task.text;
+      titleInput.value = task.text;
       notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px';
+      if (!isDone) setTimeout(() => { autoGrow(); titleInput.focus(); }, 0);
     }
   });
 
