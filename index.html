@@ -1271,6 +1271,9 @@
       }
     }
     @media (max-width: 480px) {
+      /* iOS/Android otomatik zoom önleme: tüm input/textarea/select min 16px */
+      input, textarea, select { font-size: 16px !important; }
+
       /* Sidebar tamamen gizle */
       .sidebar { display:none !important; }
       .app-layout { flex-direction:column; }
