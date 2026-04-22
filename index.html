@@ -2146,6 +2146,33 @@ function saveSession(s) {
   localStorage.setItem('sb_session', JSON.stringify(s));
 }
 function clearSession() { session=null; localStorage.removeItem('sb_session'); }
+
+async function refreshSession() {
+  if (!session?.refresh_token) return false;
+  try {
+    const r = await fetch(`${SB}/auth/v1/token?grant_type=refresh_token`, {
+      method:'POST',
+      headers:{ apikey:ANON, 'Content-Type':'application/json' },
+      body: JSON.stringify({ refresh_token: session.refresh_token })
+    });
+    if (!r.ok) return false;
+    saveSession(await r.json());
+    return true;
+  } catch { return false; }
+}
+
+function scheduleTokenRefresh() {
+  if (!session?.access_token) return;
+  const { exp } = jwtPayload(session.access_token);
+  if (!exp) return;
+  const msUntilExpiry = exp * 1000 - Date.now();
+  const refreshIn = Math.max(msUntilExpiry - 5 * 60 * 1000, 10000); // 5 dk önce, en az 10 sn
+  setTimeout(async () => {
+    const ok = await refreshSession();
+    if (ok) scheduleTokenRefresh();
+    else { clearSession(); showAuth(); }
+  }, refreshIn);
+}
 function authHdr(x={}) {
   return { apikey:ANON, Authorization:`Bearer ${session.access_token}`,
            'Content-Type':'application/json', Prefer:'return=representation', ...x };
@@ -2212,6 +2239,7 @@ async function initApp() {
   document.getElementById('authBox').style.display='none';
   document.getElementById('appBox').style.display='block';
   loadSettings();
+  scheduleTokenRefresh();
   await loadLists();
   await loadTasks();
   if (!activeListId) selectList(BOARD_LIST_ID);
@@ -4672,6 +4700,21 @@ window.onunhandledrejection = (e) => {
     if (stored) {
       const parsed = JSON.parse(stored);
       if (isTokenExpired(parsed.access_token)) {
+        if (parsed.refresh_token) {
+          try {
+            const r = await fetch(`${SB}/auth/v1/token?grant_type=refresh_token`, {
+              method:'POST',
+              headers:{ apikey:ANON, 'Content-Type':'application/json' },
+              body: JSON.stringify({ refresh_token: parsed.refresh_token })
+            });
+            if (r.ok) {
+              const newSession = await r.json();
+              saveSession(newSession);
+              await initApp();
+              return;
+            }
+          } catch {}
+        }
         clearSession();
       } else {
         saveSession(parsed);
