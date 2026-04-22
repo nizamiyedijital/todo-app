@@ -721,11 +721,13 @@
     .sub-i-add-btn:hover { color:#4f6ef7; }
     .sub-i-inp-row { display:none; flex:1; align-items:center; gap:5px; }
     .sub-i-inp-row.open { display:flex; }
-    .sub-i-inp-row input {
+    .sub-i-inp-row [contenteditable], .sub-i-inp-row input {
       flex:1; font-size:.78rem; border:none; border-bottom:1px solid #d0d5e8;
       outline:none; background:transparent; padding:2px 0; font-family:inherit; color:#1a1a2e;
+      white-space:nowrap; overflow-x:hidden; min-width:0;
     }
-    .sub-i-inp-row input:focus { border-bottom-color:#4f6ef7; }
+    .sub-i-inp-row [contenteditable]:focus, .sub-i-inp-row input:focus { border-bottom-color:#4f6ef7; }
+    .sub-ce-inp:empty::before { content:attr(data-placeholder); color:#bbb; pointer-events:none; }
 
     /* Completed */
     .done-section { margin-top:10px; }
@@ -1156,18 +1158,20 @@
         width:100%; font-size:1.05rem; font-weight:600; border:none; outline:none;
         padding:4px 0 14px; border-bottom:1.5px solid var(--border2);
         font-family:inherit; color:var(--text); background:transparent;
+        white-space:nowrap; overflow-x:hidden; display:block;
       }
-      #mobTaskTitleInput::placeholder { color:var(--text4); font-weight:400; }
+      #mobTaskTitleInput:empty::before { content:attr(data-placeholder); color:var(--text4); font-weight:400; pointer-events:none; }
 
       /* Notes */
       #mobTaskNotesInput {
         width:100%; font-size:.88rem; border:none; outline:none;
         padding:12px 0 8px; font-family:inherit; color:var(--text2);
-        resize:none; min-height:120px; max-height:180px;
+        min-height:120px; max-height:180px;
         overflow-y:auto; background:transparent;
         border-bottom:1px solid var(--border2);
+        white-space:pre-wrap; word-break:break-word; display:block;
       }
-      #mobTaskNotesInput::placeholder { color:var(--text4); }
+      #mobTaskNotesInput:empty::before { content:attr(data-placeholder); color:var(--text4); pointer-events:none; }
 
       /* Link */
       #mobTaskLinkInput {
@@ -1206,10 +1210,12 @@
         cursor:pointer; font-family:inherit; padding:0; font-weight:500;
       }
       .mob-sub-inp-wrap { display:flex; flex:1; align-items:center; gap:8px; }
-      .mob-sub-inp-wrap input {
+      .mob-sub-inp-wrap [contenteditable], .mob-sub-inp-wrap input {
         flex:1; font-size:.87rem; border:none; border-bottom:1.5px solid var(--accent);
         outline:none; background:transparent; padding:3px 0; font-family:inherit; color:var(--text);
+        white-space:nowrap; overflow-x:hidden; min-width:0;
       }
+      #mobSubInp:empty::before { content:attr(data-placeholder); color:var(--text4); pointer-events:none; }
       .mob-sub-ok {
         width:28px; height:28px; background:var(--accent); color:#fff;
         border:none; border-radius:50%; font-size:1.1rem;
@@ -2062,8 +2068,8 @@
     <button class="mob-task-del-btn" onclick="deleteMobTaskSheet()" title="Görevi sil"><span class="mi s20">delete</span></button>
   </div>
   <div id="mobSheetScroll">
-    <input id="mobTaskTitleInput" type="search" placeholder="Görev başlığı..." autocomplete="off" autocapitalize="sentences" data-form-type="other" data-lpignore="true" maxlength="1071">
-    <textarea id="mobTaskNotesInput" placeholder="Notlar ekle..." rows="6" autocomplete="new-password" autocorrect="on" spellcheck="true" data-form-type="other" data-lpignore="true"></textarea>
+    <div id="mobTaskTitleInput" contenteditable="true" role="textbox" data-placeholder="Görev başlığı..." spellcheck="true" autocapitalize="sentences"></div>
+    <div id="mobTaskNotesInput" contenteditable="true" role="textbox" data-placeholder="Notlar ekle..." spellcheck="true" autocapitalize="sentences"></div>
     <div id="mobLinkWrap">
       <input id="mobTaskLinkInput" type="search" placeholder="Bağlantı ekle..." autocomplete="off" data-form-type="other" data-lpignore="true">
     </div>
@@ -2071,7 +2077,7 @@
     <div class="mob-sub-add-row">
       <button class="mob-sub-add-btn" onclick="openMobSubInp()">+ Alt görev ekle</button>
       <div class="mob-sub-inp-wrap" id="mobSubInpWrap" style="display:none">
-        <input type="search" id="mobSubInp" placeholder="Alt görev..." autocomplete="off" data-form-type="other" data-lpignore="true" maxlength="200">
+        <div id="mobSubInp" contenteditable="true" role="textbox" data-placeholder="Alt görev..." spellcheck="true" autocapitalize="sentences"></div>
         <button class="mob-sub-ok" onclick="addMobSub()">+</button>
       </div>
     </div>
@@ -3142,11 +3148,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
 
   document.getElementById('mobTaskTitleInput').addEventListener('keydown', e => {
-    if (e.key==='Enter')  saveMobTaskSheet();
+    if (e.key==='Enter')  { e.preventDefault(); saveMobTaskSheet(); }
     if (e.key==='Escape') closeMobTaskSheet();
   });
   document.getElementById('mobSubInp').addEventListener('keydown', e => {
-    if (e.key==='Enter')  addMobSub();
+    if (e.key==='Enter')  { e.preventDefault(); addMobSub(); }
     if (e.key==='Escape') closeMobSubInp();
   });
 
@@ -3402,14 +3408,15 @@ function buildTaskCard(task, isDone) {
     t.textContent = s.text;
     if (!s.done) t.addEventListener('click', e => {
       e.stopPropagation();
-      const inp = document.createElement('input');
-      inp.type = 'text'; inp.value = s.text;
+      const inp = document.createElement('div');
+      inp.contentEditable = 'true';
+      inp.innerText = s.text;
       inp.className = 'sub-i-edit-inp';
-      inp.style.cssText = 'flex:1;font-size:.77rem;border:none;border-bottom:1.5px solid #4f6ef7;outline:none;background:transparent;font-family:inherit;color:inherit;padding:0;';
+      inp.style.cssText = 'flex:1;font-size:.77rem;border:none;border-bottom:1.5px solid #4f6ef7;outline:none;background:transparent;font-family:inherit;color:inherit;padding:0;white-space:nowrap;overflow-x:hidden;';
       t.replaceWith(inp);
-      inp.focus(); inp.select();
+      inp.focus();
       const finish = () => {
-        const v = inp.value.trim() || s.text;
+        const v = (inp.innerText || '').trim() || s.text;
         s.text = v; scheduleUpdate(s, {text: v});
         t.textContent = v;
         inp.replaceWith(t);
@@ -3417,8 +3424,8 @@ function buildTaskCard(task, isDone) {
       inp.addEventListener('blur', finish);
       inp.addEventListener('keydown', e2 => {
         e2.stopPropagation();
-        if (e2.key === 'Enter') inp.blur();
-        if (e2.key === 'Escape') { inp.value = s.text; inp.blur(); }
+        if (e2.key === 'Enter') { e2.preventDefault(); inp.blur(); }
+        if (e2.key === 'Escape') { inp.innerText = s.text; inp.blur(); }
       });
     });
     const d = document.createElement('button');
@@ -3432,17 +3439,20 @@ function buildTaskCard(task, isDone) {
     const addBtn = document.createElement('button');
     addBtn.className = 'sub-i-add-btn'; addBtn.textContent = '+ alt görev';
     const inpRow = document.createElement('div'); inpRow.className = 'sub-i-inp-row';
-    const inp = document.createElement('input');
-    inp.type = 'text'; inp.placeholder = 'Alt görev...'; inp.maxLength = 200;
+    const inp = document.createElement('div');
+    inp.contentEditable = 'true';
+    inp.dataset.placeholder = 'Alt görev...';
+    inp.className = 'sub-ce-inp';
     inp.addEventListener('click', e => e.stopPropagation());
     inp.addEventListener('keydown', e => {
       e.stopPropagation();
       if (e.key === 'Enter') {
-        if (!inp.value.trim()) { inpRow.classList.remove('open'); addBtn.style.display = ''; return; }
+        e.preventDefault();
+        if (!(inp.innerText || '').trim()) { inpRow.classList.remove('open'); addBtn.style.display = ''; return; }
         pendingSubtaskFocus = task.id;
-        addSubtask(task.id, inp.value.trim());
+        addSubtask(task.id, (inp.innerText || '').trim());
       }
-      if (e.key === 'Escape') { inp.value = ''; inpRow.classList.remove('open'); addBtn.style.display = ''; }
+      if (e.key === 'Escape') { inp.innerText = ''; inpRow.classList.remove('open'); addBtn.style.display = ''; }
     });
     addBtn.onclick = e => {
       e.stopPropagation();
@@ -3574,10 +3584,13 @@ function buildSubRow(sub,container) {
   chk.className=`sub-check${sub.done?' checked':''}`;
   chk.title=sub.done ? 'Tamamlandıyı geri al' : 'Tamamlandı yap';
   chk.onclick=()=>toggleTask(sub);
-  const txt=document.createElement('input');
-  txt.type='text'; txt.className=`sub-text${sub.done?' done-text':''}`;
-  txt.value=sub.text; if(sub.done)txt.disabled=true;
-  txt.addEventListener('change',()=>scheduleUpdate(sub,{text:txt.value}));
+  const txt=document.createElement('div');
+  txt.contentEditable = sub.done ? 'false' : 'true';
+  txt.className=`sub-text${sub.done?' done-text':''}`;
+  txt.style.cssText='flex:1;outline:none;white-space:nowrap;overflow-x:hidden;font-size:inherit;font-family:inherit;color:inherit;background:transparent;border:none;padding:0;';
+  txt.innerText=sub.text;
+  txt.addEventListener('blur',()=>{ const v=(txt.innerText||'').trim(); if(v&&v!==sub.text){sub.text=v;scheduleUpdate(sub,{text:v});} else if(!v){txt.innerText=sub.text;} });
+  txt.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();txt.blur();} });
   const del=document.createElement('button');
   del.className='btn-del-sub'; del.title='Alt görevi sil'; del.innerHTML=mi('close',14); del.onclick=()=>deleteTask(sub.id);
   row.appendChild(chk); row.appendChild(txt); row.appendChild(del);
@@ -4276,8 +4289,8 @@ function openMobTaskSheet(task) {
   mobTaskSheetDue  = task.due_at   || '';
   mobTaskSheetPrio = task.priority || null;
   mobTaskSheetCat  = task.category || activeListId;
-  document.getElementById('mobTaskTitleInput').value = task.text;
-  document.getElementById('mobTaskNotesInput').value = task.notes || '';
+  document.getElementById('mobTaskTitleInput').innerText = task.text;
+  document.getElementById('mobTaskNotesInput').innerText = task.notes || '';
   const _mobLinkInp = document.getElementById('mobTaskLinkInput');
   _mobLinkInp.value = task.link || '';
   if (!document.getElementById('mobLinkWrap')._linkSetup) {
@@ -4356,7 +4369,7 @@ function openMobSubInp() {
 }
 
 function closeMobSubInp() {
-  document.getElementById('mobSubInp').value = '';
+  document.getElementById('mobSubInp').innerText = '';
   document.getElementById('mobSubInpWrap').style.display = 'none';
   const btn = document.querySelector('.mob-sub-add-btn');
   if (btn) btn.style.display = '';
@@ -4364,9 +4377,10 @@ function closeMobSubInp() {
 
 async function addMobSub() {
   const inp = document.getElementById('mobSubInp');
-  if (!inp.value.trim() || !mobTaskSheetTask) return;
-  await addSubtask(mobTaskSheetTask.id, inp.value.trim());
-  inp.value = '';
+  const val = (inp.innerText || '').trim();
+  if (!val || !mobTaskSheetTask) return;
+  await addSubtask(mobTaskSheetTask.id, val);
+  inp.innerText = '';
   renderMobSubsList();
 }
 
@@ -4399,9 +4413,9 @@ function renderMobTaskSheetPrio() {
 async function saveMobTaskSheet() {
   if (!mobTaskSheetTask) return;
   const task  = mobTaskSheetTask;
-  const title = document.getElementById('mobTaskTitleInput').value.trim();
+  const title = (document.getElementById('mobTaskTitleInput').innerText || '').trim();
   if (!title) { document.getElementById('mobTaskTitleInput').focus(); return; }
-  const notes = document.getElementById('mobTaskNotesInput').value.trim();
+  const notes = (document.getElementById('mobTaskNotesInput').innerText || '').trim();
   const updates = {};
   if (title !== task.text)                      { updates.text     = title;                task.text     = title; }
   const link = document.getElementById('mobTaskLinkInput').value.trim();
