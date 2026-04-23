@@ -69,10 +69,16 @@
     body.theme-dark .task-title { color:var(--text); background:transparent; }
     body.theme-dark .task-notes-preview { color:var(--text3); }
     body.theme-dark .tib-chip .mi { color:var(--text3); }
-    body.theme-dark .tib-prio.p1 .mi { color:#dc2626; }
-    body.theme-dark .tib-prio.p2 .mi { color:#eab308; }
-    body.theme-dark .tib-prio.p3 .mi { color:#22c55e; }
-    body.theme-dark .tib-prio.p4 .mi { color:#94a3b8; }
+    body.theme-dark .tib-prio.p0 { color:#38bdf8; }
+    body.theme-dark .tib-prio.p1 { color:#f87171; }
+    body.theme-dark .tib-prio.p2 { color:#fb923c; }
+    body.theme-dark .tib-prio.p3 { color:#facc15; }
+    body.theme-dark .tib-prio.p4 { color:#94a3b8; }
+    body.theme-dark .priority-btn.p0 { color:#38bdf8; }
+    body.theme-dark .priority-btn.p1 { color:#f87171; }
+    body.theme-dark .priority-btn.p2 { color:#fb923c; }
+    body.theme-dark .priority-btn.p3 { color:#facc15; }
+    body.theme-dark .priority-btn.p4 { color:#94a3b8; }
     body.theme-dark .tib-lbl { color:var(--text3); }
     body.theme-dark .task-check { border-color:#4a5568; }
     body.theme-dark .task-check:hover { border-color:var(--accent); }
@@ -405,16 +411,47 @@
       padding:0 16px 13px;
     }
     .add-detail.open { display:flex; padding-top:10px; border-top:1px solid #f4f5f9; }
-    .add-detail textarea {
-      width:100%; border:1.5px solid #e8ecf4; border-radius:9px;
-      padding:8px 12px; font-size:.87rem; font-family:inherit;
-      outline:none; resize:none; color:#444; line-height:1.5;
-      transition:border-color .2s;
+    /* Notes row */
+    .add-notes-row { display:flex; align-items:flex-start; gap:8px; }
+    .add-notes-icon { color:#bbb; margin-top:3px; flex-shrink:0; }
+    #addNotesInput {
+      flex:1; border:none; border-bottom:1px solid var(--border2);
+      padding:4px 0 8px; font-size:.87rem; font-family:inherit;
+      outline:none; resize:none; color:var(--text2); line-height:1.5; background:transparent;
     }
-    .add-detail textarea:focus { border-color:#4f6ef7; }
-    .add-bottom-row {
-      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    #addNotesInput:focus { border-bottom-color:var(--accent); }
+    /* Icon row */
+    .add-icon-row {
+      display:flex; align-items:center; gap:6px; flex-wrap:wrap;
     }
+    .add-icon-btn {
+      position:relative; width:32px; height:32px; border-radius:8px; border:none;
+      background:var(--surface2); cursor:pointer; display:flex; align-items:center;
+      justify-content:center; transition:background .15s; color:var(--text3); flex-shrink:0;
+    }
+    .add-icon-btn:hover { background:var(--accent-bg); color:var(--accent); }
+    .add-icon-btn.active { background:var(--accent-bg); color:var(--accent); }
+    .add-icon-btn.active .mi { color:var(--accent); }
+    #addStarBtn.active .mi { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20; color:#f59e0b; }
+    .add-prio-wrap { position:relative; }
+    .add-prio-picker {
+      position:absolute; bottom:calc(100% + 8px); left:0; z-index:200;
+      background:var(--surface); border:1.5px solid var(--border2);
+      border-radius:12px; padding:8px; display:flex; gap:6px;
+      box-shadow:0 4px 16px rgba(0,0,0,.12);
+    }
+    .add-prio-active-sym {
+      position:absolute; top:2px; right:2px;
+      font-size:.45rem; font-weight:800; line-height:1;
+    }
+    .add-due-quick-btn {
+      font-size:.76rem; color:var(--text3); cursor:pointer; padding:4px 8px;
+      border:1.5px solid var(--border2); border-radius:20px; background:var(--surface2);
+      white-space:nowrap; transition:all .15s; user-select:none;
+    }
+    .add-due-quick-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .add-due-sel-label { font-size:.77rem; color:var(--accent); font-weight:500; cursor:pointer; }
+    .add-bottom-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .btn-cal {
       width:30px; height:30px; border:1.5px solid #e0e4ef; border-radius:8px;
       background:#fff; cursor:pointer; font-size:.9rem; flex-shrink:0;
@@ -452,9 +489,10 @@
       border-left:3px solid transparent;
     }
     .task-card:hover { box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+    .task-card.prio-p0 { border-left-color:#0ea5e9; }
     .task-card.prio-p1 { border-left-color:#dc2626; }
-    .task-card.prio-p2 { border-left-color:#eab308; }
-    .task-card.prio-p3 { border-left-color:#22c55e; }
+    .task-card.prio-p2 { border-left-color:#f97316; }
+    .task-card.prio-p3 { border-left-color:#eab308; }
     .task-card.prio-p4 { border-left-color:#94a3b8; }
     .task-row {
       display:flex; align-items:flex-start; gap:9px;
@@ -513,10 +551,11 @@
     /* Always show label for due; subtask only on mobile */
     .tib-due .tib-lbl { max-width:110px; }
     .tib-subs .tib-lbl { max-width:0; }
-    .tib-prio.p1 .mi { color:#dc2626; }
-    .tib-prio.p2 .mi { color:#eab308; }
-    .tib-prio.p3 .mi { color:#22c55e; }
-    .tib-prio.p4 .mi { color:#94a3b8; }
+    .tib-prio.p0 { color:#0ea5e9; }
+    .tib-prio.p1 { color:#dc2626; }
+    .tib-prio.p2 { color:#f97316; }
+    .tib-prio.p3 { color:#eab308; }
+    .tib-prio.p4 { color:#94a3b8; }
     .tib-due.today .mi, .tib-due.today .tib-lbl   { color:#c2410c; }
     .tib-due.overdue .mi, .tib-due.overdue .tib-lbl { color:#dc2626; }
     .tib-list-lbl { font-size:11.5px; color:#999; flex-shrink:0; opacity:.85; }
@@ -589,47 +628,55 @@
     body.theme-dark .link-go-icon:hover { background:rgba(79,110,247,.15); }
 
     /* Priority picker in detail */
-    /* Detail meta row: due + priority side by side */
-    .detail-meta-row {
-      display:flex; align-items:center; gap:16px; flex-wrap:wrap;
-    }
-    .priority-row {
-      display:flex; align-items:center; gap:5px; flex-shrink:0;
-    }
-    .priority-row-label { font-size:.76rem; color:#bbb; font-weight:500; flex-shrink:0; }
+    /* Priority row */
+    .priority-row { display:flex; align-items:center; gap:6px; flex-shrink:0; }
 
-    /* Priority tooltip */
-    .priority-btn { position:relative; }
-    .priority-btn[data-label]::after {
-      content:attr(data-label);
-      position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%);
-      background:#1a1a2e; color:#fff; font-size:.6rem; font-weight:500;
-      white-space:nowrap; padding:2px 6px; border-radius:5px;
-      pointer-events:none; opacity:0; transition:opacity .15s; z-index:100;
-    }
-    @media (hover: hover) {
-      .priority-btn[data-label]:hover::after { opacity:1; }
-    }
-    .priority-btn.show-label::after { opacity:1; }
+    /* Priority button — circle with text symbol */
     .priority-btn {
-      width:28px; height:28px; border-radius:50%;
-      cursor:pointer; border:2px solid transparent; transition:all .15s;
+      position:relative; width:34px; height:34px; border-radius:50%;
+      cursor:pointer; border:2px solid currentColor; transition:all .15s;
       background:transparent; display:inline-flex; align-items:center;
-      justify-content:center; font-size:1.1rem; padding:0;
+      justify-content:center; padding:0; font-family:inherit;
     }
-    .priority-btn:hover { transform:scale(1.2); }
-    .priority-btn.active { transform:scale(1.1); }
-    .priority-btn.p1.active { box-shadow:0 0 0 3px #fca5a5; }
-    .priority-btn.p2.active { box-shadow:0 0 0 3px #fef08a; }
-    .priority-btn.p3.active { box-shadow:0 0 0 3px #86efac; }
-    .priority-btn.p4.active { box-shadow:0 0 0 3px #e2e8f0; }
-    .priority-btn.p1 .mi { color:#dc2626; }
-    .priority-btn.p2 .mi { color:#eab308; }
-    .priority-btn.p3 .mi { color:#22c55e; }
-    .priority-btn.p4 .mi { color:#94a3b8; }
-    .priority-btn .mi, .tib-prio .mi {
-      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20 !important;
+    .priority-btn .prio-sym {
+      font-size:.58rem; font-weight:800; letter-spacing:-.03em;
+      color:inherit; line-height:1; pointer-events:none;
     }
+    .priority-btn.p0 { color:#0ea5e9; }
+    .priority-btn.p1 { color:#dc2626; }
+    .priority-btn.p2 { color:#f97316; }
+    .priority-btn.p3 { color:#eab308; }
+    .priority-btn.p4 { color:#94a3b8; }
+    .priority-btn.p0.active { background:#e0f2fe; box-shadow:0 0 0 3px #bae6fd; }
+    .priority-btn.p1.active { background:#fee2e2; box-shadow:0 0 0 3px #fca5a5; }
+    .priority-btn.p2.active { background:#fff7ed; box-shadow:0 0 0 3px #fed7aa; }
+    .priority-btn.p3.active { background:#fefce8; box-shadow:0 0 0 3px #fef08a; }
+    .priority-btn.p4.active { background:#f1f5f9; box-shadow:0 0 0 3px #e2e8f0; }
+    .priority-btn:hover { transform:scale(1.15); }
+
+    /* Desktop tooltip on hover */
+    .priority-btn::after {
+      content:attr(data-tip);
+      position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
+      background:#1e293b; color:#fff; font-size:.65rem; font-weight:500;
+      white-space:pre-line; padding:5px 9px; border-radius:7px; text-align:center;
+      pointer-events:none; opacity:0; transition:opacity .15s; z-index:200;
+      min-width:80px; line-height:1.4;
+    }
+    @media (hover:hover) { .priority-btn:hover::after { opacity:1; } }
+    .priority-btn.show-tip::after { opacity:1; }
+
+    /* tib-prio chip symbol */
+    .tib-prio-sym {
+      font-size:.6rem; font-weight:800; letter-spacing:-.03em; line-height:1;
+    }
+    .tib-prio.p0 { color:#0ea5e9; }
+    .tib-prio.p1 { color:#dc2626; }
+    .tib-prio.p2 { color:#f97316; }
+    .tib-prio.p3 { color:#eab308; }
+    .tib-prio.p4 { color:#94a3b8; }
+
+    /* Task card left border by priority */
     .task-side {
       position:absolute; right:8px; top:5px;
     }
@@ -681,13 +728,16 @@
     }
     .detail-notes::placeholder { color:#ccc; }
     .detail-notes:focus { border-color:#4f6ef7; }
-    .detail-due-row {
-      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    .detail-due-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .det-due-quick {
+      padding:3px 10px; border:1.5px solid var(--border2); border-radius:20px;
+      background:var(--surface2); font-size:.76rem; color:var(--text3);
+      cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap;
     }
-    .detail-due-label { font-size:.76rem; color:#bbb; font-weight:500; }
+    .det-due-quick:hover { border-color:var(--accent); color:var(--accent); }
     .btn-clear-due {
       font-size:.72rem; color:#ccc; cursor:pointer;
-      border:none; background:none; transition:color .15s;
+      border:none; background:none; transition:color .15s; display:flex; align-items:center;
     }
     .btn-clear-due:hover { color:#e53e3e; }
 
@@ -1138,61 +1188,116 @@
       }
       #mobTaskSheet.open { transform:translateY(0); }
 
-      /* Header */
+      /* ── Mob task sheet header ── */
       .mob-task-sheet-top {
         display:flex; align-items:center; justify-content:space-between;
-        padding:14px 16px 12px; flex-shrink:0;
+        padding:10px 12px 6px; flex-shrink:0;
       }
-      .mob-task-sheet-top span { font-size:.78rem; color:var(--text3); font-weight:600; letter-spacing:.04em; text-transform:uppercase; }
+      .mob-back-btn {
+        background:none; border:none; color:var(--accent); font-size:.9rem; font-weight:600;
+        cursor:pointer; display:flex; align-items:center; gap:2px; font-family:inherit; padding:4px 6px;
+      }
       .mob-task-del-btn {
         background:none; border:none; color:var(--text3);
-        cursor:pointer; padding:4px 6px; border-radius:6px;
-        transition:color .15s, background .15s;
+        cursor:pointer; padding:4px 6px; border-radius:6px; transition:color .15s;
       }
-      .mob-task-del-btn:hover { color:#e53e3e; background:#fff0f0; }
+      .mob-task-del-btn:hover { color:#e53e3e; }
+
+      /* Liste + MIT satırı */
+      .mob-sheet-meta-bar {
+        display:flex; align-items:center; justify-content:space-between;
+        padding:4px 16px 8px; flex-shrink:0; border-bottom:1px solid var(--border2);
+      }
+      .mob-list-row {
+        display:flex; align-items:center; gap:5px;
+        background:var(--surface2); border:1px solid var(--border);
+        border-radius:20px; padding:5px 10px; cursor:pointer;
+        font-size:.78rem; color:var(--text2); font-weight:500;
+      }
+      .mob-list-chip-icon { font-size:.9rem; }
+      .mob-list-chip-name { color:var(--text2); }
+      .mob-list-row .mi { color:var(--text3); }
+      .mob-mit-btn {
+        display:flex; align-items:center; gap:5px;
+        background:none; border:none; cursor:pointer;
+        font-size:.78rem; color:var(--text3); font-family:inherit; padding:4px 6px;
+        border-radius:8px; transition:color .15s;
+      }
+      .mob-mit-btn .mi { transition:color .15s; }
+      .mob-mit-btn.active { color:var(--accent); }
+      .mob-mit-btn.active .mi { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20; color:#f59e0b; }
+      .mob-mit-label { font-weight:500; }
+
+      /* List picker */
+      .mob-list-picker {
+        display:none; flex-direction:column;
+        max-height:160px; overflow-y:auto;
+        border-bottom:1px solid var(--border2); padding:4px 16px;
+      }
+      .mob-list-picker.open { display:flex; }
+      .mob-list-opt {
+        background:none; border:none; text-align:left; font-family:inherit;
+        font-size:.87rem; color:var(--text2); padding:8px 4px; cursor:pointer;
+        border-bottom:1px solid var(--border2);
+      }
+      .mob-list-opt:last-child { border-bottom:none; }
+      .mob-list-opt.active { color:var(--accent); font-weight:600; }
 
       /* Scrollable body */
       #mobSheetScroll { overflow-y:auto; flex:1; padding:0 16px 8px; }
 
       /* Title */
       #mobTaskTitleInput {
-        width:100%; font-size:1.05rem; font-weight:600; border:none; outline:none;
-        padding:4px 0 14px; border-bottom:1.5px solid var(--border2);
-        font-family:inherit; color:var(--text); background:transparent;
-        white-space:nowrap; overflow-x:hidden; display:block;
+        width:100%; font-size:1rem; font-weight:600; border:none; outline:none;
+        padding:12px 14px; border:1.5px solid var(--border2); border-radius:12px;
+        font-family:inherit; color:var(--text); background:var(--surface2);
+        white-space:nowrap; overflow-x:hidden; display:block; margin-top:12px;
+        box-sizing:border-box;
       }
       #mobTaskTitleInput:empty::before { content:attr(data-placeholder); color:var(--text4); font-weight:400; pointer-events:none; }
 
-      /* Notes */
+      /* Notes row */
+      .mob-notes-row {
+        display:flex; align-items:flex-start; gap:10px;
+        padding:8px 0; border-bottom:1px solid var(--border2); margin-top:8px;
+      }
+      .mob-notes-icon { color:var(--text4); margin-top:2px; flex-shrink:0; }
       #mobTaskNotesInput {
-        width:100%; font-size:.88rem; border:none; outline:none;
-        padding:12px 0 8px; font-family:inherit; color:var(--text2);
-        min-height:120px; max-height:180px;
+        flex:1; font-size:.88rem; border:none; outline:none;
+        font-family:inherit; color:var(--text2);
+        min-height:80px; max-height:160px;
         overflow-y:auto; background:transparent;
-        border-bottom:1px solid var(--border2);
         white-space:pre-wrap; word-break:break-word; display:block;
       }
       #mobTaskNotesInput:empty::before { content:attr(data-placeholder); color:var(--text4); pointer-events:none; }
 
-      /* Link */
-      #mobTaskLinkInput {
-        flex:1; font-size:.83rem; border:none;
-        outline:none; padding:10px 0 8px; font-family:inherit; color:var(--accent);
-        background:transparent; min-width:0;
-      }
-      #mobTaskLinkInput::placeholder { color:var(--text4); font-size:.83rem; }
-      #mobLinkWrap {
-        border-bottom:1px solid var(--border2);
-        display:flex; align-items:center; gap:4px;
-      }
-      #mobLinkWrap .link-display {
-        background:transparent; border:none; border-radius:0;
-        padding:10px 0 8px; font-size:.83rem;
-      }
-      #mobLinkWrap .link-go-icon { width:26px; height:26px; border-radius:6px; }
+      /* Priority section */
+      .mob-prio-section { padding:10px 0 6px; border-bottom:1px solid var(--border2); }
+      .mob-prio-row { display:flex; gap:8px; align-items:center; }
 
-      /* Subtasks */
-      #mobTaskSubsList { padding:6px 0 0; }
+      /* Due date row */
+      .mob-due-row {
+        display:flex; align-items:center; gap:8px;
+        padding:10px 0; border-bottom:1px solid var(--border2);
+      }
+      .mob-due-icon { color:var(--text4); flex-shrink:0; }
+      .mob-due-quick {
+        padding:5px 12px; border:1.5px solid var(--border); border-radius:20px;
+        background:var(--surface2); font-size:.8rem; color:var(--text2);
+        cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap;
+      }
+      .mob-due-quick:hover { border-color:var(--accent); color:var(--accent); }
+      .mob-due-cal {
+        background:none; border:none; cursor:pointer; color:var(--text3);
+        display:flex; align-items:center; padding:4px;
+      }
+      .mob-due-cal.has-date { color:var(--accent); }
+      .mob-due-lbl { font-size:.77rem; color:var(--accent); font-weight:500; flex:1; cursor:pointer; }
+      .mob-due-clear { background:none; border:none; color:var(--text4); cursor:pointer; padding:2px; }
+
+      /* Subtasks section */
+      .mob-subs-section { padding:6px 0; border-bottom:1px solid var(--border2); }
+      #mobTaskSubsList { padding:2px 0; }
       .mob-sub-row { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border2); }
       .mob-sub-chk {
         width:18px; height:18px; border:1.5px solid var(--border); border-radius:50%;
@@ -1203,13 +1308,14 @@
       .mob-sub-chk.done::after { content:'✓'; color:#fff; font-size:.55rem; font-weight:700; }
       .mob-sub-txt { flex:1; font-size:.86rem; color:var(--text2); }
       .mob-sub-txt.done { text-decoration:line-through; color:var(--text4); }
-      .mob-sub-add-row { display:flex; align-items:center; gap:8px; padding:8px 0 4px; }
+      .mob-sub-add-row { display:flex; align-items:center; gap:8px; padding:6px 0 2px; }
       .mob-sub-add-btn {
+        display:flex; align-items:center; gap:4px;
         font-size:.82rem; color:var(--accent); background:none; border:none;
         cursor:pointer; font-family:inherit; padding:0; font-weight:500;
       }
       .mob-sub-inp-wrap { display:flex; flex:1; align-items:center; gap:8px; }
-      .mob-sub-inp-wrap [contenteditable], .mob-sub-inp-wrap input {
+      .mob-sub-inp-wrap [contenteditable] {
         flex:1; font-size:.87rem; border:none; border-bottom:1.5px solid var(--accent);
         outline:none; background:transparent; padding:3px 0; font-family:inherit; color:var(--text);
         white-space:nowrap; overflow-x:hidden; min-width:0;
@@ -1217,24 +1323,55 @@
       #mobSubInp:empty::before { content:attr(data-placeholder); color:var(--text4); pointer-events:none; }
       .mob-sub-ok {
         width:28px; height:28px; background:var(--accent); color:#fff;
-        border:none; border-radius:50%; font-size:1.1rem;
+        border:none; border-radius:50%;
         cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;
       }
 
-      /* Meta bar (due + priority) */
-      .mob-meta-row {
-        display:flex; align-items:center; gap:8px;
-        padding:10px 0 8px; flex-wrap:wrap;
+      /* Priority buttons on mobile: don't let 16px rule override symbol size */
+      .mob-prio-row .priority-btn { font-size:unset !important; }
+      .mob-prio-row .prio-sym { font-size:.58rem !important; }
+
+      /* Link section */
+      .mob-link-section {
+        display:flex; align-items:center; gap:10px;
+        padding:8px 0; border-bottom:1px solid var(--border2);
       }
-      #mobDueBtn, #mobTaskDueBtn {
+      .mob-link-icon { color:var(--text4); flex-shrink:0; }
+      #mobTaskLinkInput {
+        flex:1; font-size:.83rem; border:none;
+        outline:none; padding:6px 0; font-family:inherit; color:var(--accent);
+        background:transparent; min-width:0; width:100%;
+      }
+      #mobTaskLinkInput::placeholder { color:var(--text4); font-size:.83rem; }
+      #mobLinkWrap {
+        display:flex; align-items:center; gap:4px; flex:1; min-width:0;
+      }
+      #mobLinkWrap .link-display { background:transparent; border:none; border-radius:0; padding:6px 0; font-size:.83rem; }
+      #mobLinkWrap .link-go-icon { width:26px; height:26px; border-radius:6px; }
+
+      /* Sheet footer */
+      .mob-sheet-footer {
+        padding:10px 16px; padding-bottom:max(14px, env(safe-area-inset-bottom));
+        border-top:1px solid var(--border2); flex-shrink:0;
+      }
+      .mob-done-btn {
+        width:100%; padding:13px; border:none; border-radius:14px;
+        background:var(--accent); color:#fff; font-size:.95rem;
+        font-weight:600; cursor:pointer; font-family:inherit;
+        display:flex; align-items:center; justify-content:center; gap:8px;
+        transition:opacity .15s;
+      }
+      .mob-done-btn.done-state { background:#22c55e; }
+      .mob-done-btn:active { opacity:.85; }
+
+      #mobDueBtn {
         height:32px; padding:0 10px; border:1.5px solid var(--border);
         border-radius:8px; background:var(--surface2); font-size:.8rem;
         cursor:pointer; display:flex; align-items:center; gap:4px;
         color:var(--text3); font-family:inherit; flex-shrink:0; transition:all .15s;
       }
-      #mobDueBtn.has-date, #mobTaskDueBtn.has-date { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); }
-      #mobDueLabel, #mobTaskDueLabel { font-size:.77rem; color:var(--accent); font-weight:500; }
-      .mob-prio-row { display:flex; gap:4px; margin-left:auto; }
+      #mobDueBtn.has-date { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); }
+      #mobDueLabel { font-size:.77rem; color:var(--accent); font-weight:500; }
 
       /* Footer */
       /* Disable desktop-only styles on mobile */
@@ -1726,17 +1863,35 @@
           <input style="display:none" type="password" name="prevent-autofill-pass">
           <div class="add-main-row">
             <span class="add-plus">+</span>
-            <input type="search" id="taskInput" placeholder="Görev ekle..." autocomplete="off" data-form-type="other" data-lpignore="true" maxlength="1071">
+            <input type="search" id="taskInput" placeholder="Yeni görev..." autocomplete="off" data-form-type="other" data-lpignore="true" maxlength="1071">
             <button class="btn-add" onclick="addTask()" title="Görevi ekle">Ekle</button>
           </div>
           <div class="add-detail" id="addDetail">
-            <div class="add-bottom-row">
-              <button class="btn-cal" id="addDueBtn"
-                onclick="dtpOpen(this, null, v=>{addDueValue=v;renderAddDueLabel();})"
-                title="Bitiş tarihi"><span class="mi s18">calendar_today</span></button>
-              <span class="due-selected-label" id="addDueLabel"
-                onclick="document.getElementById('addDueBtn').click()"></span>
-              <button class="btn-add-cancel" onclick="closeAddDetail()" title="İptal">İptal</button>
+            <!-- Notlar -->
+            <div class="add-notes-row">
+              <span class="mi s16 add-notes-icon">notes</span>
+              <textarea id="addNotesInput" placeholder="Notlar..." rows="2" autocomplete="off" data-form-type="other"></textarea>
+            </div>
+            <!-- İkon satırı -->
+            <div class="add-icon-row">
+              <button class="add-icon-btn" id="addStarBtn" onclick="toggleAddStar()" title="Günün En Önemli Görevi">
+                <span class="mi s18">star</span>
+              </button>
+              <div class="add-prio-wrap">
+                <button class="add-icon-btn" id="addPrioBtn" onclick="toggleAddPrioPicker(event)" title="Öncelik">
+                  <span class="mi s18">priority_high</span>
+                  <span id="addPrioSym" class="add-prio-active-sym" style="display:none"></span>
+                </button>
+                <div class="add-prio-picker" id="addPrioPicker" style="display:none"></div>
+              </div>
+              <button class="add-icon-btn has-due" id="addDueBtn"
+                onclick="dtpOpen(this, addDueValue||null, v=>{addDueValue=v; renderAddDueLabel();})"
+                title="Tarih ekle"><span class="mi s18">schedule</span></button>
+              <span class="add-due-quick-btn" onclick="setAddDueQuick(0)">Bugün</span>
+              <span class="add-due-quick-btn" onclick="setAddDueQuick(1)">Yarın</span>
+              <span class="add-due-sel-label" id="addDueLabel" onclick="document.getElementById('addDueBtn').click()"></span>
+              <span style="flex:1"></span>
+              <button class="btn-add-cancel" onclick="closeAddDetailWithConfirm()">İptal</button>
             </div>
           </div>
         </div>
@@ -1802,6 +1957,18 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Taslak silme dialog -->
+<div class="del-confirm-overlay" id="draftDiscardOverlay">
+  <div class="del-confirm-box">
+    <p style="font-weight:600;margin-bottom:6px">Geçerli görev silinsin mi?</p>
+    <p style="font-size:.86rem;color:var(--text3);margin-bottom:0">Taslağı silmek istiyor musunuz?</p>
+    <div class="del-confirm-row">
+      <button class="btn-dc-cancel" onclick="closeDraftDiscard()">İptal</button>
+      <button class="btn-dc-ok" onclick="confirmDraftDiscard()">Sil</button>
+    </div>
+  </div>
+</div>
 
 <!-- Mobile: task edit bottom sheet -->
 <!-- Settings Modal -->
@@ -2048,36 +2215,71 @@
 <div id="mobTaskSheetOverlay" onclick="saveMobTaskSheet()"></div>
 <div id="mobTaskSheet">
   <div class="mob-handle"></div>
+  <!-- Header: Geri + menu -->
   <div class="mob-task-sheet-top">
-    <span>Görevi düzenle</span>
+    <button class="mob-back-btn" onclick="saveMobTaskSheet()"><span class="mi s20">arrow_back_ios</span> Geri</button>
     <button class="mob-task-del-btn" onclick="deleteMobTaskSheet()" title="Görevi sil"><span class="mi s20">delete</span></button>
   </div>
-  <div id="mobSheetScroll">
-    <div id="mobTaskTitleInput" contenteditable="true" role="textbox" data-placeholder="Görev başlığı..." spellcheck="true" autocapitalize="sentences"></div>
-    <div id="mobTaskNotesInput" contenteditable="true" role="textbox" data-placeholder="Notlar ekle..." spellcheck="true" autocapitalize="sentences"></div>
-    <div id="mobLinkWrap">
-      <input id="mobTaskLinkInput" type="search" placeholder="Bağlantı ekle..." autocomplete="off" data-form-type="other" data-lpignore="true">
-    </div>
-    <div id="mobTaskSubsList"></div>
-    <div class="mob-sub-add-row">
-      <button class="mob-sub-add-btn" onclick="openMobSubInp()">+ Alt görev ekle</button>
-      <div class="mob-sub-inp-wrap" id="mobSubInpWrap" style="display:none">
-        <div id="mobSubInp" contenteditable="true" role="textbox" data-placeholder="Alt görev..." spellcheck="true" autocapitalize="sentences"></div>
-        <button class="mob-sub-ok" onclick="addMobSub()">+</button>
-      </div>
-    </div>
+  <!-- Liste + MIT yıldız satırı -->
+  <div class="mob-sheet-meta-bar">
     <div class="mob-list-row" id="mobListRow" onclick="toggleMobListPicker()">
-      <div class="mob-list-chip">
-        <span class="mob-list-chip-icon" id="mobListChipIcon">📋</span>
-        <span class="mob-list-chip-name" id="mobListChipName">Liste</span>
-      </div>
-      <div class="mob-list-toggle"><span class="mi s14">swap_vert</span></div>
+      <span class="mob-list-chip-icon" id="mobListChipIcon"></span>
+      <span class="mob-list-chip-name" id="mobListChipName">Liste</span>
+      <span class="mi s14">expand_more</span>
     </div>
-    <div class="mob-list-picker" id="mobListPicker"></div>
-    <div class="mob-meta-row">
-      <button id="mobTaskDueBtn" title="Bitiş tarihi seç"><span class="mi s16">calendar_today</span><span id="mobTaskDueLabel"></span></button>
+    <button class="mob-mit-btn" id="mobMITBtn" onclick="toggleMobMIT()" title="Günün En Önemli Görevi">
+      <span class="mi s20">star</span>
+      <span class="mob-mit-label">Günün En Önemli Görevi</span>
+    </button>
+  </div>
+  <div class="mob-list-picker" id="mobListPicker"></div>
+  <div id="mobSheetScroll">
+    <!-- Görev başlığı -->
+    <div id="mobTaskTitleInput" contenteditable="true" role="textbox" data-placeholder="Görev başlığı..." spellcheck="true" autocapitalize="sentences"></div>
+    <!-- Notlar -->
+    <div class="mob-notes-row">
+      <span class="mi s18 mob-notes-icon">notes</span>
+      <div id="mobTaskNotesInput" contenteditable="true" role="textbox" data-placeholder="Notlar ekle..." spellcheck="true" autocapitalize="sentences"></div>
+    </div>
+    <!-- Öncelik -->
+    <div class="mob-prio-section">
       <div class="mob-prio-row" id="mobTaskPrioRow"></div>
     </div>
+    <!-- Tarih: Bugün / Yarın / Takvim -->
+    <div class="mob-due-row">
+      <span class="mi s18 mob-due-icon">schedule</span>
+      <button class="mob-due-quick" onclick="setMobDueQuick(0)">Bugün</button>
+      <button class="mob-due-quick" onclick="setMobDueQuick(1)">Yarın</button>
+      <button id="mobTaskDueBtn" class="mob-due-cal" title="Bitiş tarihi seç"><span class="mi s18">calendar_today</span></button>
+      <span class="mob-due-lbl" id="mobTaskDueLabel" onclick="document.getElementById('mobTaskDueBtn').click()"></span>
+      <button class="mob-due-clear" id="mobDueClearBtn" onclick="clearMobDue()" style="display:none"><span class="mi s14">close</span></button>
+    </div>
+    <!-- Alt görevler -->
+    <div class="mob-subs-section">
+      <div id="mobTaskSubsList"></div>
+      <div class="mob-sub-add-row">
+        <button class="mob-sub-add-btn" onclick="openMobSubInp()">
+          <span class="mi s16">add_circle</span> Alt görev ekle
+        </button>
+        <div class="mob-sub-inp-wrap" id="mobSubInpWrap" style="display:none">
+          <div id="mobSubInp" contenteditable="true" role="textbox" data-placeholder="Alt görev..." spellcheck="true" autocapitalize="sentences"></div>
+          <button class="mob-sub-ok" onclick="addMobSub()"><span class="mi s16">check</span></button>
+        </div>
+      </div>
+    </div>
+    <!-- Bağlantı -->
+    <div class="mob-link-section">
+      <span class="mi s18 mob-link-icon">link</span>
+      <div id="mobLinkWrap" style="flex:1;min-width:0;">
+        <input id="mobTaskLinkInput" type="search" placeholder="Bağlantı ekle..." autocomplete="off" data-form-type="other" data-lpignore="true">
+      </div>
+    </div>
+  </div>
+  <!-- Alt: Tamamlandı -->
+  <div class="mob-sheet-footer">
+    <button class="mob-done-btn" id="mobDoneBtn" onclick="toggleMobTaskDone()">
+      <span class="mi s18">check_circle</span> Tamamlandı
+    </button>
   </div>
 </div>
 
@@ -2106,6 +2308,8 @@ let activeListId     = null;
 let activeBoardColId = null;
 let doneOpen         = false;
 let addDueValue  = '';
+let addStarred   = false;
+let addPriority  = null;
 let editTimers   = {};
 let isRegMode    = false;
 let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', dir:'asc'|'desc' } }
@@ -2999,9 +3203,13 @@ async function addTask() {
   if (!text || !activeListId) { input.focus(); return; }
   const payload = { text, done:false, category:activeListId, sort_order: Date.now() };
   if (addDueValue) payload.due_at = addDueValue;
-  if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
+  if (addPriority) payload.priority = addPriority;
+  else if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
+  if (addStarred) payload.starred = true;
+  const addNotes = document.getElementById('addNotesInput')?.value.trim();
+  if (addNotes) payload.notes = addNotes;
   input.value='';
-  addDueValue=''; renderAddDueLabel();
+  resetAddForm();
   addingTask = true;
   keepInputFocused = true;
   lastAddTaskTime = Date.now();
@@ -3014,10 +3222,91 @@ async function addTask() {
     addingTask = false;
     openAddDetail();
     document.getElementById('taskInput').focus();
-    setTimeout(() => {
-      keepInputFocused = false;
-    }, 800);
+    setTimeout(() => { keepInputFocused = false; }, 800);
   }
+}
+
+function resetAddForm() {
+  addDueValue = ''; addStarred = false; addPriority = null;
+  renderAddDueLabel();
+  const notesEl = document.getElementById('addNotesInput');
+  if (notesEl) notesEl.value = '';
+  const starBtn = document.getElementById('addStarBtn');
+  if (starBtn) starBtn.classList.remove('active');
+  renderAddPrioPicker();
+}
+
+function toggleAddStar() {
+  addStarred = !addStarred;
+  document.getElementById('addStarBtn').classList.toggle('active', addStarred);
+}
+
+let addPrioPickerOpen = false;
+function toggleAddPrioPicker(e) {
+  e?.stopPropagation();
+  const picker = document.getElementById('addPrioPicker');
+  if (!picker) return;
+  addPrioPickerOpen = !addPrioPickerOpen;
+  picker.style.display = addPrioPickerOpen ? 'flex' : 'none';
+  if (addPrioPickerOpen) renderAddPrioPicker();
+}
+
+function renderAddPrioPicker() {
+  const picker = document.getElementById('addPrioPicker');
+  if (!picker) return;
+  picker.innerHTML = '';
+  Object.entries(PRIORITIES).forEach(([key, prio]) => {
+    const btn = document.createElement('button');
+    btn.className = `priority-btn ${key}` + (addPriority===key?' active':'');
+    btn.dataset.tip = prio.tooltip;
+    const sym = document.createElement('span'); sym.className='prio-sym'; sym.textContent=prio.symbol;
+    btn.appendChild(sym);
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      addPriority = addPriority===key ? null : key;
+      const sym2 = document.getElementById('addPrioSym');
+      if (sym2) { sym2.textContent=addPriority?PRIORITIES[addPriority].symbol:''; sym2.style.display=addPriority?'':'none'; sym2.style.color=addPriority?PRIORITIES[addPriority].color:''; }
+      document.getElementById('addPrioBtn')?.classList.toggle('active', !!addPriority);
+      addPrioPickerOpen = false; picker.style.display='none';
+      renderAddPrioPicker();
+    };
+    picker.appendChild(btn);
+  });
+}
+
+function setAddDueQuick(days) {
+  const d = new Date(); d.setDate(d.getDate()+days); d.setHours(9,0,0,0);
+  addDueValue = d.toISOString(); renderAddDueLabel();
+}
+
+function isAddFormDirty() {
+  const title = document.getElementById('taskInput')?.value.trim();
+  const notes = document.getElementById('addNotesInput')?.value.trim();
+  return !!(title || notes || addDueValue || addStarred || addPriority);
+}
+
+function closeAddDetailWithConfirm() {
+  if (isAddFormDirty()) {
+    document.getElementById('draftDiscardOverlay').classList.add('open');
+  } else {
+    forceCloseAddDetail();
+  }
+}
+
+function closeDraftDiscard() {
+  document.getElementById('draftDiscardOverlay').classList.remove('open');
+}
+
+function confirmDraftDiscard() {
+  closeDraftDiscard();
+  document.getElementById('taskInput').value = '';
+  forceCloseAddDetail();
+  resetAddForm();
+}
+
+function forceCloseAddDetail() {
+  document.getElementById('addDetail').classList.remove('open');
+  document.getElementById('taskInput').blur();
 }
 
 async function addTaskKeepFocus() {
@@ -3098,7 +3387,7 @@ let keepInputFocused = false;
 function openAddDetail()  { document.getElementById('addDetail').classList.add('open'); }
 function closeAddDetail() {
   if (Date.now() - lastAddTaskTime < 800) return;
-  document.getElementById('addDetail').classList.remove('open');
+  closeAddDetailWithConfirm();
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -3147,6 +3436,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 function renderAddDueLabel() {
   const el  = document.getElementById('addDueLabel');
   const btn = document.getElementById('addDueBtn');
+  if (!el || !btn) return;
   if (addDueValue) {
     const d = new Date(addDueValue);
     el.textContent = d.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+' '+
@@ -3316,9 +3606,13 @@ function buildTaskCard(task, isDone) {
   };
 
   if (task.priority && PRIORITIES[task.priority]) {
-    const chip = mkChip(`tib-prio ${task.priority}`, 'flag', PRIORITIES[task.priority].label);
-    chip.title = PRIORITIES[task.priority].label;
-    chip.querySelector('.mi').style.fontVariationSettings = "'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20";
+    const p = PRIORITIES[task.priority];
+    const chip = document.createElement('div');
+    chip.className = `tib-chip tib-prio ${task.priority}`;
+    chip.title = p.label;
+    const sym = document.createElement('span'); sym.className='tib-prio-sym'; sym.textContent=p.symbol;
+    const lbl = document.createElement('span'); lbl.className='tib-lbl'; lbl.textContent=p.label;
+    chip.appendChild(sym); chip.appendChild(lbl);
     infoBar.appendChild(chip);
   }
 
@@ -3490,58 +3784,47 @@ function buildTaskCard(task, isDone) {
   linkWrap.appendChild(linkInp);
   setupLinkDisplay(linkInp, linkWrap);
 
-  const dueRow = document.createElement('div');
-  dueRow.className='detail-due-row';
-  const dueCalBtn = document.createElement('button');
-  dueCalBtn.className='btn-cal'+(task.due_at?' has-date':'');
-  dueCalBtn.title='Bitiş tarihi seç'; dueCalBtn.innerHTML=mi('calendar_today',18);
-  dueCalBtn.onclick=()=>dtpOpen(dueCalBtn,task.due_at,async v=>{
-    await updateDue(task,v);
-    dueCalBtn.classList.toggle('has-date',!!v);
-    dueDateLabel.textContent=v?fmtShort(v):'';
-  });
-  const dueDateLabel = document.createElement('span');
-  dueDateLabel.className='due-selected-label';
-  dueDateLabel.textContent=task.due_at?fmtShort(task.due_at):'';
-  dueDateLabel.onclick=()=>dueCalBtn.click();
-  const clearDueBtn = document.createElement('button');
-  clearDueBtn.className='btn-clear-due'; clearDueBtn.title='Tarihi kaldır'; clearDueBtn.innerHTML=mi('close',14)+' Temizle';
-  clearDueBtn.onclick=()=>{ updateDue(task,''); dueCalBtn.classList.remove('has-date'); dueDateLabel.textContent=''; };
-  dueRow.appendChild(dueCalBtn); dueRow.appendChild(dueDateLabel);
-  if (task.due_at) dueRow.appendChild(clearDueBtn);
-
   /* Priority picker */
   const prioRow = document.createElement('div');
   prioRow.className = 'priority-row';
-  const prioLbl = document.createElement('span');
-  prioLbl.className='priority-row-label'; prioLbl.textContent='Öncelik:';
-  prioRow.appendChild(prioLbl);
   Object.entries(PRIORITIES).forEach(([key, prio]) => {
     const btn = document.createElement('button');
-    btn.className        = `priority-btn ${key}` + (task.priority===key?' active':'');
-    btn.innerHTML        = mi(prio.mi, 16);
-    btn.querySelector('.mi').style.fontVariationSettings = "'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20";
-    btn.title            = prio.label;
-    btn.dataset.label    = prio.label;
-    btn.onclick = () => {
-      const newVal = task.priority===key ? null : key;
-      updatePriority(task, newVal);
-    };
-    btn.addEventListener('touchstart', () => {
-      btn.classList.add('show-label');
-      setTimeout(() => btn.classList.remove('show-label'), 1500);
-    }, { passive:true });
+    btn.className = `priority-btn ${key}` + (task.priority===key?' active':'');
+    btn.dataset.tip = prio.tooltip;
+    const sym = document.createElement('span'); sym.className='prio-sym'; sym.textContent=prio.symbol;
+    btn.appendChild(sym);
+    btn.onclick = () => { const newVal = task.priority===key ? null : key; updatePriority(task, newVal); };
+    btn.addEventListener('touchstart', () => { btn.classList.add('show-tip'); setTimeout(()=>btn.classList.remove('show-tip'),1800); }, {passive:true});
     prioRow.appendChild(btn);
   });
 
-  const metaRow = document.createElement('div');
-  metaRow.className = 'detail-meta-row';
-  metaRow.appendChild(dueRow);
-  metaRow.appendChild(prioRow);
+  /* Due date row with Bugün/Yarın shortcuts */
+  const dueRow = document.createElement('div');
+  dueRow.className='detail-due-row';
+  const dueIcon = document.createElement('span'); dueIcon.className='mi s16'; dueIcon.textContent='schedule'; dueIcon.style.color='#bbb';
+  const dueTodayBtn = document.createElement('button');
+  dueTodayBtn.className='det-due-quick'; dueTodayBtn.textContent='Bugün';
+  dueTodayBtn.onclick=()=>{ const d=new Date(); d.setHours(9,0,0,0); updateDue(task,d.toISOString()); dueCalBtn.classList.add('has-date'); dueDateLabel.textContent=fmtShort(d.toISOString()); };
+  const dueTomBtn = document.createElement('button');
+  dueTomBtn.className='det-due-quick'; dueTomBtn.textContent='Yarın';
+  dueTomBtn.onclick=()=>{ const d=new Date(); d.setDate(d.getDate()+1); d.setHours(9,0,0,0); updateDue(task,d.toISOString()); dueCalBtn.classList.add('has-date'); dueDateLabel.textContent=fmtShort(d.toISOString()); };
+  const dueCalBtn = document.createElement('button');
+  dueCalBtn.className='btn-cal'+(task.due_at?' has-date':'');
+  dueCalBtn.title='Bitiş tarihi seç'; dueCalBtn.innerHTML=mi('calendar_today',16);
+  dueCalBtn.onclick=()=>dtpOpen(dueCalBtn,task.due_at,async v=>{ await updateDue(task,v); dueCalBtn.classList.toggle('has-date',!!v); dueDateLabel.textContent=v?fmtShort(v):''; });
+  const dueDateLabel = document.createElement('span');
+  dueDateLabel.className='due-selected-label'; dueDateLabel.textContent=task.due_at?fmtShort(task.due_at):''; dueDateLabel.onclick=()=>dueCalBtn.click();
+  const clearDueBtn = document.createElement('button');
+  clearDueBtn.className='btn-clear-due'; clearDueBtn.title='Tarihi kaldır'; clearDueBtn.innerHTML=mi('close',14);
+  clearDueBtn.onclick=()=>{ updateDue(task,''); dueCalBtn.classList.remove('has-date'); dueDateLabel.textContent=''; };
+  dueRow.appendChild(dueIcon); dueRow.appendChild(dueTodayBtn); dueRow.appendChild(dueTomBtn);
+  dueRow.appendChild(dueCalBtn); dueRow.appendChild(dueDateLabel);
+  if (task.due_at) dueRow.appendChild(clearDueBtn);
 
   detail.appendChild(notesTA);
+  detail.appendChild(prioRow);
+  detail.appendChild(dueRow);
   detail.appendChild(linkWrap);
-  detail.appendChild(metaRow);
 
   row.addEventListener('click', e => {
     if (e.target.closest('.task-side') || e.target.closest('.task-check')) return;
@@ -3621,10 +3904,11 @@ function openTaskCtxMenu(anchor, task) {
 /* ── Priority ── */
 const mi = (name, sz) => `<span class="mi${sz?' s'+sz:''}">${name}</span>`;
 const PRIORITIES = {
-  p1: { label:'Acil & Önemli (Hemen yap)',                mi:'flag' },
-  p2: { label:'Önemli, Acil Değil (Gün ve saati planla)', mi:'flag' },
-  p3: { label:'Acil, Önemsiz (Hızlı yönet, devret)',      mi:'flag' },
-  p4: { label:'Ertelenebilir (Silinebilir)',               mi:'flag' },
+  p0: { symbol:'5dk',  color:'#0ea5e9', shadow:'#bae6fd', tooltip:'Çok Kısa\nHemen Yap',                       label:'Çok Kısa — Hemen Yap' },
+  p1: { symbol:'!!!',  color:'#dc2626', shadow:'#fca5a5', tooltip:'Önemli · Acil\nHemen Yap',                   label:'Önemli · Acil — Hemen Yap' },
+  p2: { symbol:'!!',   color:'#f97316', shadow:'#fed7aa', tooltip:'Önemli, Acil Değil\nGün-Saat Planla',        label:'Önemli, Acil Değil — Gün-Saat Planla' },
+  p3: { symbol:'!',    color:'#eab308', shadow:'#fef08a', tooltip:'Acil, Önemsiz\nHızlı Yönet, Devret',         label:'Acil, Önemsiz — Hızlı Yönet, Devret' },
+  p4: { symbol:'zzz',  color:'#94a3b8', shadow:'#e2e8f0', tooltip:'Acil Değil, Önemsiz\nErtele, Sil',           label:'Acil Değil, Önemsiz — Ertele, Sil' },
 };
 
 async function updatePriority(task, val) {
@@ -4265,16 +4549,18 @@ function wkStartDrag(e, task, chip) {
 /* ── Mobile bottom sheet ── */
 
 /* ── Mobile task edit sheet ── */
-let mobTaskSheetTask = null;
-let mobTaskSheetDue  = '';
-let mobTaskSheetPrio = null;
-let mobTaskSheetCat  = null;
+let mobTaskSheetTask    = null;
+let mobTaskSheetDue     = '';
+let mobTaskSheetPrio    = null;
+let mobTaskSheetCat     = null;
+let mobTaskSheetStarred = false;
 
 function openMobTaskSheet(task) {
-  mobTaskSheetTask = task;
-  mobTaskSheetDue  = task.due_at   || '';
-  mobTaskSheetPrio = task.priority || null;
-  mobTaskSheetCat  = task.category || activeListId;
+  mobTaskSheetTask    = task;
+  mobTaskSheetDue     = task.due_at   || '';
+  mobTaskSheetPrio    = task.priority || null;
+  mobTaskSheetCat     = task.category || activeListId;
+  mobTaskSheetStarred = task.starred  || false;
   document.getElementById('mobTaskTitleInput').innerText = task.text;
   document.getElementById('mobTaskNotesInput').innerText = task.notes || '';
   const _mobLinkInp = document.getElementById('mobTaskLinkInput');
@@ -4289,11 +4575,12 @@ function openMobTaskSheet(task) {
   dueBtn.onclick = () => dtpOpen(dueBtn, mobTaskSheetDue||null, v => { mobTaskSheetDue = v; renderMobTaskSheetDue(); });
   renderMobTaskSheetDue();
   renderMobTaskSheetPrio();
+  renderMobMITBtn();
+  renderMobDoneBtn();
   renderMobListChip();
   renderMobSubsList();
   closeMobSubInp();
   document.getElementById('mobListPicker').classList.remove('open');
-  document.getElementById('mobListRow').classList.remove('open');
   document.getElementById('mobTaskSheet').classList.add('open');
   document.getElementById('mobTaskSheetOverlay').classList.add('open');
   setTimeout(() => document.getElementById('mobTaskTitleInput').focus(), 320);
@@ -4403,9 +4690,52 @@ function closeMobTaskSheet() {
 }
 
 function renderMobTaskSheetDue() {
-  const lbl = document.getElementById('mobTaskDueLabel');
+  const lbl     = document.getElementById('mobTaskDueLabel');
+  const clearBtn = document.getElementById('mobDueClearBtn');
+  const calBtn   = document.getElementById('mobTaskDueBtn');
   lbl.textContent = mobTaskSheetDue ? fmtShort(mobTaskSheetDue) : '';
-  document.getElementById('mobTaskDueBtn').classList.toggle('has-date', !!mobTaskSheetDue);
+  calBtn.classList.toggle('has-date', !!mobTaskSheetDue);
+  if (clearBtn) clearBtn.style.display = mobTaskSheetDue ? '' : 'none';
+}
+
+function setMobDueQuick(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  d.setHours(9, 0, 0, 0);
+  mobTaskSheetDue = d.toISOString();
+  renderMobTaskSheetDue();
+}
+
+function clearMobDue() {
+  mobTaskSheetDue = '';
+  renderMobTaskSheetDue();
+}
+
+function renderMobMITBtn() {
+  const btn = document.getElementById('mobMITBtn');
+  if (!btn) return;
+  btn.classList.toggle('active', !!mobTaskSheetStarred);
+}
+
+function toggleMobMIT() {
+  mobTaskSheetStarred = !mobTaskSheetStarred;
+  renderMobMITBtn();
+}
+
+function renderMobDoneBtn() {
+  const btn = document.getElementById('mobDoneBtn');
+  if (!btn || !mobTaskSheetTask) return;
+  const isDone = mobTaskSheetTask.done;
+  btn.classList.toggle('done-state', isDone);
+  btn.innerHTML = isDone
+    ? `<span class="mi s18">undo</span> Tamamlandıyı Geri Al`
+    : `<span class="mi s18">check_circle</span> Tamamlandı`;
+}
+
+async function toggleMobTaskDone() {
+  if (!mobTaskSheetTask) return;
+  await saveMobTaskSheet();
+  await toggleTask(mobTaskSheetTask);
 }
 
 function renderMobTaskSheetPrio() {
@@ -4413,11 +4743,12 @@ function renderMobTaskSheetPrio() {
   row.innerHTML = '';
   Object.entries(PRIORITIES).forEach(([key, prio]) => {
     const btn = document.createElement('button');
-    btn.className   = `priority-btn ${key}` + (mobTaskSheetPrio === key ? ' active' : '');
-    btn.innerHTML = mi(prio.mi, 16);
-    btn.querySelector('.mi').style.fontVariationSettings = "'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20";
-    btn.title     = prio.label;
-    btn.onclick   = () => { mobTaskSheetPrio = mobTaskSheetPrio === key ? null : key; renderMobTaskSheetPrio(); };
+    btn.className = `priority-btn ${key}` + (mobTaskSheetPrio === key ? ' active' : '');
+    btn.dataset.tip = prio.tooltip;
+    const sym = document.createElement('span'); sym.className='prio-sym'; sym.textContent=prio.symbol;
+    btn.appendChild(sym);
+    btn.onclick = () => { mobTaskSheetPrio = mobTaskSheetPrio === key ? null : key; renderMobTaskSheetPrio(); };
+    btn.addEventListener('touchstart', () => { btn.classList.add('show-tip'); setTimeout(()=>btn.classList.remove('show-tip'),1800); }, {passive:true});
     row.appendChild(btn);
   });
 }
@@ -4433,9 +4764,10 @@ async function saveMobTaskSheet() {
   const link = document.getElementById('mobTaskLinkInput').value.trim();
   if (notes !== (task.notes||''))               { updates.notes    = notes||null;          task.notes    = notes||null; }
   if (link  !== (task.link||''))                { updates.link     = link||null;           task.link     = link||null; }
-  if (mobTaskSheetDue  !== (task.due_at||''))    { updates.due_at   = mobTaskSheetDue||null;  task.due_at   = mobTaskSheetDue||null; }
-  if (mobTaskSheetPrio !== (task.priority||null)) { updates.priority = mobTaskSheetPrio;      task.priority = mobTaskSheetPrio; }
-  if (mobTaskSheetCat  !== task.category)         { updates.category = mobTaskSheetCat;       task.category = mobTaskSheetCat; }
+  if (mobTaskSheetDue     !== (task.due_at||''))      { updates.due_at   = mobTaskSheetDue||null;    task.due_at   = mobTaskSheetDue||null; }
+  if (mobTaskSheetPrio    !== (task.priority||null))  { updates.priority = mobTaskSheetPrio;          task.priority = mobTaskSheetPrio; }
+  if (mobTaskSheetCat     !== task.category)          { updates.category = mobTaskSheetCat;           task.category = mobTaskSheetCat; }
+  if (mobTaskSheetStarred !== (task.starred||false))  { updates.starred  = mobTaskSheetStarred;       task.starred  = mobTaskSheetStarred; }
   closeMobTaskSheet();
   if (Object.keys(updates).length > 0) {
     try {
