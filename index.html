@@ -1427,12 +1427,7 @@
         align-items:center; justify-content:center; flex-shrink:0;
         color:var(--text4); transition:all .15s;
       }
-      .mob-list-row.open .mob-list-toggle { background:var(--accent-bg); border-color:var(--accent); color:var(--accent); }
-      .mob-list-picker {
-        display:none; flex-wrap:wrap; gap:6px;
-        padding:8px 0 4px;
-      }
-      .mob-list-picker.open { display:flex; }
+      .mob-list-row.open { border-color:var(--accent); color:var(--accent); background:var(--accent-bg); }
       .mob-list-opt {
         display:flex; align-items:center; gap:4px;
         padding:6px 12px; border-radius:20px; font-size:.8rem;
@@ -3315,8 +3310,13 @@ async function addTaskKeepFocus() {
   if (!text || !activeListId) { input.focus(); return; }
   const payload = { text, done:false, category:activeListId, sort_order: Date.now() };
   if (addDueValue) payload.due_at = addDueValue;
-  if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
+  if (addPriority) payload.priority = addPriority;
+  else if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
+  if (addStarred) payload.starred = true;
+  const addNotes = document.getElementById('addNotesInput')?.value.trim();
+  if (addNotes) payload.notes = addNotes;
   input.value = '';
+  resetAddForm();
   keepInputFocused = true;
   addingTask = true;
   try {
@@ -3398,7 +3398,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       if (e.shiftKey) addTaskKeepFocus();
       else addTask();
     }
-    if (e.key==='Escape') { keepInputFocused=false; closeAddDetail(); e.target.blur(); }
+    if (e.key==='Escape') { keepInputFocused=false; closeAddDetailWithConfirm(); e.target.blur(); }
   });
   document.getElementById('taskInput').addEventListener('focusout', () => {
     if (keepInputFocused) {
@@ -3412,8 +3412,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Görev listesine tıklanınca kapat (görev kartı dışı tıklama)
   document.getElementById('mainBody').addEventListener('pointerdown', e=>{
     if (addingTask || keepInputFocused) return;
-    if (!e.target.closest('#addWrap')) {
-      if (!document.getElementById('taskInput').value.trim()) closeAddDetail();
+    if (!e.target.closest('#addWrap') && !e.target.closest('#draftDiscardOverlay')) {
+      if (!isAddFormDirty()) forceCloseAddDetail();
+      else closeAddDetailWithConfirm();
     }
   });
 
