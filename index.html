@@ -574,17 +574,20 @@
     /* Star button on card */
     .btn-star {
       width:36px; height:36px; border:none; background:transparent;
-      cursor:pointer; font-size:.95rem; border-radius:8px;
+      cursor:pointer; border-radius:8px;
       display:flex; align-items:center; justify-content:center;
-      color:#ddd; transition:all .15s; flex-shrink:0;
-      opacity:0;
+      color:#d1d5db; transition:all .2s; flex-shrink:0; opacity:1;
     }
-    .task-card:hover .btn-star { opacity:1; }
+    .btn-star .mi { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 20; transition:all .2s; }
+    .task-side .btn-star { opacity:0; }
+    .task-card:hover .task-side .btn-star,
+    .task-card.detail-open .task-side .btn-star { opacity:1; }
     .btn-star:hover { color:#f59e0b; }
-    .btn-star.starred {
-      color:#f59e0b; opacity:1;
-      font-size:1.05rem;
-      text-shadow:0 0 6px rgba(245,158,11,.45);
+    .btn-star:hover .mi { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20; }
+    .btn-star.starred { color:#f59e0b; }
+    .btn-star.starred .mi {
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;
+      filter:drop-shadow(0 0 4px rgba(245,158,11,.5));
     }
 
     /* List label badge (shown in Yıldızlı view) */
@@ -681,6 +684,12 @@
       position:absolute; right:8px; top:5px;
     }
     .task-body { padding-right:30px; }
+
+    .detail-icon-row {
+      display:flex; align-items:center; gap:6px; padding:2px 0 4px;
+      border-bottom:1px solid var(--border2);
+    }
+    .detail-icon-row .btn-star { width:30px; height:30px; }
 
     /* ── Task detail ── */
     .task-detail {
@@ -3821,6 +3830,17 @@ function buildTaskCard(task, isDone) {
   dueRow.appendChild(dueCalBtn); dueRow.appendChild(dueDateLabel);
   if (task.due_at) dueRow.appendChild(clearDueBtn);
 
+  /* Icon row — star */
+  const iconRow = document.createElement('div');
+  iconRow.className = 'detail-icon-row';
+  const detailStarBtn = document.createElement('button');
+  detailStarBtn.className = 'btn-star' + (task.starred ? ' starred' : '');
+  detailStarBtn.title = task.starred ? 'Yıldızı kaldır' : 'Günün En Önemli Görevi';
+  detailStarBtn.innerHTML = mi('star', 22);
+  detailStarBtn.onclick = e => { e.stopPropagation(); toggleStar(task); };
+  iconRow.appendChild(detailStarBtn);
+
+  detail.appendChild(iconRow);
   detail.appendChild(notesTA);
   detail.appendChild(prioRow);
   detail.appendChild(dueRow);
