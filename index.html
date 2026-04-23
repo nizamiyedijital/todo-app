@@ -3395,8 +3395,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('taskInput').addEventListener('keydown', e=>{
     if (e.key==='Enter') {
       e.preventDefault(); e.stopPropagation();
-      if (e.shiftKey) addTaskKeepFocus();
-      else addTask();
+      addTaskKeepFocus();
     }
     if (e.key==='Escape') { keepInputFocused=false; closeAddDetailWithConfirm(); e.target.blur(); }
   });
@@ -3497,7 +3496,7 @@ function restoreOpenDetails() {
       const addBtn = card.querySelector('.sub-i-add-btn');
       const inpRow = card.querySelector('.sub-i-inp-row');
       if (addBtn) addBtn.style.display = 'none';
-      if (inpRow) { inpRow.classList.add('open'); setTimeout(() => inpRow.querySelector('input')?.focus(), 0); }
+      if (inpRow) { inpRow.classList.add('open'); setTimeout(() => (inpRow.querySelector('[contenteditable]') || inpRow.querySelector('input'))?.focus(), 0); }
     }
   }
 }
@@ -4682,6 +4681,7 @@ async function addMobSub() {
   await addSubtask(mobTaskSheetTask.id, val);
   inp.innerText = '';
   renderMobSubsList();
+  setTimeout(() => inp.focus(), 0);
 }
 
 function closeMobTaskSheet() {
