@@ -574,20 +574,17 @@
     /* Star button on card */
     .btn-star {
       width:36px; height:36px; border:none; background:transparent;
-      cursor:pointer; border-radius:8px;
+      cursor:pointer; font-size:.95rem; border-radius:8px;
       display:flex; align-items:center; justify-content:center;
-      color:#d1d5db; transition:all .2s; flex-shrink:0; opacity:1;
+      color:#ddd; transition:all .15s; flex-shrink:0;
+      opacity:0;
     }
-    .btn-star .mi { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 20; transition:all .2s; }
-    .task-side .btn-star { opacity:0; }
-    .task-card:hover .task-side .btn-star,
-    .task-card.detail-open .task-side .btn-star { opacity:1; }
+    .task-card:hover .btn-star { opacity:1; }
     .btn-star:hover { color:#f59e0b; }
-    .btn-star:hover .mi { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20; }
-    .btn-star.starred { color:#f59e0b; }
-    .btn-star.starred .mi {
-      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;
-      filter:drop-shadow(0 0 4px rgba(245,158,11,.5));
+    .btn-star.starred {
+      color:#f59e0b; opacity:1;
+      font-size:1.05rem;
+      text-shadow:0 0 6px rgba(245,158,11,.45);
     }
 
     /* List label badge (shown in Yıldızlı view) */
@@ -684,12 +681,6 @@
       position:absolute; right:8px; top:5px;
     }
     .task-body { padding-right:30px; }
-
-    .detail-icon-row {
-      display:flex; align-items:center; gap:6px; padding:2px 0 4px;
-      border-bottom:1px solid var(--border2);
-    }
-    .detail-icon-row .btn-star { width:30px; height:30px; }
 
     /* ── Task detail ── */
     .task-detail {
@@ -1214,7 +1205,7 @@
 
       /* Liste + MIT satırı */
       .mob-sheet-meta-bar {
-        display:flex; align-items:center;
+        display:flex; align-items:center; justify-content:space-between;
         padding:4px 16px 8px; flex-shrink:0; border-bottom:1px solid var(--border2);
       }
       .mob-list-row {
@@ -1226,22 +1217,16 @@
       .mob-list-chip-icon { font-size:.9rem; }
       .mob-list-chip-name { color:var(--text2); }
       .mob-list-row .mi { color:var(--text3); }
-      .mob-sheet-star-row {
-        display:flex; align-items:center; gap:6px;
-        padding:4px 0 8px; border-bottom:1px solid var(--border2); margin-top:8px;
+      .mob-mit-btn {
+        display:flex; align-items:center; gap:5px;
+        background:none; border:none; cursor:pointer;
+        font-size:.78rem; color:var(--text3); font-family:inherit; padding:4px 6px;
+        border-radius:8px; transition:color .15s;
       }
-      .mob-sheet-star-btn {
-        width:32px; height:32px; border:none; background:transparent;
-        cursor:pointer; border-radius:8px;
-        display:flex; align-items:center; justify-content:center;
-        color:#d1d5db; transition:all .2s; flex-shrink:0;
-      }
-      .mob-sheet-star-btn .mi { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 20; transition:all .2s; }
-      .mob-sheet-star-btn.active { color:#f59e0b; }
-      .mob-sheet-star-btn.active .mi {
-        font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;
-        filter:drop-shadow(0 0 4px rgba(245,158,11,.5));
-      }
+      .mob-mit-btn .mi { transition:color .15s; }
+      .mob-mit-btn.active { color:var(--accent); }
+      .mob-mit-btn.active .mi { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20; color:#f59e0b; }
+      .mob-mit-label { font-weight:500; }
 
       /* List picker */
       .mob-list-picker {
@@ -2230,24 +2215,22 @@
     <button class="mob-back-btn" onclick="saveMobTaskSheet()"><span class="mi s20">arrow_back_ios</span> Geri</button>
     <button class="mob-task-del-btn" onclick="deleteMobTaskSheet()" title="Görevi sil"><span class="mi s20">delete</span></button>
   </div>
-  <!-- Liste satırı -->
+  <!-- Liste + MIT yıldız satırı -->
   <div class="mob-sheet-meta-bar">
     <div class="mob-list-row" id="mobListRow" onclick="toggleMobListPicker()">
       <span class="mob-list-chip-icon" id="mobListChipIcon"></span>
       <span class="mob-list-chip-name" id="mobListChipName">Liste</span>
       <span class="mi s14">expand_more</span>
     </div>
+    <button class="mob-mit-btn" id="mobMITBtn" onclick="toggleMobMIT()" title="Günün En Önemli Görevi">
+      <span class="mi s20">star</span>
+      <span class="mob-mit-label">Günün En Önemli Görevi</span>
+    </button>
   </div>
   <div class="mob-list-picker" id="mobListPicker"></div>
   <div id="mobSheetScroll">
     <!-- Görev başlığı -->
     <div id="mobTaskTitleInput" contenteditable="true" role="textbox" data-placeholder="Görev başlığı..." spellcheck="true" autocapitalize="sentences"></div>
-    <!-- Yıldız icon satırı -->
-    <div class="mob-sheet-star-row">
-      <button class="mob-sheet-star-btn" id="mobSheetStarBtn" onclick="toggleMobMIT()" title="Günün En Önemli Görevi">
-        <span class="mi s22">star</span>
-      </button>
-    </div>
     <!-- Notlar -->
     <div class="mob-notes-row">
       <span class="mi s18 mob-notes-icon">notes</span>
@@ -3838,17 +3821,6 @@ function buildTaskCard(task, isDone) {
   dueRow.appendChild(dueCalBtn); dueRow.appendChild(dueDateLabel);
   if (task.due_at) dueRow.appendChild(clearDueBtn);
 
-  /* Icon row — star */
-  const iconRow = document.createElement('div');
-  iconRow.className = 'detail-icon-row';
-  const detailStarBtn = document.createElement('button');
-  detailStarBtn.className = 'btn-star' + (task.starred ? ' starred' : '');
-  detailStarBtn.title = task.starred ? 'Yıldızı kaldır' : 'Günün En Önemli Görevi';
-  detailStarBtn.innerHTML = mi('star', 22);
-  detailStarBtn.onclick = e => { e.stopPropagation(); toggleStar(task); };
-  iconRow.appendChild(detailStarBtn);
-
-  detail.appendChild(iconRow);
   detail.appendChild(notesTA);
   detail.appendChild(prioRow);
   detail.appendChild(dueRow);
@@ -4741,7 +4713,7 @@ function clearMobDue() {
 }
 
 function renderMobMITBtn() {
-  const btn = document.getElementById('mobSheetStarBtn');
+  const btn = document.getElementById('mobMITBtn');
   if (!btn) return;
   btn.classList.toggle('active', !!mobTaskSheetStarred);
 }
