@@ -4347,7 +4347,9 @@ function renderMobSubsList() {
       txt.className = 'mob-sub-txt';
       txt.contentEditable = 'true';
       txt.innerText = s.text;
-      txt.style.cssText = 'outline:none;white-space:nowrap;overflow-x:hidden;';
+      txt.style.cssText = 'outline:none;white-space:nowrap;overflow-x:hidden;-webkit-user-select:text;user-select:text;cursor:text;';
+      txt.addEventListener('click', e => { e.stopPropagation(); txt.focus(); });
+      txt.addEventListener('touchend', e => { e.stopPropagation(); setTimeout(() => txt.focus(), 0); });
       let done = false;
       const finish = async () => {
         if (done) return; done = true;
