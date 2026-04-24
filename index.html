@@ -3472,6 +3472,34 @@ function renderStats() {
 let pendingSubtaskFocus = null;
 let openDetailIds = new Set();
 
+function openTaskDetail(detail) {
+  detail.classList.add('open');
+  detail.style.overflow = 'hidden';
+  detail.style.maxHeight = detail.scrollHeight + 'px';
+  const onEnd = ev => {
+    if (ev.propertyName !== 'max-height') return;
+    detail.style.maxHeight = 'none';
+    detail.style.overflow = 'visible';
+    detail.removeEventListener('transitionend', onEnd);
+  };
+  detail.addEventListener('transitionend', onEnd);
+}
+
+function closeTaskDetail(detail) {
+  detail.style.overflow = 'hidden';
+  detail.style.maxHeight = detail.scrollHeight + 'px';
+  void detail.offsetHeight;
+  detail.style.maxHeight = '0';
+  detail.classList.remove('open');
+  const onEnd = ev => {
+    if (ev.propertyName !== 'max-height') return;
+    detail.style.maxHeight = '';
+    detail.style.overflow = '';
+    detail.removeEventListener('transitionend', onEnd);
+  };
+  detail.addEventListener('transitionend', onEnd);
+}
+
 function closeAllDetails() {
   document.querySelectorAll('.task-card.detail-open').forEach(c => {
     c.classList.remove('detail-open');
@@ -3481,7 +3509,7 @@ function closeAllDetails() {
     const body = c.querySelector('.task-body');
     if (subSect && body && subSect.parentElement !== body) body.appendChild(subSect);
   });
-  document.querySelectorAll('.task-detail.open').forEach(d => d.classList.remove('open'));
+  document.querySelectorAll('.task-detail.open').forEach(d => closeTaskDetail(d));
   openDetailIds.clear();
 }
 
@@ -3490,18 +3518,14 @@ function restoreOpenDetails() {
     const card = document.querySelector(`[data-task-id="${tid}"]`);
     if (card) {
       const detail = card.querySelector('.task-detail');
-      detail?.classList.add('open');
       card.classList.add('detail-open');
       const subSect = card.querySelector('.task-sub-section');
       if (detail && subSect) detail.appendChild(subSect);
       const ta = card.querySelector('.task-title');
       if (ta) { ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
       const notes = card.querySelector('.detail-notes');
-      if (notes) {
-        const sizeNotes = () => { notes.style.height='auto'; notes.style.height=notes.scrollHeight+'px'; };
-        requestAnimationFrame(sizeNotes);
-        detail?.addEventListener('transitionend', sizeNotes, { once: true });
-      }
+      if (notes) { notes.style.height='auto'; notes.style.height=notes.scrollHeight+'px'; }
+      if (detail) openTaskDetail(detail);
     }
   });
   if (pendingSubtaskFocus) {
@@ -3869,15 +3893,13 @@ function buildTaskCard(task, isDone) {
     const wasOpen = detail.classList.contains('open');
     closeAllDetails();
     if (!wasOpen) {
-      detail.classList.add('open');
       card.classList.add('detail-open');
       detail.appendChild(subSect);
       openDetailIds.add(task.id);
       titlePreview.textContent = task.text;
       titleInput.value = task.text;
-      const sizeNotes = () => { notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px'; };
-      sizeNotes();
-      detail.addEventListener('transitionend', sizeNotes, { once: true });
+      notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px';
+      openTaskDetail(detail);
       if (!isDone) setTimeout(() => { autoGrow(); titleInput.focus(); }, 0);
     }
   });
