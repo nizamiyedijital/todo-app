@@ -744,7 +744,8 @@
     /* Subtasks — inline minimalist */
     .task-sub-section { margin-top:4px; display:none; }
     .task-card:hover .task-sub-section,
-    .task-card.detail-open .task-sub-section { display:block; }
+    .task-card.detail-open .task-sub-section,
+    .task-card.sub-editing .task-sub-section { display:block; }
     .sub-i-row {
       display:flex; align-items:center; gap:7px; padding:2px 0;
     }
@@ -773,8 +774,8 @@
     .sub-i-inp-row { display:none; flex:1; align-items:center; gap:5px; }
     .sub-i-inp-row.open { display:flex; }
     .sub-i-inp-row [contenteditable], .sub-i-inp-row input {
-      flex:1; font-size:.78rem; border:none; border-bottom:1px solid #d0d5e8;
-      outline:none; background:transparent; padding:2px 0; font-family:inherit; color:#1a1a2e;
+      flex:1; font-size:.78rem; border:none; border-bottom:1px solid var(--border2);
+      outline:none; background:transparent; padding:2px 0; font-family:inherit; color:var(--text);
       white-space:nowrap; overflow-x:hidden; min-width:0;
     }
     .sub-i-inp-row [contenteditable]:focus, .sub-i-inp-row input:focus { border-bottom-color:#4f6ef7; }
@@ -3499,6 +3500,7 @@ function restoreOpenDetails() {
     const tid = pendingSubtaskFocus; pendingSubtaskFocus = null;
     const card = document.querySelector(`[data-task-id="${tid}"]`);
     if (card) {
+      card.classList.add('sub-editing');
       const addBtn = card.querySelector('.sub-i-add-btn');
       const inpRow = card.querySelector('.sub-i-inp-row');
       if (addBtn) addBtn.style.display = 'none';
@@ -3734,14 +3736,22 @@ function buildTaskCard(task, isDone) {
       e.stopPropagation();
       if (e.key === 'Enter') {
         e.preventDefault();
-        if (!(inp.innerText || '').trim()) { inpRow.classList.remove('open'); addBtn.style.display = ''; return; }
+        if (!(inp.innerText || '').trim()) {
+          inpRow.classList.remove('open'); addBtn.style.display = '';
+          card.classList.remove('sub-editing');
+          return;
+        }
         pendingSubtaskFocus = task.id;
         addSubtask(task.id, (inp.innerText || '').trim());
       }
-      if (e.key === 'Escape') { inp.innerText = ''; inpRow.classList.remove('open'); addBtn.style.display = ''; }
+      if (e.key === 'Escape') {
+        inp.innerText = ''; inpRow.classList.remove('open'); addBtn.style.display = '';
+        card.classList.remove('sub-editing');
+      }
     });
     addBtn.onclick = e => {
       e.stopPropagation();
+      card.classList.add('sub-editing');
       inpRow.classList.add('open'); addBtn.style.display = 'none';
       setTimeout(() => inp.focus(), 0);
     };
