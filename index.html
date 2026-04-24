@@ -3494,6 +3494,12 @@ function restoreOpenDetails() {
       if (detail && subSect) detail.appendChild(subSect);
       const ta = card.querySelector('.task-title');
       if (ta) { ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
+      const notes = card.querySelector('.detail-notes');
+      if (notes) {
+        const sizeNotes = () => { notes.style.height='auto'; notes.style.height=notes.scrollHeight+'px'; };
+        requestAnimationFrame(sizeNotes);
+        detail?.addEventListener('transitionend', sizeNotes, { once: true });
+      }
     }
   });
   if (pendingSubtaskFocus) {
@@ -3685,7 +3691,20 @@ function buildTaskCard(task, isDone) {
     const r = document.createElement('div'); r.className = 'sub-i-row';
     const c = document.createElement('span');
     c.className = 'sub-i-chk' + (s.done ? ' done' : '');
-    c.onclick = e => { e.stopPropagation(); toggleTask(s); };
+    c.onclick = async e => {
+      e.stopPropagation();
+      const nowDone = !s.done;
+      s.done = nowDone;
+      c.classList.toggle('done', nowDone);
+      t.classList.toggle('done', nowDone);
+      const parentCard = r.closest('.task-card');
+      const chipLbl = parentCard?.querySelector('.tib-subs .tib-lbl');
+      if (chipLbl) chipLbl.textContent = `${subs.filter(x => x.done).length}/${subs.length}`;
+      await db(`/todos?id=eq.${s.id}`, {
+        method:'PATCH',
+        body: JSON.stringify({ done: nowDone, completed_at: nowDone ? new Date().toISOString() : null })
+      });
+    };
     const t = document.createElement('span');
     t.className = 'sub-i-txt' + (s.done ? ' done' : '');
     t.textContent = s.text;
@@ -3854,7 +3873,9 @@ function buildTaskCard(task, isDone) {
       openDetailIds.add(task.id);
       titlePreview.textContent = task.text;
       titleInput.value = task.text;
-      notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px';
+      const sizeNotes = () => { notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px'; };
+      sizeNotes();
+      detail.addEventListener('transitionend', sizeNotes, { once: true });
       if (!isDone) setTimeout(() => { autoGrow(); titleInput.focus(); }, 0);
     }
   });
