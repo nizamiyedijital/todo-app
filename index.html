@@ -3474,6 +3474,9 @@ function closeAllDetails() {
     c.classList.remove('detail-open');
     const prev = c.querySelector('.task-title-preview');
     if (prev && prev.dataset.shortText) prev.textContent = prev.dataset.shortText;
+    const subSect = c.querySelector('.task-sub-section');
+    const body = c.querySelector('.task-body');
+    if (subSect && body && subSect.parentElement !== body) body.appendChild(subSect);
   });
   document.querySelectorAll('.task-detail.open').forEach(d => d.classList.remove('open'));
   openDetailIds.clear();
@@ -3483,8 +3486,11 @@ function restoreOpenDetails() {
   openDetailIds.forEach(tid => {
     const card = document.querySelector(`[data-task-id="${tid}"]`);
     if (card) {
-      card.querySelector('.task-detail')?.classList.add('open');
+      const detail = card.querySelector('.task-detail');
+      detail?.classList.add('open');
       card.classList.add('detail-open');
+      const subSect = card.querySelector('.task-sub-section');
+      if (detail && subSect) detail.appendChild(subSect);
       const ta = card.querySelector('.task-title');
       if (ta) { ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
     }
@@ -3834,6 +3840,7 @@ function buildTaskCard(task, isDone) {
     if (!wasOpen) {
       detail.classList.add('open');
       card.classList.add('detail-open');
+      detail.appendChild(subSect);
       openDetailIds.add(task.id);
       titlePreview.textContent = task.text;
       titleInput.value = task.text;
