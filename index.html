@@ -3469,6 +3469,47 @@ function renderStats() {
 /* ── Render tasks ── */
 let pendingSubtaskFocus = null;
 let openDetailIds = new Set();
+let pendingReorder = false;
+
+function renderWithFlip() {
+  const list = document.getElementById('taskList');
+  if (!list) { render(); return; }
+  const oldRects = new Map();
+  list.querySelectorAll('.task-card').forEach(c => {
+    if (c.dataset.taskId) oldRects.set(c.dataset.taskId, c.getBoundingClientRect());
+  });
+  render();
+  list.querySelectorAll('.task-card').forEach(c => {
+    const oldRect = oldRects.get(c.dataset.taskId);
+    if (!oldRect) return;
+    const newRect = c.getBoundingClientRect();
+    const dx = oldRect.left - newRect.left;
+    const dy = oldRect.top - newRect.top;
+    if (dx === 0 && dy === 0) return;
+    const dist = Math.hypot(dx, dy);
+    const moved = dist > 4;
+    const moveDur = Math.round(Math.max(1200, Math.min(2200, dist * 3)));
+    c.animate(
+      [
+        { transform: `translate(${dx}px, ${dy}px)` },
+        { transform: 'translate(0, 0)' }
+      ],
+      { duration: moveDur, easing: 'cubic-bezier(0.45, 0, 0.55, 1)', fill: 'backwards' }
+    );
+    if (moved) {
+      setTimeout(() => {
+        c.animate(
+          [
+            { transform: 'scale(1)',     boxShadow: '0 0 0 rgba(0,0,0,0)',          backgroundColor: 'var(--card-hover)' },
+            { transform: 'scale(1.035)', boxShadow: '0 8px 24px rgba(79,110,247,.35)', backgroundColor: 'var(--accent-bg)', offset: 0.45 },
+            { transform: 'scale(1)',     boxShadow: '0 0 0 rgba(0,0,0,0)',          backgroundColor: 'var(--card-hover)' }
+          ],
+          { duration: 620, easing: 'ease-out' }
+        );
+      }, moveDur);
+    }
+  });
+}
 
 function openTaskDetail(detail) {
   detail.classList.add('open');
@@ -3509,6 +3550,10 @@ function closeAllDetails() {
   });
   document.querySelectorAll('.task-detail.open').forEach(d => closeTaskDetail(d));
   openDetailIds.clear();
+  if (pendingReorder) {
+    pendingReorder = false;
+    setTimeout(renderWithFlip, 290);
+  }
 }
 
 function restoreOpenDetails() {
@@ -3852,7 +3897,38 @@ function buildTaskCard(task, isDone) {
     btn.dataset.tip = prio.tooltip;
     const sym = document.createElement('span'); sym.className='prio-sym'; sym.textContent=prio.symbol;
     btn.appendChild(sym);
-    btn.onclick = () => { const newVal = task.priority===key ? null : key; updatePriority(task, newVal); };
+    btn.onclick = () => {
+      const newVal = task.priority === key ? null : key;
+      const oldVal = task.priority;
+      if (newVal === oldVal) return;
+      task.priority = newVal;
+      prioRow.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+      if (newVal) prioRow.querySelector(`.priority-btn.${newVal}`)?.classList.add('active');
+      if (oldVal) card.classList.remove('prio-' + oldVal);
+      if (newVal) card.classList.add('prio-' + newVal);
+      if (newVal && PRIORITIES[newVal]) {
+        const p = PRIORITIES[newVal];
+        prioHint.textContent = `${p.name} → ${p.action}`;
+        prioHint.style.color = `var(--prio-${newVal.slice(1)}-text)`;
+        prioHint.style.display = '';
+      } else {
+        prioHint.style.display = 'none';
+      }
+      const oldChip = infoBar.querySelector('.tib-prio');
+      if (oldChip) oldChip.remove();
+      if (newVal && PRIORITIES[newVal]) {
+        const p = PRIORITIES[newVal];
+        const chip = document.createElement('div');
+        chip.className = `tib-chip tib-prio ${newVal}`;
+        chip.title = p.label;
+        const sym = document.createElement('span'); sym.className='tib-prio-sym'; sym.textContent=p.symbol;
+        const lbl = document.createElement('span'); lbl.className='tib-lbl'; lbl.textContent=p.label;
+        chip.appendChild(sym); chip.appendChild(lbl);
+        infoBar.insertBefore(chip, infoBar.firstChild);
+      }
+      pendingReorder = true;
+      updatePriority(task, newVal);
+    };
     btn.addEventListener('touchstart', () => { btn.classList.add('show-tip'); setTimeout(()=>btn.classList.remove('show-tip'),1800); }, {passive:true});
     prioRow.appendChild(btn);
   });
@@ -3985,7 +4061,6 @@ async function updatePriority(task, val) {
   const priority = val || null;
   await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify({priority})});
   task.priority = priority;
-  render();
 }
 
 /* ── Helpers ── */
