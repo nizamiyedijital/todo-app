@@ -15,20 +15,30 @@
   <style>
     /* ── CSS Variables (theming) ── */
     :root {
-      --bg:#f5f6fa; --surface:#fff; --surface2:#f8f9fd;
-      --border:#e8ecf4; --border2:#f0f2f8;
-      --text:#1a1a2e; --text2:#444; --text3:#888; --text4:#bbb;
-      --accent:#4f6ef7; --accent-bg:#eef1fd;
-      --sidebar-bg:#fff; --card-bg:#fff;
-      --input-bg:#fff; --input-border:#e0e4ef;
+      --bg:#F8FAFC; --surface:#FFFFFF; --surface2:#F1F5F9;
+      --border:#E2E8F0; --border2:#F1F5F9;
+      --text:#0F172A; --text2:#475569; --text3:#64748B; --text4:#94A3B8;
+      --accent:#4F6EF7; --accent-bg:#EEF1FD;
+      --sidebar-bg:#FFFFFF; --card-bg:#FFFFFF; --card-hover:#EEF2FF;
+      --input-bg:#FFFFFF; --input-border:#E2E8F0;
+      --prio-0-main:#5B9BD5; --prio-0-bg:#EAF4FC; --prio-0-text:#2E6FA3; --prio-0-border:#BCD8EF;
+      --prio-1-main:#E96B6B; --prio-1-bg:#FDEDED; --prio-1-text:#B94D4D; --prio-1-border:#F4B8B8;
+      --prio-2-main:#F39C4A; --prio-2-bg:#FEF1E5; --prio-2-text:#C8761E; --prio-2-border:#F8C99D;
+      --prio-3-main:#6DBE87; --prio-3-bg:#EAF7EF; --prio-3-text:#3E8B5C; --prio-3-border:#B7DEC5;
+      --prio-4-main:#9EA7B3; --prio-4-bg:#EEF2F6; --prio-4-text:#3F6B7A; --prio-4-border:#D5DDE5;
     }
     body.theme-dark {
-      --bg:#0f1117; --surface:#161b27; --surface2:#1e2535;
-      --border:#252d40; --border2:#1e2535;
-      --text:#e0e6f5; --text2:#b0bcd4; --text3:#6a7a98; --text4:#3a4560;
-      --accent:#6b84fa; --accent-bg:#1a2040;
-      --sidebar-bg:#13182a; --card-bg:#1e2535;
-      --input-bg:#1a2040; --input-border:#2a3555;
+      --bg:#0F172A; --surface:#111827; --surface2:#1E293B;
+      --border:#334155; --border2:#1E293B;
+      --text:#F8FAFC; --text2:#CBD5E1; --text3:#94A3B8; --text4:#475569;
+      --accent:#6B84FA; --accent-bg:#1E293B;
+      --sidebar-bg:#0F172A; --card-bg:#111827; --card-hover:#1E293B;
+      --input-bg:#1E293B; --input-border:#334155;
+      --prio-0-bg:#16324C; --prio-0-text:#8FC2F0; --prio-0-border:#295174;
+      --prio-1-bg:#4A2020; --prio-1-text:#F4A0A0; --prio-1-border:#7A3A3A;
+      --prio-2-bg:#4B3118; --prio-2-text:#FFB869; --prio-2-border:#7A542A;
+      --prio-3-bg:#183825; --prio-3-text:#7FD59C; --prio-3-border:#2B5C40;
+      --prio-4-bg:#2A3441; --prio-4-text:#B5C0CC; --prio-4-border:#465465;
     }
     .mi {
       font-family:'Material Symbols Outlined'; font-size:18px; color:#8a9ab5;
@@ -65,21 +75,11 @@
     body.theme-dark .main-list-title { color:var(--text); }
     body.theme-dark .task-card { background:var(--card-bg); border-bottom-color:var(--border2); }
     body.theme-dark .task-card:hover,
-    body.theme-dark .task-card.detail-open { box-shadow:0 2px 8px rgba(0,0,0,.35); background:#252d40; }
+    body.theme-dark .task-card.detail-open { box-shadow:0 2px 8px rgba(0,0,0,.35); background:var(--card-hover); }
     body.theme-dark .task-title-preview { color:var(--text); }
     body.theme-dark .task-title { color:var(--text); background:transparent; }
     body.theme-dark .task-notes-preview { color:var(--text3); }
     body.theme-dark .tib-chip .mi { color:var(--text3); }
-    body.theme-dark .tib-prio.p0 { color:#38bdf8; }
-    body.theme-dark .tib-prio.p1 { color:#f87171; }
-    body.theme-dark .tib-prio.p2 { color:#fb923c; }
-    body.theme-dark .tib-prio.p3 { color:#facc15; }
-    body.theme-dark .tib-prio.p4 { color:#94a3b8; }
-    body.theme-dark .priority-btn.p0 { color:#38bdf8; }
-    body.theme-dark .priority-btn.p1 { color:#f87171; }
-    body.theme-dark .priority-btn.p2 { color:#fb923c; }
-    body.theme-dark .priority-btn.p3 { color:#facc15; }
-    body.theme-dark .priority-btn.p4 { color:#94a3b8; }
     body.theme-dark .tib-lbl { color:var(--text3); }
     body.theme-dark .task-check { border-color:#4a5568; }
     body.theme-dark .task-check:hover { border-color:var(--accent); }
@@ -454,12 +454,12 @@
     .add-due-sel-label { font-size:.77rem; color:var(--accent); font-weight:500; cursor:pointer; }
     .add-bottom-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .btn-cal {
-      width:30px; height:30px; border:1.5px solid #e0e4ef; border-radius:8px;
-      background:#fff; cursor:pointer; font-size:.9rem; flex-shrink:0;
+      width:30px; height:30px; border:1.5px solid var(--border); border-radius:8px;
+      background:var(--surface); color:var(--text2); cursor:pointer; font-size:.9rem; flex-shrink:0;
       display:inline-flex; align-items:center; justify-content:center;
-      transition:border-color .18s, background .18s;
+      transition:border-color .18s, background .18s, color .18s;
     }
-    .btn-cal:hover, .btn-cal.has-date { border-color:#4f6ef7; background:#f0f3ff; }
+    .btn-cal:hover, .btn-cal.has-date { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); }
     .due-selected-label {
       font-size:.77rem; color:#4f6ef7; font-weight:500;
       white-space:nowrap; cursor:pointer;
@@ -490,12 +490,12 @@
       border-left:3px solid transparent;
     }
     .task-card:hover,
-    .task-card.detail-open { box-shadow:0 2px 6px rgba(0,0,0,0.06); background:#eef2ff; }
-    .task-card.prio-p0 { border-left-color:#0ea5e9; }
-    .task-card.prio-p1 { border-left-color:#dc2626; }
-    .task-card.prio-p2 { border-left-color:#f97316; }
-    .task-card.prio-p3 { border-left-color:#eab308; }
-    .task-card.prio-p4 { border-left-color:#94a3b8; }
+    .task-card.detail-open { box-shadow:0 2px 6px rgba(0,0,0,0.06); background:var(--card-hover); }
+    .task-card.prio-p0 { border-left-color:var(--prio-0-main); }
+    .task-card.prio-p1 { border-left-color:var(--prio-1-main); }
+    .task-card.prio-p2 { border-left-color:var(--prio-2-main); }
+    .task-card.prio-p3 { border-left-color:var(--prio-3-main); }
+    .task-card.prio-p4 { border-left-color:var(--prio-4-main); }
     .task-row {
       display:flex; align-items:flex-start; gap:9px;
       padding:4px 10px 4px 11px; position:relative;
@@ -553,11 +553,6 @@
     /* Always show label for due; subtask only on mobile */
     .tib-due .tib-lbl { max-width:110px; }
     .tib-subs .tib-lbl { max-width:0; }
-    .tib-prio.p0 { color:#0ea5e9; }
-    .tib-prio.p1 { color:#dc2626; }
-    .tib-prio.p2 { color:#f97316; }
-    .tib-prio.p3 { color:#eab308; }
-    .tib-prio.p4 { color:#94a3b8; }
     .tib-due.today .mi, .tib-due.today .tib-lbl   { color:#c2410c; }
     .tib-due.overdue .mi, .tib-due.overdue .tib-lbl { color:#dc2626; }
     .tib-list-lbl { font-size:11.5px; color:#999; flex-shrink:0; opacity:.85; }
@@ -632,6 +627,10 @@
     /* Priority picker in detail */
     /* Priority row */
     .priority-row { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+    .priority-hint {
+      font-size:.72rem; line-height:1.3; margin-top:2px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
 
     /* Priority button — circle with text symbol */
     .priority-btn {
@@ -644,16 +643,16 @@
       font-size:.58rem; font-weight:800; letter-spacing:-.03em;
       color:inherit; line-height:1; pointer-events:none;
     }
-    .priority-btn.p0 { color:#0ea5e9; }
-    .priority-btn.p1 { color:#dc2626; }
-    .priority-btn.p2 { color:#f97316; }
-    .priority-btn.p3 { color:#eab308; }
-    .priority-btn.p4 { color:#94a3b8; }
-    .priority-btn.p0.active { background:#e0f2fe; box-shadow:0 0 0 3px #bae6fd; }
-    .priority-btn.p1.active { background:#fee2e2; box-shadow:0 0 0 3px #fca5a5; }
-    .priority-btn.p2.active { background:#fff7ed; box-shadow:0 0 0 3px #fed7aa; }
-    .priority-btn.p3.active { background:#fefce8; box-shadow:0 0 0 3px #fef08a; }
-    .priority-btn.p4.active { background:#f1f5f9; box-shadow:0 0 0 3px #e2e8f0; }
+    .priority-btn.p0 { color:var(--prio-0-text); }
+    .priority-btn.p1 { color:var(--prio-1-text); }
+    .priority-btn.p2 { color:var(--prio-2-text); }
+    .priority-btn.p3 { color:var(--prio-3-text); }
+    .priority-btn.p4 { color:var(--prio-4-text); }
+    .priority-btn.p0.active { background:var(--prio-0-bg); box-shadow:0 0 0 2px var(--prio-0-border); }
+    .priority-btn.p1.active { background:var(--prio-1-bg); box-shadow:0 0 0 2px var(--prio-1-border); }
+    .priority-btn.p2.active { background:var(--prio-2-bg); box-shadow:0 0 0 2px var(--prio-2-border); }
+    .priority-btn.p3.active { background:var(--prio-3-bg); box-shadow:0 0 0 2px var(--prio-3-border); }
+    .priority-btn.p4.active { background:var(--prio-4-bg); box-shadow:0 0 0 2px var(--prio-4-border); }
     .priority-btn:hover { transform:scale(1.15); }
 
     /* Desktop tooltip on hover */
@@ -672,11 +671,12 @@
     .tib-prio-sym {
       font-size:.6rem; font-weight:800; letter-spacing:-.03em; line-height:1;
     }
-    .tib-prio.p0 { color:#0ea5e9; }
-    .tib-prio.p1 { color:#dc2626; }
-    .tib-prio.p2 { color:#f97316; }
-    .tib-prio.p3 { color:#eab308; }
-    .tib-prio.p4 { color:#94a3b8; }
+    .tib-prio { padding:1px 8px; border-radius:9px; border:1px solid transparent; }
+    .tib-prio.p0 { color:var(--prio-0-text); background:var(--prio-0-bg); border-color:var(--prio-0-border); }
+    .tib-prio.p1 { color:var(--prio-1-text); background:var(--prio-1-bg); border-color:var(--prio-1-border); }
+    .tib-prio.p2 { color:var(--prio-2-text); background:var(--prio-2-bg); border-color:var(--prio-2-border); }
+    .tib-prio.p3 { color:var(--prio-3-text); background:var(--prio-3-bg); border-color:var(--prio-3-border); }
+    .tib-prio.p4 { color:var(--prio-4-text); background:var(--prio-4-bg); border-color:var(--prio-4-border); }
 
     /* Task card left border by priority */
     .task-side {
@@ -732,13 +732,13 @@
     .detail-notes:focus { border-color:#4f6ef7; }
     .detail-due-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
     .det-due-quick {
-      padding:3px 10px; border:1.5px solid var(--border2); border-radius:20px;
-      background:var(--surface2); font-size:.76rem; color:var(--text3);
+      padding:3px 10px; border:1.5px solid var(--border); border-radius:20px;
+      background:var(--surface); font-size:.76rem; color:var(--text2);
       cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap;
     }
-    .det-due-quick:hover { border-color:var(--accent); color:var(--accent); }
+    .det-due-quick:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-bg); }
     .btn-clear-due {
-      font-size:.72rem; color:#ccc; cursor:pointer;
+      font-size:.72rem; color:var(--text3); cursor:pointer;
       border:none; background:none; transition:color .15s; display:flex; align-items:center;
     }
     .btn-clear-due:hover { color:#e53e3e; }
@@ -1130,10 +1130,11 @@
         border-bottom:1px solid #f0f2f8; margin-bottom:0;
         box-shadow:none !important;
       }
-      .task-card.prio-p1 { border-left:3px solid #dc2626 !important; border-top:none !important; }
-      .task-card.prio-p2 { border-left:3px solid #eab308 !important; border-top:none !important; }
-      .task-card.prio-p3 { border-left:3px solid #22c55e !important; border-top:none !important; }
-      .task-card.prio-p4 { border-left:3px solid #94a3b8 !important; border-top:none !important; }
+      .task-card.prio-p0 { border-left:3px solid var(--prio-0-main) !important; border-top:none !important; }
+      .task-card.prio-p1 { border-left:3px solid var(--prio-1-main) !important; border-top:none !important; }
+      .task-card.prio-p2 { border-left:3px solid var(--prio-2-main) !important; border-top:none !important; }
+      .task-card.prio-p3 { border-left:3px solid var(--prio-3-main) !important; border-top:none !important; }
+      .task-card.prio-p4 { border-left:3px solid var(--prio-4-main) !important; border-top:none !important; }
       .task-row { padding:8px 10px 8px 12px; }
       .task-check { width:22px; height:22px; margin-top:1px; }
       .task-title { font-size:.9rem; }
@@ -1703,9 +1704,6 @@
     body.theme-dark .btn-nl-cxl { background:var(--surface2); border-color:var(--border); color:var(--text3); }
     body.theme-dark .priority-row-label { color:var(--text3); }
     body.theme-dark .due-selected-label { color:var(--text2); }
-    body.theme-dark .btn-cal { background:var(--input-bg); border-color:var(--input-border); color:var(--text2); }
-    body.theme-dark .btn-cal:hover, body.theme-dark .btn-cal.has-date { border-color:var(--accent); background:var(--accent-bg); }
-    body.theme-dark .btn-clear-due { color:var(--text3); }
     body.theme-dark .sub-i-txt { color:var(--text2); }
     body.theme-dark .sub-i-txt.done { color:var(--text4); }
     body.theme-dark .sub-i-chk { border-color:#4a5568; background:transparent; }
@@ -2323,7 +2321,7 @@ const SORT_OPTIONS = [
   { key:'due_at',     label:'Planlama Zamanı' },
   { key:'priority',   label:'Öncelik Durumu'  },
 ];
-const PRIO_ORDER = { p1:1, p2:2, p3:3, p4:4 };
+const PRIO_ORDER = { p0:0, p1:1, p2:2, p3:3, p4:4 };
 
 function defaultTaskSort(a, b) {
   const aIsP4 = a.priority === 'p4';
@@ -3858,6 +3856,15 @@ function buildTaskCard(task, isDone) {
     btn.addEventListener('touchstart', () => { btn.classList.add('show-tip'); setTimeout(()=>btn.classList.remove('show-tip'),1800); }, {passive:true});
     prioRow.appendChild(btn);
   });
+  const prioHint = document.createElement('div');
+  prioHint.className = 'priority-hint';
+  if (task.priority && PRIORITIES[task.priority]) {
+    const p = PRIORITIES[task.priority];
+    prioHint.textContent = `${p.name} → ${p.action}`;
+    prioHint.style.color = `var(--prio-${task.priority.slice(1)}-text)`;
+  } else {
+    prioHint.style.display = 'none';
+  }
 
   /* Due date row with Bugün/Yarın shortcuts */
   const dueRow = document.createElement('div');
@@ -3884,6 +3891,7 @@ function buildTaskCard(task, isDone) {
 
   detail.appendChild(notesTA);
   detail.appendChild(prioRow);
+  detail.appendChild(prioHint);
   detail.appendChild(dueRow);
   detail.appendChild(linkWrap);
 
@@ -3966,11 +3974,11 @@ function openTaskCtxMenu(anchor, task) {
 /* ── Priority ── */
 const mi = (name, sz) => `<span class="mi${sz?' s'+sz:''}">${name}</span>`;
 const PRIORITIES = {
-  p0: { symbol:'5dk',  color:'#0ea5e9', shadow:'#bae6fd', tooltip:'Çok Kısa\nHemen Yap',                       label:'Çok Kısa — Hemen Yap' },
-  p1: { symbol:'!!!',  color:'#dc2626', shadow:'#fca5a5', tooltip:'Önemli · Acil\nHemen Yap',                   label:'Önemli · Acil — Hemen Yap' },
-  p2: { symbol:'!!',   color:'#f97316', shadow:'#fed7aa', tooltip:'Önemli, Acil Değil\nGün-Saat Planla',        label:'Önemli, Acil Değil — Gün-Saat Planla' },
-  p3: { symbol:'!',    color:'#eab308', shadow:'#fef08a', tooltip:'Acil, Önemsiz\nHızlı Yönet, Devret',         label:'Acil, Önemsiz — Hızlı Yönet, Devret' },
-  p4: { symbol:'zZz',  color:'#94a3b8', shadow:'#e2e8f0', tooltip:'Acil Değil, Önemsiz\nErtele, Sil',           label:'Acil Değil, Önemsiz — Ertele, Sil' },
+  p0: { symbol:'5dk',  name:'Çok Kısa',         action:'Hemen Yap',           color:'#5B9BD5', shadow:'#BCD8EF', tooltip:'Çok Kısa\nHemen Yap',           label:'Çok Kısa — Hemen Yap' },
+  p1: { symbol:'!!!',  name:'Önemli-Acil',      action:'Hemen Yap',           color:'#E96B6B', shadow:'#F4B8B8', tooltip:'Önemli-Acil\nHemen Yap',        label:'Önemli-Acil — Hemen Yap' },
+  p2: { symbol:'!!',   name:'Önemli-Acil D.',   action:'Gün-Saat Planla',     color:'#F39C4A', shadow:'#F8C99D', tooltip:'Önemli-Acil D.\nGün-Saat Planla', label:'Önemli-Acil D. — Gün-Saat Planla' },
+  p3: { symbol:'!',    name:'Acil-Önemsiz',     action:'Hızlı Yönet, Devret', color:'#6DBE87', shadow:'#B7DEC5', tooltip:'Acil-Önemsiz\nHızlı Yönet, Devret', label:'Acil-Önemsiz — Hızlı Yönet, Devret' },
+  p4: { symbol:'zZz',  name:'Acil D.-Önemsiz',  action:'Ertele, Sil',         color:'#9EA7B3', shadow:'#D5DDE5', tooltip:'Acil D.-Önemsiz\nErtele, Sil',  label:'Acil D.-Önemsiz — Ertele, Sil' },
 };
 
 async function updatePriority(task, val) {
