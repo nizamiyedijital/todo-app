@@ -565,6 +565,10 @@
     .tib-due.today .mi, .tib-due.today .tib-lbl   { color:#c2410c; }
     .tib-due.overdue .mi, .tib-due.overdue .tib-lbl { color:#dc2626; }
     .tib-list-lbl { font-size:11.5px; color:#999; flex-shrink:0; opacity:.85; }
+    .tib-completed-date .tib-lbl,
+    .tib-completed-time .tib-lbl { max-width:90px; font-size:10px; }
+    .tib-completed-date .mi,
+    .tib-completed-time .mi { color:#22c55e; }
     /* Notes preview on card */
     .task-notes-preview {
       font-size:.73rem; color:#999; line-height:1.45; margin-top:0;
@@ -3740,6 +3744,18 @@ function buildTaskCard(task, isDone) {
     return chip;
   };
 
+  const isCompletedWithStamp = task.done && task.completed_at;
+
+  if (isCompletedWithStamp) {
+    const fullStamp = new Date(task.completed_at).toLocaleString('tr-TR');
+    const dateChip = mkChip('tib-completed-date', 'task_alt', fmtCompletedDate(task.completed_at));
+    dateChip.title = fullStamp;
+    infoBar.appendChild(dateChip);
+    const timeChip = mkChip('tib-completed-time', 'schedule', fmtTime(task.completed_at));
+    timeChip.title = fullStamp;
+    infoBar.appendChild(timeChip);
+  }
+
   if (task.priority && PRIORITIES[task.priority]) {
     const p = PRIORITIES[task.priority];
     const chip = document.createElement('div');
@@ -3751,7 +3767,7 @@ function buildTaskCard(task, isDone) {
     infoBar.appendChild(chip);
   }
 
-  if (due) {
+  if (due && !isCompletedWithStamp) {
     const chip = mkChip(`tib-due ${due.cls}`, 'calendar_today', due.label, e => {
       e.stopPropagation();
       dtpOpen(chip, task.due_at, async v => { await updateDue(task, v); });
@@ -4150,6 +4166,23 @@ function formatDue(iso) {
   if(diff===0)        return{label:`Bugün${sfx}`,   cls:'today'  };
   if(diff===86400000) return{label:`Yarın${sfx}`,   cls:'future' };
   return                   {label:`${date}${sfx}`,  cls:'future' };
+}
+function fmtCompletedDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dDay = new Date(d); dDay.setHours(0,0,0,0);
+  const diff = dDay - today;
+  if (diff === 0) return 'Bugün';
+  if (diff === -86400000) return 'Dün';
+  return fmtShort(iso, false);
+}
+function fmtTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const use12 = appSettings?.timeFormat === '12h';
+  return d.toLocaleTimeString(use12 ? 'en-US' : 'tr-TR',
+    { hour:'2-digit', minute:'2-digit', hour12: use12 });
 }
 
 /* ── Date-Time Picker ── */
