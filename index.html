@@ -560,7 +560,7 @@
     .tib-chip:hover .mi, .tib-chip:hover .tib-lbl { color:#4f6ef7; }
     .tib-chip:hover .tib-lbl { max-width:110px; }
     /* Always show label for due; subtask only on mobile */
-    .tib-due .tib-lbl { max-width:110px; }
+    .tib-due .tib-lbl { max-width:110px; font-size:10px; }
     .tib-subs .tib-lbl { max-width:0; }
     .tib-due.today .mi, .tib-due.today .tib-lbl   { color:#c2410c; }
     .tib-due.overdue .mi, .tib-due.overdue .tib-lbl { color:#dc2626; }
@@ -680,12 +680,11 @@
     .tib-prio-sym {
       font-size:.6rem; font-weight:800; letter-spacing:-.03em; line-height:1;
     }
-    .tib-prio { padding:1px 8px; border-radius:9px; border:1px solid transparent; }
-    .tib-prio.p0 { color:var(--prio-0-text); background:var(--prio-0-bg); border-color:var(--prio-0-border); }
-    .tib-prio.p1 { color:var(--prio-1-text); background:var(--prio-1-bg); border-color:var(--prio-1-border); }
-    .tib-prio.p2 { color:var(--prio-2-text); background:var(--prio-2-bg); border-color:var(--prio-2-border); }
-    .tib-prio.p3 { color:var(--prio-3-text); background:var(--prio-3-bg); border-color:var(--prio-3-border); }
-    .tib-prio.p4 { color:var(--prio-4-text); background:var(--prio-4-bg); border-color:var(--prio-4-border); }
+    .tib-prio.p0 { color:var(--prio-0-text); }
+    .tib-prio.p1 { color:var(--prio-1-text); }
+    .tib-prio.p2 { color:var(--prio-2-text); }
+    .tib-prio.p3 { color:var(--prio-3-text); }
+    .tib-prio.p4 { color:var(--prio-4-text); }
 
     /* Task card left border by priority */
     .task-side {
@@ -1147,7 +1146,7 @@
       /* İkonlar: sadece icon, etiket yok */
       .tib-lbl { max-width:0 !important; }
       /* Tarih ve alt görev sayısı: göster */
-      .tib-due .tib-lbl { max-width:120px !important; }
+      .tib-due .tib-lbl { max-width:120px !important; font-size:11.5px; }
       .tib-subs .tib-lbl { max-width:60px !important; }
       .tib-chip:hover { background:transparent; }
       .tib-chip:hover .mi, .tib-chip:hover .tib-lbl { color:inherit; }
@@ -3272,7 +3271,7 @@ function renderAddPrioPicker() {
 }
 
 function setAddDueQuick(days) {
-  const d = new Date(); d.setDate(d.getDate()+days); d.setHours(9,0,0,0);
+  const d = new Date(); d.setDate(d.getDate()+days); d.setHours(0,0,0,0);
   addDueValue = d.toISOString(); renderAddDueLabel();
 }
 
@@ -4001,10 +4000,10 @@ function buildTaskCard(task, isDone) {
   const dueIcon = document.createElement('span'); dueIcon.className='mi s16'; dueIcon.textContent='schedule'; dueIcon.style.color='#bbb';
   const dueTodayBtn = document.createElement('button');
   dueTodayBtn.className='det-due-quick'; dueTodayBtn.textContent='Bugün';
-  dueTodayBtn.onclick=()=>{ const d=new Date(); d.setHours(9,0,0,0); updateDue(task,d.toISOString()); dueCalBtn.classList.add('has-date'); dueDateLabel.textContent=fmtShort(d.toISOString()); };
+  dueTodayBtn.onclick=()=>{ const d=new Date(); d.setHours(0,0,0,0); updateDue(task,d.toISOString()); dueCalBtn.classList.add('has-date'); dueDateLabel.textContent=fmtShort(d.toISOString()); };
   const dueTomBtn = document.createElement('button');
   dueTomBtn.className='det-due-quick'; dueTomBtn.textContent='Yarın';
-  dueTomBtn.onclick=()=>{ const d=new Date(); d.setDate(d.getDate()+1); d.setHours(9,0,0,0); updateDue(task,d.toISOString()); dueCalBtn.classList.add('has-date'); dueDateLabel.textContent=fmtShort(d.toISOString()); };
+  dueTomBtn.onclick=()=>{ const d=new Date(); d.setDate(d.getDate()+1); d.setHours(0,0,0,0); updateDue(task,d.toISOString()); dueCalBtn.classList.add('has-date'); dueDateLabel.textContent=fmtShort(d.toISOString()); };
   const dueCalBtn = document.createElement('button');
   dueCalBtn.className='btn-cal'+(task.due_at?' has-date':'');
   dueCalBtn.title='Bitiş tarihi seç'; dueCalBtn.innerHTML=mi('calendar_today',16);
@@ -4117,17 +4116,24 @@ async function updatePriority(task, val) {
 }
 
 /* ── Helpers ── */
-function fmtShort(iso) {
-  if (!iso) return '';
+function hasTime(iso) {
+  if (!iso) return false;
   const d = new Date(iso);
-  const use12 = appSettings?.timeFormat === '12h';
-  const timePart = d.toLocaleTimeString(use12 ? 'en-US' : 'tr-TR',
-    { hour:'2-digit', minute:'2-digit', hour12: use12 });
+  return d.getHours() !== 0 || d.getMinutes() !== 0;
+}
+function fmtShort(iso, withTime) {
+  if (!iso) return '';
+  if (withTime === undefined) withTime = hasTime(iso);
+  const d = new Date(iso);
   const fmt = appSettings?.dateFormat || 'DD/MM';
   let datePart;
   if (fmt === 'MM/DD') datePart = d.toLocaleDateString('en-US', { day:'numeric', month:'short' });
   else if (fmt === 'YYYY-MM-DD') datePart = d.toISOString().slice(0,10);
   else datePart = d.toLocaleDateString('tr-TR', { day:'numeric', month:'short' });
+  if (!withTime) return datePart;
+  const use12 = appSettings?.timeFormat === '12h';
+  const timePart = d.toLocaleTimeString(use12 ? 'en-US' : 'tr-TR',
+    { hour:'2-digit', minute:'2-digit', hour12: use12 });
   return datePart + ' ' + timePart;
 }
 function formatDue(iso) {
@@ -4136,12 +4142,14 @@ function formatDue(iso) {
   const today=new Date(); today.setHours(0,0,0,0);
   const dDay=new Date(d); dDay.setHours(0,0,0,0);
   const diff=dDay-today;
-  const time=fmtShort(iso).split(' ').slice(-1)[0];
-  const date=fmtShort(iso).split(' ').slice(0,-1).join(' ');
-  if(diff<0)          return{label:`${date} ${time}`, cls:'overdue'};
-  if(diff===0)        return{label:`Bugün ${time}`,   cls:'today'  };
-  if(diff===86400000) return{label:`Yarın ${time}`,   cls:'future' };
-  return                   {label:`${date} ${time}`,  cls:'future' };
+  const withTime = hasTime(iso);
+  const date = fmtShort(iso, false);
+  const time = withTime ? fmtShort(iso, true).split(' ').slice(-1)[0] : '';
+  const sfx = withTime ? ' ' + time : '';
+  if(diff<0)          return{label:`${date}${sfx}`, cls:'overdue'};
+  if(diff===0)        return{label:`Bugün${sfx}`,   cls:'today'  };
+  if(diff===86400000) return{label:`Yarın${sfx}`,   cls:'future' };
+  return                   {label:`${date}${sfx}`,  cls:'future' };
 }
 
 /* ── Date-Time Picker ── */
@@ -4153,12 +4161,15 @@ function dtpOpen(anchor,currentISO,cb) {
   const now=currentISO?new Date(currentISO):new Date();
   dtp.year=now.getFullYear(); dtp.month=now.getMonth();
   dtp.day=currentISO?now.getDate():0;
+  const hadTime = currentISO ? hasTime(currentISO) : false;
   const hSel=document.getElementById('dtpHourSel'); hSel.innerHTML='';
+  hSel.appendChild(Object.assign(document.createElement('option'),{value:'',textContent:'--'}));
   for(let h=0;h<24;h++){const o=document.createElement('option');o.value=h;o.textContent=String(h).padStart(2,'0');hSel.appendChild(o);}
-  hSel.value=currentISO?now.getHours():9;
+  hSel.value=hadTime?String(now.getHours()):'';
   const mSel=document.getElementById('dtpMinSel'); mSel.innerHTML='';
+  mSel.appendChild(Object.assign(document.createElement('option'),{value:'',textContent:'--'}));
   MINS.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=String(m).padStart(2,'0');mSel.appendChild(o);});
-  mSel.value=currentISO?MINS.reduce((a,b)=>Math.abs(b-now.getMinutes())<Math.abs(a-now.getMinutes())?b:a):0;
+  mSel.value=hadTime?String(MINS.reduce((a,b)=>Math.abs(b-now.getMinutes())<Math.abs(a-now.getMinutes())?b:a)):'';
   dtpRenderCal();
   const box=document.getElementById('dtpBox');
   box.classList.add('open');
@@ -4182,8 +4193,10 @@ function dtpClose() {
 function dtpClear()   { dtp.cb&&dtp.cb(''); dtpClose(); }
 function dtpConfirm() {
   if(!dtp.day){showToast('Bir gün seçin');return;}
-  const h=parseInt(document.getElementById('dtpHourSel').value);
-  const m=parseInt(document.getElementById('dtpMinSel').value);
+  const hRaw=document.getElementById('dtpHourSel').value;
+  const mRaw=document.getElementById('dtpMinSel').value;
+  const h = hRaw === '' ? 0 : parseInt(hRaw);
+  const m = (hRaw === '' || mRaw === '') ? 0 : parseInt(mRaw);
   dtp.cb&&dtp.cb(new Date(dtp.year,dtp.month,dtp.day,h,m).toISOString());
   dtpClose();
 }
@@ -4900,7 +4913,7 @@ function renderMobTaskSheetDue() {
 function setMobDueQuick(days) {
   const d = new Date();
   d.setDate(d.getDate() + days);
-  d.setHours(9, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
   mobTaskSheetDue = d.toISOString();
   renderMobTaskSheetDue();
 }
@@ -5376,7 +5389,7 @@ function scheduleReminders() {
   const mins = appSettings.dueReminder === '30min' ? 30 : appSettings.dueReminder === '1hour' ? 60 : 1440;
   const msAhead = mins * 60 * 1000;
   const now = Date.now();
-  tasks.filter(t => !t.done && t.due_at).forEach(t => {
+  tasks.filter(t => !t.done && t.due_at && hasTime(t.due_at)).forEach(t => {
     const due = new Date(t.due_at).getTime();
     const fireAt = due - msAhead;
     const delay = fireAt - now;
@@ -5399,7 +5412,7 @@ function exportData(format) {
       'Notlar': t.notes || '',
       'Bağlantı': t.link || '',
       'Öncelik': t.priority ? { p1:'Acil & Önemli', p2:'Önemli', p3:'Acil Değil', p4:'Ertelenebilir' }[t.priority] : '',
-      'Bitiş Tarihi': t.due_at ? new Date(t.due_at).toLocaleString('tr-TR') : '',
+      'Bitiş Tarihi': t.due_at ? (hasTime(t.due_at) ? new Date(t.due_at).toLocaleString('tr-TR') : new Date(t.due_at).toLocaleDateString('tr-TR')) : '',
       'Tamamlandı': t.done ? 'Evet' : 'Hayır',
       'Yıldızlı': t.starred ? 'Evet' : 'Hayır',
       'Alt Görevler': subs,
