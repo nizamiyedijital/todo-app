@@ -3619,13 +3619,7 @@ function render() {
   const active = isStarred
     ? roots.filter(t=>!t.done)
     : sortedActiveTasks(activeListId, roots.filter(t=>!t.done));
-  const done   = roots.filter(t=> t.done).sort((a,b) => {
-    const ca = a.completed_at, cb = b.completed_at;
-    if (ca && cb) return new Date(cb) - new Date(ca);
-    if (cb) return 1;
-    if (ca) return -1;
-    return new Date(b.created_at||0) - new Date(a.created_at||0);
-  });
+  const done   = sortDoneTasks(roots.filter(t=> t.done));
 
   const taskList = document.getElementById('taskList');
   taskList.innerHTML = '';
@@ -4167,6 +4161,15 @@ function formatDue(iso) {
   if(diff===86400000) return{label:`Yarın${sfx}`,   cls:'future' };
   return                   {label:`${date}${sfx}`,  cls:'future' };
 }
+function sortDoneTasks(arr) {
+  return arr.sort((a,b) => {
+    const ca = a.completed_at, cb = b.completed_at;
+    if (ca && cb) return new Date(cb) - new Date(ca);
+    if (cb) return 1;
+    if (ca) return -1;
+    return new Date(b.created_at||0) - new Date(a.created_at||0);
+  });
+}
 function fmtCompletedDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -4324,7 +4327,7 @@ function renderBoard() {
 function buildBoardCol(list) {
   const colTasks = tasks.filter(t=>!t.parent_id && t.category===list.id);
   const active   = sortedActiveTasks(list.id, colTasks.filter(t=>!t.done));
-  const done     = colTasks.filter(t=>t.done);
+  const done     = sortDoneTasks(colTasks.filter(t=>t.done));
 
   const col = document.createElement('div');
   col.className = 'board-col';
