@@ -60,9 +60,8 @@
     }
     body.theme-dark .sidebar { background:var(--sidebar-bg); border-right-color:var(--border); }
     body.theme-dark .sidebar-header { border-bottom-color:var(--border); }
-    body.theme-dark .sidebar-stats { border-bottom-color:var(--border); }
+    body.theme-dark .sidebar-cal { border-bottom-color:var(--border); }
     body.theme-dark .sidebar-title { color:var(--text); }
-    body.theme-dark .stat-lbl { color:var(--text3); }
     body.theme-dark .list-item { color:var(--text); }
     body.theme-dark .list-item:hover { background:var(--surface2); }
     body.theme-dark .list-item.active { background:var(--accent-bg); }
@@ -126,7 +125,7 @@
       box-shadow:0 2px 20px rgba(0,0,0,0.09);
     }
     .auth-card h1 { text-align:center; font-size:1.6rem; color:#1a1a2e; margin-bottom:4px; }
-    .auth-subtitle { text-align:center; color:#bbb; font-size:.83rem; margin-bottom:28px; }
+    .auth-subtitle { text-align:center; color:#bbb; font-size:.83rem; margin-bottom:26px; }
     .auth-card h2 { text-align:center; color:#333; margin-bottom:20px; font-size:1.05rem; font-weight:600; }
     .field { margin-bottom:13px; }
     .field label { display:block; font-size:.79rem; color:#666; margin-bottom:5px; font-weight:500; }
@@ -218,12 +217,33 @@
 
     /* ── Sidebar ── */
     .sidebar {
-      width:230px; flex-shrink:0;
+      width:260px; flex-shrink:0;
       background:#fff;
       border-right:1px solid #e8ecf4;
       display:flex; flex-direction:column;
       overflow:hidden;
+      transition:width .2s ease;
     }
+    .sidebar.compact { width:64px; }
+    .sidebar.compact .sidebar-header,
+    .sidebar.compact .sidebar-cal,
+    .sidebar.compact .sidebar-section-label,
+    .sidebar.compact .list-item[data-id],
+    .sidebar.compact .new-list-input-row { display:none; }
+    .sidebar.compact .list-item .list-name,
+    .sidebar.compact .list-item .list-count,
+    .sidebar.compact .footer-btn-label,
+    .sidebar.compact .btn-new-list-text { display:none; }
+    .sidebar.compact .list-item { justify-content:center; padding:9px 0; }
+    .sidebar.compact .btn-new-list { justify-content:center; padding:9px 0; }
+    .sidebar.compact .footer-btn { justify-content:center; padding:9px 0; }
+    .sidebar.compact .footer-actions { padding:0 6px 6px; }
+    .sidebar-section-label {
+      font-size:.6rem; font-weight:700; color:var(--text4);
+      letter-spacing:.08em; padding:12px 14px 4px;
+      text-transform:uppercase;
+    }
+    .sidebar-section-label:first-child { padding-top:6px; }
 
     .sidebar-header {
       padding:20px 16px 12px;
@@ -239,20 +259,91 @@
     }
     .btn-logout:hover { color:#e53e3e; }
 
-    /* Stats in sidebar */
-    .sidebar-stats {
-      padding:12px 16px;
-      border-bottom:1px solid #f0f2f8;
-      display:flex; flex-direction:column; gap:5px;
+    /* Mini calendar in sidebar */
+    .sidebar-cal {
+      padding:8px 10px; border-bottom:1px solid #f0f2f8;
+      box-sizing:border-box;
     }
-    .stat-row {
-      display:flex; justify-content:space-between; align-items:center;
+    .sidebar-cal-nav {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:4px;
     }
-    .stat-lbl { font-size:.74rem; color:#aaa; font-weight:500; }
-    .stat-val { font-size:.85rem; font-weight:700; }
-    .stat-val.blue   { color:#4f6ef7; }
-    .stat-val.green  { color:#22c55e; }
-    .stat-val.orange { color:#f97316; }
+    .sidebar-cal-btn {
+      width:22px; height:22px; border:none; background:transparent;
+      cursor:pointer; color:var(--text2); border-radius:4px;
+      font-size:.95rem; line-height:1; display:flex; align-items:center; justify-content:center;
+      font-family:inherit; padding:0;
+    }
+    .sidebar-cal-btn:hover { background:var(--accent-bg); color:var(--accent); }
+    .sidebar-cal-label {
+      font-size:.78rem; font-weight:600; color:var(--text);
+      cursor:pointer; transition:color .12s;
+    }
+    .sidebar-cal-label:hover { color:var(--accent); }
+    .sidebar-cal-dow {
+      display:grid; grid-template-columns:repeat(7,1fr); gap:0;
+      margin-bottom:2px; width:100%;
+    }
+    .sidebar-cal-dow span {
+      text-align:center; font-size:.6rem; font-weight:600; color:var(--text4);
+      min-width:0;
+    }
+    .sidebar-cal-grid {
+      display:grid; grid-template-columns:repeat(7,1fr);
+      grid-auto-rows:30px; gap:1px;
+      width:100%;
+    }
+    .sidebar-cal-day {
+      --dot-color: var(--text3);
+      position:relative; min-width:0; height:30px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.68rem; color:var(--text2); border:none; background:transparent;
+      border-radius:50%; cursor:pointer; padding:0;
+      transition:background .12s, color .12s, box-shadow .12s;
+      font-family:inherit; box-sizing:border-box;
+      background-position:center; background-repeat:no-repeat; background-size:26px 26px;
+    }
+    .sidebar-cal-day:hover { background-color:var(--accent-bg); color:var(--accent); }
+    .sidebar-cal-day.adjacent { color:var(--text4); opacity:.45; }
+    .sidebar-cal-day.adjacent::after { display:none !important; }
+    .sidebar-cal-day.today {
+      background-color:var(--accent); color:#fff; font-weight:700;
+      --dot-color:#fff;
+    }
+    .sidebar-cal-day.selected {
+      background-color:transparent !important;
+      color:var(--accent) !important; font-weight:700;
+      box-shadow:inset 0 0 0 2px var(--accent);
+      --dot-color:var(--accent);
+    }
+    .sidebar-cal-day.today.selected {
+      background-color:var(--accent) !important;
+      color:#fff !important;
+      box-shadow:none;
+      --dot-color:#fff;
+    }
+    .sidebar-cal-day.has-star {
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='none' stroke='%23f59e0b' stroke-width='2.2' stroke-linejoin='round' d='M12 1 L15.23 7.55 L22.46 8.6 L17.23 13.7 L18.46 20.9 L12 17.5 L5.54 20.9 L6.77 13.7 L1.54 8.6 L8.77 7.55 Z'/></svg>");
+    }
+    .sidebar-cal-day.has-star.today,
+    .sidebar-cal-day.has-star.selected { background-image:none; }
+    .sidebar-cal-day::after {
+      content:''; position:absolute; bottom:1px;
+      width:3px; height:3px; border-radius:50%;
+      background:var(--dot-color);
+      display:none;
+    }
+    .sidebar-cal-day.has-task-1::after {
+      display:block; left:50%; transform:translateX(-50%);
+    }
+    .sidebar-cal-day.has-task-2::after {
+      display:block; left:calc(50% - 2.5px); transform:translateX(-50%);
+      box-shadow:5px 0 0 var(--dot-color);
+    }
+    .sidebar-cal-day.has-task-3::after {
+      display:block; left:50%; transform:translateX(-50%);
+      box-shadow:-5px 0 0 var(--dot-color), 5px 0 0 var(--dot-color);
+    }
 
     /* List items */
     .sidebar-lists {
@@ -324,6 +415,20 @@
       padding:10px 8px 16px;
       border-top:1px solid #f0f2f8;
     }
+    .footer-actions {
+      display:flex; gap:4px; padding:0 4px 6px;
+    }
+    .footer-btn {
+      flex:1; display:flex; align-items:center; gap:7px;
+      padding:8px 10px; border:none; background:transparent;
+      border-radius:9px; cursor:pointer; font-size:.82rem; color:#888;
+      font-family:inherit; transition:background .12s, color .12s;
+    }
+    .footer-btn:hover { background:#f4f5f9; color:var(--accent); }
+    .footer-btn .mi { color:#aaa; transition:color .12s; }
+    .footer-btn:hover .mi { color:var(--accent); }
+    .footer-btn.danger:hover { color:#e53e3e; }
+    .footer-btn.danger:hover .mi { color:#e53e3e; }
     .btn-new-list {
       display:flex; align-items:center; gap:7px;
       width:100%; padding:9px 10px; border:none; background:transparent;
@@ -370,7 +475,7 @@
     @media (max-width:480px) { #btnSidebarToggle { display:none; } }
 
     .main-header {
-      padding:14px 28px 12px;
+      padding:14px 26px 12px;
       display:flex; align-items:center; gap:12px;
       border-bottom:1px solid #e8ecf4;
       flex-shrink:0;
@@ -379,7 +484,7 @@
     .main-list-title { font-size:1.3rem; font-weight:700; color:#1a1a2e; }
 
     .main-body {
-      flex:1; overflow-y:auto; padding:12px 28px 40px;
+      flex:1; overflow-y:auto; padding:12px 26px 40px;
     }
     .main-body::-webkit-scrollbar { width:5px; }
     .main-body::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
@@ -895,10 +1000,10 @@
       letter-spacing:.4px; margin-bottom:8px; display:block;
     }
     .icon-grid {
-      display:grid; grid-template-columns:repeat(7,28px); gap:3px;
+      display:grid; grid-template-columns:repeat(7,26px); gap:3px;
     }
     .icon-btn {
-      width:28px; height:28px; border:none; background:transparent;
+      width:26px; height:26px; border:none; background:transparent;
       border-radius:7px; cursor:pointer; font-size:1rem;
       display:flex; align-items:center; justify-content:center;
       transition:background .12s;
@@ -1065,13 +1170,13 @@
     .wk-day-name { font-size:.71rem; font-weight:700; color:#888; }
     .wk-day-date {
       font-size:.92rem; font-weight:700; color:#1a1a2e;
-      width:28px; height:28px; display:inline-flex;
+      width:26px; height:26px; display:inline-flex;
       align-items:center; justify-content:center; border-radius:50%;
       margin:1px auto 0;
     }
     .wk-day-head.today .wk-day-date { background:#4f6ef7; color:#fff; }
     .wk-row-theme td, .wk-row-toptask td {
-      padding:0; height:28px;
+      padding:0; height:26px;
     }
     .wk-row-theme { background:#f8f9ff; }
     .wk-row-toptask { background:#fffbeb; }
@@ -1114,7 +1219,7 @@
     .drag-ghost {
       position:fixed; z-index:9999; pointer-events:none;
       opacity:.92; transform:rotate(1.5deg);
-      box-shadow:0 8px 28px rgba(0,0,0,.18);
+      box-shadow:0 8px 26px rgba(0,0,0,.18);
       border-radius:10px; background:#fff;
       border:2px solid #4f6ef7; overflow:hidden;
     }
@@ -1330,7 +1435,7 @@
       }
       #mobSubInp:empty::before { content:attr(data-placeholder); color:var(--text4); pointer-events:none; }
       .mob-sub-ok {
-        width:28px; height:28px; background:var(--accent); color:#fff;
+        width:26px; height:26px; background:var(--accent); color:#fff;
         border:none; border-radius:50%;
         cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;
       }
@@ -1810,40 +1915,40 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-title">
-          Yapılacaklar
-          <div style="display:flex;align-items:center;gap:6px;">
-            <button class="btn-logout" onclick="openSettings()" title="Ayarlar" style="color:#aaa;padding:2px 4px;"><span class="mi s16">settings</span></button>
-            <button class="btn-logout" onclick="logout()" title="Çıkış"><span class="mi s16">logout</span> Çık</button>
-          </div>
-        </div>
+        <div class="sidebar-title">Yapılacaklar</div>
       </div>
 
-      <div class="sidebar-stats">
-        <div class="stat-row">
-          <span class="stat-lbl">Aktif</span>
-          <span class="stat-val blue" id="statActive">0</span>
+      <div class="sidebar-cal">
+        <div class="sidebar-cal-nav">
+          <button class="sidebar-cal-btn" onclick="sidebarCalPrev()" title="Önceki ay">‹</button>
+          <span class="sidebar-cal-label" id="sidebarCalLabel" onclick="sidebarCalToday()" title="Bu aya dön"></span>
+          <button class="sidebar-cal-btn" onclick="sidebarCalNext()" title="Sonraki ay">›</button>
         </div>
-        <div class="stat-row">
-          <span class="stat-lbl">Bugün tamam</span>
-          <span class="stat-val green" id="statToday">0</span>
+        <div class="sidebar-cal-dow">
+          <span>Pt</span><span>Sa</span><span>Ça</span><span>Pe</span>
+          <span>Cu</span><span>Ct</span><span>Pa</span>
         </div>
-        <div class="stat-row">
-          <span class="stat-lbl">Bu hafta</span>
-          <span class="stat-val orange" id="statWeek">0</span>
-        </div>
+        <div class="sidebar-cal-grid" id="sidebarCalGrid"></div>
       </div>
 
       <div class="sidebar-lists" id="sidebarLists"></div>
 
       <div class="sidebar-footer">
+        <div class="footer-actions">
+          <button class="footer-btn" onclick="openSettings()" title="Ayarlar">
+            <span class="mi s18">settings</span><span class="footer-btn-label">Ayarlar</span>
+          </button>
+          <button class="footer-btn danger" onclick="logout()" title="Çıkış">
+            <span class="mi s18">logout</span><span class="footer-btn-label">Çık</span>
+          </button>
+        </div>
         <div class="new-list-input-row" id="newListInputRow">
           <input type="text" id="newListInput" placeholder="Liste adı" autocomplete="off">
           <button class="btn-nl-ok" onclick="confirmNewList()" title="Listeyi oluştur">Ekle</button>
           <button class="btn-nl-cxl" onclick="cancelNewList()" title="İptal"><span class="mi s16">close</span></button>
         </div>
         <button class="btn-new-list" id="btnNewList" onclick="openNewList()" title="Yeni liste oluştur">
-          <span class="btn-new-list-icon">+</span> Yeni liste
+          <span class="btn-new-list-icon">+</span> <span class="btn-new-list-text">Yeni liste</span>
         </button>
       </div>
     </div>
@@ -2291,6 +2396,10 @@ const APP_URL = 'https://nizamiyedijital.github.io/todo-app';
 const STARRED_LIST_ID = '__starred__';
 const BOARD_LIST_ID   = '__board__';
 const WEEKLY_LIST_ID  = '__weekly__';
+const DAY_LIST_ID     = '__day__';
+let activeDayDate = null;
+let sidebarCalYear  = new Date().getFullYear();
+let sidebarCalMonth = new Date().getMonth();
 
 const DEFAULT_LISTS = [
   { id:'genel',    name:'Genel',    icon:'📋', color:'#718096', sort_order:0 },
@@ -2855,6 +2964,11 @@ function renderSidebar() {
   const container = document.getElementById('sidebarLists');
   container.innerHTML = '';
 
+  const viewsLabel = document.createElement('div');
+  viewsLabel.className = 'sidebar-section-label';
+  viewsLabel.textContent = 'Görünümler';
+  container.appendChild(viewsLabel);
+
   /* Tüm Görevler board item */
   const boardItem = document.createElement('div');
   boardItem.className = 'list-item' + (activeListId===BOARD_LIST_ID?' active':'');
@@ -2899,9 +3013,10 @@ function renderSidebar() {
   }
   container.appendChild(starItem);
 
-  const sep = document.createElement('div');
-  sep.className = 'sidebar-sep';
-  container.appendChild(sep);
+  const listsLabel = document.createElement('div');
+  listsLabel.className = 'sidebar-section-label';
+  listsLabel.textContent = 'Listeler';
+  container.appendChild(listsLabel);
 
   lists.forEach(l => {
     const count = tasks.filter(t=>!t.parent_id && t.category===l.id && !t.done).length;
@@ -3056,7 +3171,7 @@ function toggleSidebar() {
   if (window.innerWidth <= 480) {
     toggleMobDrawer();
   } else {
-    document.querySelector('.app-layout').classList.toggle('sidebar-collapsed');
+    document.querySelector('.sidebar').classList.toggle('compact');
   }
 }
 
@@ -3170,6 +3285,7 @@ function setupLinkDisplay(inp, wrap) {
 function selectList(id) {
   const isSpecial = id === BOARD_LIST_ID || id === WEEKLY_LIST_ID || id === STARRED_LIST_ID;
   if (!isSpecial && !lists.some(l => String(l.id) === String(id))) id = BOARD_LIST_ID;
+  activeDayDate = null;
   activeListId = id;
   try { localStorage.setItem('activeListId', id); } catch {}
   try { sessionStorage.setItem('activeListId', id); } catch {}
@@ -3473,17 +3589,129 @@ function toggleDoneList() {
   render();
 }
 
-/* ── Stats ── */
-function renderStats() {
-  const roots      = tasks.filter(t=>!t.parent_id);
-  const active     = roots.filter(t=>!t.done).length;
-  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-  const weekStart  = new Date(todayStart - 6*86400000);
-  const todayDone  = roots.filter(t=>t.done && t.completed_at && new Date(t.completed_at)>=todayStart).length;
-  const weekDone   = roots.filter(t=>t.done && t.completed_at && new Date(t.completed_at)>=weekStart).length;
-  document.getElementById('statActive').textContent = active;
-  document.getElementById('statToday').textContent  = todayDone;
-  document.getElementById('statWeek').textContent   = weekDone;
+/* ── Sidebar mini calendar ── */
+const TR_MONTHS_LBL = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+function fmtLongDate(iso) {
+  const [Y,M,D] = iso.split('-').map(Number);
+  return `${D} ${TR_MONTHS_LBL[M-1]} ${Y}`;
+}
+function sameDay(iso, ymd) {
+  const d = new Date(iso);
+  const [Y,M,D] = ymd.split('-').map(Number);
+  return d.getFullYear() === Y && d.getMonth() === M-1 && d.getDate() === D;
+}
+function tasksOnDate(year, month, day) {
+  let count = 0, hasStar = false;
+  for (const t of tasks) {
+    if (t.parent_id || !t.due_at || t.done) continue;
+    const d = new Date(t.due_at);
+    if (d.getFullYear() === year && d.getMonth() === month && d.getDate() === day) {
+      count++;
+      if (t.starred) hasStar = true;
+    }
+  }
+  return { count, hasStar };
+}
+function makeAdjacentDay(y, m, d) {
+  const btn = document.createElement('button');
+  btn.className = 'sidebar-cal-day adjacent';
+  btn.textContent = d;
+  btn.title = `${d} ${TR_MONTHS_LBL[m]} ${y}`;
+  btn.onclick = () => {
+    sidebarCalYear = y; sidebarCalMonth = m;
+    const iso = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    selectCalDay(iso);
+  };
+  return btn;
+}
+function renderSidebarCalendar() {
+  const label = document.getElementById('sidebarCalLabel');
+  if (!label) return;
+  label.textContent = `${TR_MONTHS_LBL[sidebarCalMonth]} ${sidebarCalYear}`;
+  const grid = document.getElementById('sidebarCalGrid');
+  grid.innerHTML = '';
+  const today = new Date();
+  const isCurMonth =
+    today.getFullYear() === sidebarCalYear && today.getMonth() === sidebarCalMonth;
+  const first = new Date(sidebarCalYear, sidebarCalMonth, 1);
+  const last  = new Date(sidebarCalYear, sidebarCalMonth+1, 0);
+  let dow = first.getDay(); dow = dow === 0 ? 6 : dow - 1;
+
+  if (dow > 0) {
+    const prevM = sidebarCalMonth === 0 ? 11 : sidebarCalMonth - 1;
+    const prevY = sidebarCalMonth === 0 ? sidebarCalYear - 1 : sidebarCalYear;
+    const prevLast = new Date(prevY, prevM + 1, 0).getDate();
+    for (let i = dow - 1; i >= 0; i--) {
+      grid.appendChild(makeAdjacentDay(prevY, prevM, prevLast - i));
+    }
+  }
+
+  for (let d = 1; d <= last.getDate(); d++) {
+    const btn = document.createElement('button');
+    btn.className = 'sidebar-cal-day';
+    btn.textContent = d;
+    const iso = `${sidebarCalYear}-${String(sidebarCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    btn.dataset.date = iso;
+    if (isCurMonth && d === today.getDate()) btn.classList.add('today');
+    if (activeListId === DAY_LIST_ID && activeDayDate === iso) btn.classList.add('selected');
+    const { count, hasStar } = tasksOnDate(sidebarCalYear, sidebarCalMonth, d);
+    if (count >= 3)      btn.classList.add('has-task-3');
+    else if (count === 2) btn.classList.add('has-task-2');
+    else if (count === 1) btn.classList.add('has-task-1');
+    if (hasStar) btn.classList.add('has-star');
+    const titleParts = [count > 0 ? `${count} aktif görev` : 'Görev yok'];
+    if (hasStar) titleParts.push('⭐ Günün Odağı');
+    btn.title = titleParts.join(' · ');
+    btn.onclick = () => selectCalDay(iso);
+    grid.appendChild(btn);
+  }
+
+  const filled = dow + last.getDate();
+  const trailing = (7 - filled % 7) % 7;
+  if (trailing > 0) {
+    const nextM = sidebarCalMonth === 11 ? 0 : sidebarCalMonth + 1;
+    const nextY = sidebarCalMonth === 11 ? sidebarCalYear + 1 : sidebarCalYear;
+    for (let d = 1; d <= trailing; d++) {
+      grid.appendChild(makeAdjacentDay(nextY, nextM, d));
+    }
+  }
+}
+function sidebarCalPrev() {
+  sidebarCalMonth--;
+  if (sidebarCalMonth < 0) { sidebarCalMonth = 11; sidebarCalYear--; }
+  renderSidebarCalendar();
+}
+function sidebarCalNext() {
+  sidebarCalMonth++;
+  if (sidebarCalMonth > 11) { sidebarCalMonth = 0; sidebarCalYear++; }
+  renderSidebarCalendar();
+}
+function sidebarCalToday() {
+  const now = new Date();
+  sidebarCalYear  = now.getFullYear();
+  sidebarCalMonth = now.getMonth();
+  renderSidebarCalendar();
+}
+function selectCalDay(iso) {
+  if (activeListId === DAY_LIST_ID && activeDayDate === iso) {
+    activeDayDate = null;
+    selectList(BOARD_LIST_ID);
+    renderSidebarCalendar();
+    return;
+  }
+  activeDayDate = iso;
+  activeListId  = DAY_LIST_ID;
+  doneOpen = false;
+  document.getElementById('mainListTitle').textContent = `${fmtLongDate(iso)} Görevleri`;
+  document.getElementById('addWrap').style.display   = 'none';
+  document.getElementById('mainBody').style.display  = '';
+  document.getElementById('boardArea').style.display = 'none';
+  document.getElementById('weeklyArea').style.display= 'none';
+  document.getElementById('boardNav').style.display  = 'none';
+  updateMobTabBar();
+  renderSidebar();
+  renderSidebarCalendar();
+  render();
 }
 
 /* ── Render tasks ── */
@@ -3523,7 +3751,7 @@ function renderWithFlip() {
         c.animate(
           [
             { transform: 'scale(1)',    boxShadow: '0 0 0 rgba(0,0,0,0)',           backgroundColor: 'var(--card-hover)' },
-            { transform: 'scale(1.05)', boxShadow: '0 10px 28px rgba(79,110,247,.45)', backgroundColor: 'var(--accent-bg)', offset: 0.4 },
+            { transform: 'scale(1.05)', boxShadow: '0 10px 26px rgba(79,110,247,.45)', backgroundColor: 'var(--accent-bg)', offset: 0.4 },
             { transform: 'scale(1)',    boxShadow: '0 0 0 rgba(0,0,0,0)',           backgroundColor: 'var(--card-hover)' }
           ],
           { duration: 520, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }
@@ -3607,18 +3835,23 @@ function restoreOpenDetails() {
 }
 
 function render() {
-  try { renderStats(); } catch(e) { console.error('renderStats:', e); }
+  try { renderSidebarCalendar(); } catch(e) { console.error('renderSidebarCalendar:', e); }
   if (!activeListId) return;
   if (activeListId === BOARD_LIST_ID)  { renderBoard();  return; }
   if (activeListId === WEEKLY_LIST_ID) { renderWeekly(); return; }
 
-  const isStarred = activeListId === STARRED_LIST_ID;
+  const isStarred   = activeListId === STARRED_LIST_ID;
+  const isDayFilter = activeListId === DAY_LIST_ID;
   const roots  = isStarred
     ? tasks.filter(t=>!t.parent_id && t.starred)
-    : tasks.filter(t=>!t.parent_id && t.category===activeListId);
-  const active = isStarred
-    ? roots.filter(t=>!t.done)
-    : sortedActiveTasks(activeListId, roots.filter(t=>!t.done));
+    : isDayFilter
+      ? tasks.filter(t=>!t.parent_id && t.due_at && sameDay(t.due_at, activeDayDate))
+      : tasks.filter(t=>!t.parent_id && t.category===activeListId);
+  const active = isDayFilter
+    ? roots.filter(t=>!t.done).sort((a,b)=>new Date(a.due_at)-new Date(b.due_at))
+    : isStarred
+      ? roots.filter(t=>!t.done)
+      : sortedActiveTasks(activeListId, roots.filter(t=>!t.done));
   const done   = sortDoneTasks(roots.filter(t=> t.done));
 
   const taskList = document.getElementById('taskList');
@@ -4277,7 +4510,7 @@ function handleConfirmation() {
 
 /* ── Board view ── */
 function renderBoard() {
-  try { renderStats(); } catch(e) {}
+  try { renderSidebarCalendar(); } catch(e) {}
   const area = document.getElementById('boardArea');
   const nav  = document.getElementById('boardNav');
   area.innerHTML = '';
