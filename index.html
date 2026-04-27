@@ -1039,6 +1039,52 @@
       background:#e53e3e; color:#fff; font-size:.85rem; font-weight:600; cursor:pointer;
     }
 
+    /* Welcome modal */
+    .welcome-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.45);
+      display:none; align-items:center; justify-content:center;
+      z-index:600;
+    }
+    .welcome-overlay.open { display:flex; }
+    .welcome-box {
+      background:#fff; border-radius:16px; padding:28px 28px 18px;
+      width:280px; max-width:calc(100% - 32px);
+      box-shadow:0 10px 40px rgba(0,0,0,0.18);
+      text-align:center; display:flex; flex-direction:column; align-items:center;
+    }
+    .welcome-icon {
+      position:relative; width:70px; height:70px; border-radius:50%;
+      background:var(--accent-bg); display:flex; align-items:center; justify-content:center;
+      color:var(--accent); margin-bottom:14px;
+    }
+    .welcome-icon-star {
+      position:absolute; right:-2px; top:-2px;
+      color:#f59e0b; background:#fff; border-radius:50%; padding:2px;
+      font-variation-settings:'FILL' 1;
+    }
+    .welcome-title {
+      font-size:1.05rem; font-weight:700; color:var(--text);
+      margin:0 0 8px;
+    }
+    .welcome-desc {
+      font-size:.83rem; color:var(--text2); line-height:1.5;
+      margin:0 0 18px;
+    }
+    .welcome-ok {
+      width:100%; padding:11px; border:none; border-radius:10px;
+      background:var(--accent); color:#fff; font-size:.92rem; font-weight:600;
+      cursor:pointer; font-family:inherit; transition:opacity .15s;
+      margin-bottom:12px;
+    }
+    .welcome-ok:hover { opacity:.9; }
+    .welcome-dont-show {
+      display:flex; align-items:center; gap:7px;
+      font-size:.78rem; color:var(--text3); cursor:pointer; user-select:none;
+    }
+    .welcome-dont-show input { cursor:pointer; }
+    body.theme-dark .welcome-box { background:var(--card-bg); }
+    body.theme-dark .welcome-icon-star { background:var(--card-bg); }
+
     /* Mobile-only elements — hidden on desktop */
     #mobTaskSheet, #mobTaskSheetOverlay { display:none; }
 
@@ -2058,6 +2104,25 @@
       <button class="btn-dc-cancel" onclick="closeDelConfirm()">İptal</button>
       <button class="btn-dc-ok" id="btnDelConfirmOk">Sil</button>
     </div>
+  </div>
+</div>
+
+<!-- Haftalık Planlama hoş geldiniz modalı -->
+<div class="welcome-overlay" id="weeklyWelcomeOverlay">
+  <div class="welcome-box">
+    <div class="welcome-icon">
+      <span class="mi s40">event_available</span>
+      <span class="welcome-icon-star mi s20">star</span>
+    </div>
+    <h3 class="welcome-title">Haftalık Planlama'ya Hoş Geldiniz</h3>
+    <p class="welcome-desc">
+      Burada haftalık hedeflerinizi planlayabilir, görevlerinizi günlere
+      dağıtabilir ve önceliklerinizi takip edebilirsiniz.
+    </p>
+    <button class="welcome-ok" onclick="closeWeeklyWelcome()">Anladım</button>
+    <label class="welcome-dont-show">
+      <input type="checkbox" id="weeklyWelcomeDontShow"> Bir daha gösterme
+    </label>
   </div>
 </div>
 
@@ -3282,6 +3347,19 @@ function setupLinkDisplay(inp, wrap) {
   if (inp.value.trim()) refresh();
 }
 
+const WEEKLY_WELCOME_KEY = 'weeklyWelcomeDismissed';
+function showWeeklyWelcome() {
+  if (localStorage.getItem(WEEKLY_WELCOME_KEY) === '1') return;
+  document.getElementById('weeklyWelcomeDontShow').checked = false;
+  document.getElementById('weeklyWelcomeOverlay').classList.add('open');
+}
+function closeWeeklyWelcome() {
+  if (document.getElementById('weeklyWelcomeDontShow').checked) {
+    try { localStorage.setItem(WEEKLY_WELCOME_KEY, '1'); } catch {}
+  }
+  document.getElementById('weeklyWelcomeOverlay').classList.remove('open');
+}
+
 function selectList(id) {
   const isSpecial = id === BOARD_LIST_ID || id === WEEKLY_LIST_ID || id === STARRED_LIST_ID;
   if (!isSpecial && !lists.some(l => String(l.id) === String(id))) id = BOARD_LIST_ID;
@@ -3303,6 +3381,7 @@ function selectList(id) {
   updateMobTabBar();
   renderSidebar();
   render();
+  if (isWeekly) showWeeklyWelcome();
 }
 
 /* ── Load tasks ── */
