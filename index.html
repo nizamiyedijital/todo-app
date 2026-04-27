@@ -61,7 +61,7 @@
     body.theme-dark .sidebar { background:var(--sidebar-bg); border-right-color:var(--border); }
     body.theme-dark .sidebar-header { border-bottom-color:var(--border); }
     body.theme-dark .sidebar-cal { border-bottom-color:var(--border); }
-    body.theme-dark .sidebar-cal-day.has-star:not(.today):not(.selected) { color:#0F172A; font-weight:700; }
+    body.theme-dark .sidebar-cal-day.has-star:not(.today):not(.selected) { color:#fff; font-weight:700; }
     body.theme-dark .sidebar-title { color:var(--text); }
     body.theme-dark .list-item { color:var(--text); }
     body.theme-dark .list-item:hover { background:var(--surface2); }
@@ -324,7 +324,7 @@
       --dot-color:#fff;
     }
     .sidebar-cal-day.has-star {
-      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23f59e0b' stroke='%23f59e0b' stroke-width='2' stroke-linejoin='round' stroke-linecap='round' d='M12 1 L15.23 7.55 L22.46 8.6 L17.23 13.7 L18.46 20.9 L12 17.5 L5.54 20.9 L6.77 13.7 L1.54 8.6 L8.77 7.55 Z'/></svg>");
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23f59e0b' fill-opacity='0.3' stroke='%23f59e0b' stroke-opacity='0.3' stroke-width='2' stroke-linejoin='round' stroke-linecap='round' d='M12 1 L15.23 7.55 L22.46 8.6 L17.23 13.7 L18.46 20.9 L12 17.5 L5.54 20.9 L6.77 13.7 L1.54 8.6 L8.77 7.55 Z'/></svg>");
     }
     .sidebar-cal-day::after {
       content:''; position:absolute; bottom:1px;
@@ -2113,9 +2113,9 @@
       <span class="mi s40">event_available</span>
       <span class="welcome-icon-star mi s20">star</span>
     </div>
-    <h3 class="welcome-title">Haftalık Planlama'ya Hoş Geldiniz</h3>
+    <h3 class="welcome-title">Planlama'ya Hoş Geldiniz</h3>
     <p class="welcome-desc">
-      Burada haftalık hedeflerinizi planlayabilir, görevlerinizi günlere
+      Burada hedeflerinizi planlayabilir, görevlerinizi günlere
       dağıtabilir ve önceliklerinizi takip edebilirsiniz.
     </p>
     <button class="welcome-ok" onclick="closeWeeklyWelcome()">Anladım</button>
@@ -3053,7 +3053,7 @@ function renderSidebar() {
   weeklyItem.onclick   = () => selectList(WEEKLY_LIST_ID);
   weeklyItem.innerHTML = `
     <span class="list-icon">${mi('calendar_view_week','18')}</span>
-    <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Haftalık Planlama</span>
+    <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Planlama</span>
   `;
   if (activeListId===WEEKLY_LIST_ID) {
     weeklyItem.querySelector('.list-name').style.color='var(--accent)';
@@ -3371,7 +3371,7 @@ function selectList(id) {
   const isBoard  = id === BOARD_LIST_ID;
   const isWeekly = id === WEEKLY_LIST_ID;
   const list     = lists.find(l=>l.id===id);
-  document.getElementById('mainListTitle').textContent = isBoard ? 'Tüm Görevler' : isWeekly ? 'Haftalık Planlama' : (list?.name || '');
+  document.getElementById('mainListTitle').textContent = isBoard ? 'Tüm Görevler' : isWeekly ? 'Planlama' : (list?.name || '');
   document.getElementById('addWrap').style.display      = (isBoard||isWeekly) ? 'none' : 'block';
   document.getElementById('mainBody').style.display     = (isBoard||isWeekly) ? 'none' : '';
   document.getElementById('boardArea').style.display    = isBoard ? 'flex' : 'none';
@@ -5899,7 +5899,7 @@ if ('serviceWorker' in navigator) {
   </button>
   <button class="mob-tab" id="mobTabHaftalik" onclick="selectList(WEEKLY_LIST_ID)">
     <span class="mi">calendar_view_week</span>
-    <span>Haftalık</span>
+    <span>Planlama</span>
   </button>
   <button class="mob-tab" id="mobTabYildizli" onclick="selectList(STARRED_LIST_ID)">
     <span class="mi">star</span>
@@ -5923,7 +5923,7 @@ if ('serviceWorker' in navigator) {
     </button>
     <button class="mob-drawer-item" id="mobDrWeekly" onclick="selectList(WEEKLY_LIST_ID);closeMobDrawer()">
       <span class="mi" style="font-size:20px;color:var(--accent)">calendar_view_week</span>
-      <span>Haftalık Planlama</span>
+      <span>Planlama</span>
     </button>
     <button class="mob-drawer-item" id="mobDrStarred" onclick="selectList(STARRED_LIST_ID);closeMobDrawer()">
       <span class="mi" style="font-size:20px;color:#f5a623">star</span>
