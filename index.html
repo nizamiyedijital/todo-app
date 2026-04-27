@@ -484,6 +484,7 @@
 
     .main-body {
       flex:1; overflow-y:auto; padding:12px 26px 40px;
+      max-width:332px;
     }
     .main-body::-webkit-scrollbar { width:5px; }
     .main-body::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
@@ -496,21 +497,81 @@
       overflow:hidden;
     }
     .add-main-row {
-      display:flex; align-items:center;
-      padding:4px 10px 4px 16px; gap:8px;
+      display:flex; align-items:flex-start;
+      padding:6px 16px 4px; gap:8px;
     }
-    .add-plus { font-size:1.1rem; color:#4f6ef7; flex-shrink:0; }
-    .add-main-row input {
-      flex:1; padding:13px 0; border:none; font-size:.93rem;
+    .add-plus { font-size:1.1rem; color:#4f6ef7; flex-shrink:0; padding-top:8px; }
+    .add-main-row textarea#taskInput {
+      flex:1; padding:9px 0 5px; border:none; font-size:.93rem;
       outline:none; background:transparent; color:#333;
+      font-family:inherit; resize:none; line-height:1.45;
+      min-height:24px; max-height:120px; overflow-y:auto;
     }
-    .add-main-row input::placeholder { color:#ccc; }
+    .add-main-row textarea#taskInput::placeholder { color:#ccc; }
     .btn-add {
-      padding:7px 15px; background:#4f6ef7; color:#fff;
-      border:none; border-radius:9px; font-size:.85rem; font-weight:600;
+      padding:5px 12px; background:#4f6ef7; color:#fff;
+      border:none; border-radius:7px; font-size:.8rem; font-weight:600;
       cursor:pointer; transition:background .15s; white-space:nowrap;
     }
     .btn-add:hover { background:#3a58e2; }
+    .add-action-row {
+      display:flex; align-items:center; gap:8px;
+      padding-top:8px; border-top:1px solid #f4f5f9; margin-top:2px;
+    }
+    .add-hint { font-size:.7rem; color:var(--text4); flex:1; }
+    .add-icon-btn .add-icon-badge {
+      position:absolute; top:-2px; right:-3px;
+      background:var(--accent); color:#fff;
+      font-size:.5rem; font-weight:700;
+      border-radius:7px; padding:1px 3px;
+      min-width:12px; line-height:1.2; text-align:center;
+    }
+    .add-due-quick-btn.active {
+      background:var(--accent); color:#fff; border-color:var(--accent);
+    }
+    .add-link-popup {
+      display:flex; gap:6px; padding:6px 0;
+      align-items:center;
+    }
+    .add-link-input {
+      flex:1; padding:6px 10px; border:1.5px solid var(--border2);
+      border-radius:7px; font-size:.85rem; outline:none;
+      font-family:inherit;
+    }
+    .add-link-input:focus { border-color:var(--accent); }
+    .add-link-chip {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:4px 8px 4px 10px; background:var(--accent-bg); color:var(--accent);
+      border-radius:14px; font-size:.78rem; cursor:pointer; user-select:none;
+      max-width:100%; overflow:hidden;
+    }
+    .add-link-chip span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .add-link-chip .add-link-rm { cursor:pointer; opacity:.6; margin-left:2px; flex-shrink:0; }
+    .add-link-chip:hover .add-link-rm { opacity:1; }
+    .add-subtasks-popup {
+      display:flex; flex-direction:column; gap:2px; padding:4px 0;
+    }
+    .add-subtask-row {
+      display:flex; align-items:center; gap:6px; padding:3px 4px;
+      font-size:.84rem; color:var(--text2); border-radius:5px;
+    }
+    .add-subtask-row:hover { background:var(--surface2); }
+    .add-subtask-row .add-subtask-bullet { color:var(--text4); flex-shrink:0; font-size:.9rem; line-height:1; }
+    .add-subtask-row .add-subtask-text { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .add-subtask-row .add-subtask-rm {
+      cursor:pointer; opacity:.4; padding:0 4px; flex-shrink:0;
+    }
+    .add-subtask-row:hover .add-subtask-rm { opacity:.9; }
+    .add-subtask-input-row { display:flex; gap:6px; padding:3px 0; }
+    .add-subtask-input {
+      flex:1; padding:5px 9px; border:1.5px solid var(--border2);
+      border-radius:6px; font-size:.83rem; outline:none; font-family:inherit;
+    }
+    .add-subtask-input:focus { border-color:var(--accent); }
+    body.theme-dark .add-link-input,
+    body.theme-dark .add-subtask-input {
+      background:var(--card-bg); color:var(--text); border-color:var(--border);
+    }
     .add-detail {
       display:none; flex-direction:column; gap:8px;
       padding:0 16px 13px;
@@ -527,12 +588,12 @@
     #addNotesInput:focus { border-bottom-color:var(--accent); }
     /* Icon row */
     .add-icon-row {
-      display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+      display:flex; align-items:center; gap:5px; flex-wrap:nowrap;
     }
     .add-icon-btn {
-      position:relative; width:32px; height:32px; border-radius:8px; border:none;
+      position:relative; width:24px; height:24px; border-radius:6px; border:none;
       background:var(--surface2); cursor:pointer; display:flex; align-items:center;
-      justify-content:center; transition:background .15s; color:var(--text3); flex-shrink:0;
+      justify-content:center; transition:background .15s, color .15s, border-color .15s; color:var(--text3); flex-shrink:0;
     }
     .add-icon-btn:hover { background:var(--accent-bg); color:var(--accent); }
     .add-icon-btn.active { background:var(--accent-bg); color:var(--accent); }
@@ -545,16 +606,25 @@
       border-radius:12px; padding:8px; display:flex; gap:6px;
       box-shadow:0 4px 16px rgba(0,0,0,.12);
     }
-    .add-prio-active-sym {
-      position:absolute; top:2px; right:2px;
-      font-size:.45rem; font-weight:800; line-height:1;
+    .add-prio-active {
+      font-size:.68rem; font-weight:800; line-height:1; letter-spacing:-.5px;
     }
+    #addPrioBtn.has-prio {
+      background:transparent; border:1.5px solid currentColor;
+    }
+    #addPrioBtn.has-prio:hover { background:var(--accent-bg); }
     .add-due-quick-btn {
-      font-size:.76rem; color:var(--text3); cursor:pointer; padding:4px 8px;
-      border:1.5px solid var(--border2); border-radius:20px; background:var(--surface2);
-      white-space:nowrap; transition:all .15s; user-select:none;
+      font-size:.66rem; color:var(--text3); cursor:pointer; padding:2px 7px;
+      border:1.5px solid var(--border2); border-radius:12px; background:var(--surface2);
+      white-space:nowrap; transition:all .15s; user-select:none; line-height:1.3; flex-shrink:0;
     }
     .add-due-quick-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .add-due-label-row {
+      display:none; align-items:center; gap:6px;
+      padding:6px 4px 0; font-size:.78rem; color:var(--accent);
+    }
+    .add-due-label-row.show { display:flex; }
+    .add-due-label-row .mi { color:var(--accent); }
     .add-due-sel-label { font-size:.77rem; color:var(--accent); font-weight:500; cursor:pointer; }
     .add-bottom-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .btn-cal {
@@ -1333,7 +1403,7 @@
       .main-header { padding:16px 14px 0; }
 
       /* Google Tasks–style flat task rows */
-      #mainBody { padding:0 0 72px; }
+      #mainBody { padding:0 0 72px; max-width:none; }
       .task-card {
         border-radius:0 !important; border-left:none !important;
         border-bottom:1px solid #f0f2f8; margin-bottom:0;
@@ -2068,8 +2138,7 @@
           <input style="display:none" type="password" name="prevent-autofill-pass">
           <div class="add-main-row">
             <span class="add-plus">+</span>
-            <input type="search" id="taskInput" placeholder="Yeni görev..." autocomplete="off" data-form-type="other" data-lpignore="true" maxlength="1071">
-            <button class="btn-add" onclick="addTask()" title="Görevi ekle">Ekle</button>
+            <textarea id="taskInput" rows="1" placeholder="Yeni görev..." autocomplete="off" data-form-type="other" data-lpignore="true" maxlength="1071"></textarea>
           </div>
           <div class="add-detail" id="addDetail">
             <!-- Notlar -->
@@ -2077,26 +2146,54 @@
               <span class="mi s16 add-notes-icon">notes</span>
               <textarea id="addNotesInput" placeholder="Notlar..." rows="2" autocomplete="off" data-form-type="other"></textarea>
             </div>
-            <!-- İkon satırı -->
+            <!-- İkon satırı: ★, !, Bugün, Yarın, Takvim, 🔗, Alt görev -->
             <div class="add-icon-row">
-              <button class="add-icon-btn" id="addStarBtn" onclick="toggleAddStar()" title="Günün En Önemli Görevi">
-                <span class="mi s18">star</span>
+              <button class="add-icon-btn" id="addStarBtn" onclick="toggleAddStar()" title="Günde tek yıldız. Bu, o günün odağı.">
+                <span class="mi s14">star</span>
               </button>
               <div class="add-prio-wrap">
                 <button class="add-icon-btn" id="addPrioBtn" onclick="toggleAddPrioPicker(event)" title="Öncelik">
-                  <span class="mi s18">priority_high</span>
-                  <span id="addPrioSym" class="add-prio-active-sym" style="display:none"></span>
+                  <span class="add-prio-default mi s14">priority_high</span>
+                  <span class="add-prio-active" style="display:none"></span>
                 </button>
                 <div class="add-prio-picker" id="addPrioPicker" style="display:none"></div>
               </div>
-              <button class="add-icon-btn has-due" id="addDueBtn"
+              <span class="add-due-quick-btn" id="addDueQuickToday" onclick="setAddDueQuick(0)">Bugün</span>
+              <span class="add-due-quick-btn" id="addDueQuickTomorrow" onclick="setAddDueQuick(1)">Yarın</span>
+              <button class="add-icon-btn" id="addDueBtn"
                 onclick="dtpOpen(this, addDueValue||null, v=>{addDueValue=v; renderAddDueLabel();})"
-                title="Tarih ekle"><span class="mi s18">schedule</span></button>
-              <span class="add-due-quick-btn" onclick="setAddDueQuick(0)">Bugün</span>
-              <span class="add-due-quick-btn" onclick="setAddDueQuick(1)">Yarın</span>
+                title="Tarih ekle"><span class="mi s14">calendar_month</span></button>
+              <button class="add-icon-btn" id="addLinkBtn" onclick="toggleAddLinkInput()" title="Bağlantı ekle">
+                <span class="mi s14">link</span>
+              </button>
+              <button class="add-icon-btn" id="addSubtaskBtn" onclick="toggleAddSubtaskInput()" title="Alt görev ekle">
+                <span class="mi s14">check_box</span>
+                <span class="add-icon-badge" id="addSubtaskBadge" style="display:none">0</span>
+              </button>
+            </div>
+            <!-- Özel tarih etiketi (Bugün/Yarın dışı seçimlerde) -->
+            <div class="add-due-label-row" id="addDueLabelRow">
+              <span class="mi s14">schedule</span>
               <span class="add-due-sel-label" id="addDueLabel" onclick="document.getElementById('addDueBtn').click()"></span>
-              <span style="flex:1"></span>
+            </div>
+            <!-- Bağlantı popup -->
+            <div class="add-link-popup" id="addLinkPopup" style="display:none">
+              <input class="add-link-input" id="addLinkInput" type="url" placeholder="https://..." autocomplete="off">
+            </div>
+            <!-- Bağlantı chip (link set) -->
+            <div id="addLinkChipWrap" style="display:none"></div>
+            <!-- Alt görevler popup -->
+            <div class="add-subtasks-popup" id="addSubtasksPopup" style="display:none">
+              <div id="addSubtasksList"></div>
+              <div class="add-subtask-input-row">
+                <input class="add-subtask-input" id="addSubtaskInput" placeholder="Alt görev ekle..." autocomplete="off">
+              </div>
+            </div>
+            <!-- Action row -->
+            <div class="add-action-row">
+              <span class="add-hint">↵ Ekle  •  Shift+↵ Alt satır</span>
               <button class="btn-add-cancel" onclick="closeAddDetailWithConfirm()">İptal</button>
+              <button class="btn-add" onclick="addTask()" title="Görevi ekle">Ekle</button>
             </div>
           </div>
         </div>
@@ -2541,6 +2638,8 @@ let doneOpen         = false;
 let addDueValue  = '';
 let addStarred   = false;
 let addPriority  = null;
+let addLinkValue = '';
+let addSubtasks  = [];
 let editTimers   = {};
 let isRegMode    = false;
 let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', dir:'asc'|'desc' } }
@@ -3497,16 +3596,26 @@ async function addTask() {
   if (addPriority) payload.priority = addPriority;
   else if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
   if (addStarred) payload.starred = true;
+  if (addLinkValue) payload.link = addLinkValue;
   const addNotes = document.getElementById('addNotesInput')?.value.trim();
   if (addNotes) payload.notes = addNotes;
+  const subs = [...addSubtasks];
   input.value='';
+  taskInputAutoGrow();
   resetAddForm();
   addingTask = true;
   keepInputFocused = true;
   lastAddTaskTime = Date.now();
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
-    tasks.unshift(t); recentlyAddedId = t.id; render(); renderSidebar();
+    tasks.unshift(t); recentlyAddedId = t.id;
+    for (const subText of subs) {
+      try {
+        const [s] = await db('/todos', { method:'POST', body: JSON.stringify({ text: subText, done:false, category: t.category, parent_id: t.id, sort_order: Date.now() }) });
+        if (s) tasks.push(s);
+      } catch(_) {}
+    }
+    render(); renderSidebar();
   } catch(e) { alert(e.message); }
   finally {
     lastAddTaskTime = Date.now();
@@ -3519,12 +3628,23 @@ async function addTask() {
 
 function resetAddForm() {
   addDueValue = ''; addStarred = false; addPriority = null;
+  addLinkValue = ''; addSubtasks = [];
   renderAddDueLabel();
   const notesEl = document.getElementById('addNotesInput');
   if (notesEl) notesEl.value = '';
   const starBtn = document.getElementById('addStarBtn');
   if (starBtn) starBtn.classList.remove('active');
   renderAddPrioPicker();
+  renderAddPrioBtn();
+  renderAddLinkUI();
+  renderAddSubtasksList();
+  renderAddSubtaskBadge();
+  const linkPopup = document.getElementById('addLinkPopup');
+  if (linkPopup) linkPopup.style.display = 'none';
+  const subPopup = document.getElementById('addSubtasksPopup');
+  if (subPopup) subPopup.style.display = 'none';
+  const subInp = document.getElementById('addSubtaskInput');
+  if (subInp) subInp.value = '';
 }
 
 function toggleAddStar() {
@@ -3555,9 +3675,7 @@ function renderAddPrioPicker() {
     btn.onclick = (e) => {
       e.stopPropagation();
       addPriority = addPriority===key ? null : key;
-      const sym2 = document.getElementById('addPrioSym');
-      if (sym2) { sym2.textContent=addPriority?PRIORITIES[addPriority].symbol:''; sym2.style.display=addPriority?'':'none'; sym2.style.color=addPriority?PRIORITIES[addPriority].color:''; }
-      document.getElementById('addPrioBtn')?.classList.toggle('active', !!addPriority);
+      renderAddPrioBtn();
       addPrioPickerOpen = false; picker.style.display='none';
       renderAddPrioPicker();
     };
@@ -3565,15 +3683,152 @@ function renderAddPrioPicker() {
   });
 }
 
+function renderAddPrioBtn() {
+  const btn = document.getElementById('addPrioBtn');
+  if (!btn) return;
+  const def = btn.querySelector('.add-prio-default');
+  const act = btn.querySelector('.add-prio-active');
+  if (addPriority && PRIORITIES[addPriority]) {
+    const p = PRIORITIES[addPriority];
+    if (def) def.style.display = 'none';
+    if (act) { act.style.display = ''; act.textContent = p.symbol; }
+    btn.classList.add('has-prio');
+    btn.style.color = p.color;
+  } else {
+    if (def) def.style.display = '';
+    if (act) { act.style.display = 'none'; act.textContent = ''; }
+    btn.classList.remove('has-prio');
+    btn.style.color = '';
+  }
+}
+
 function setAddDueQuick(days) {
   const d = new Date(); d.setDate(d.getDate()+days); d.setHours(0,0,0,0);
-  addDueValue = d.toISOString(); renderAddDueLabel();
+  // Toggle off if same quick already selected
+  const isoNew = d.toISOString();
+  if (addDueValue === isoNew) {
+    addDueValue = '';
+  } else {
+    addDueValue = isoNew;
+  }
+  renderAddDueLabel();
+}
+
+function renderAddDueQuickButtons() {
+  const today    = document.getElementById('addDueQuickToday');
+  const tomorrow = document.getElementById('addDueQuickTomorrow');
+  if (!today || !tomorrow) return;
+  let activeIdx = -1;
+  if (addDueValue) {
+    const dt = new Date(addDueValue);
+    const t0 = new Date(); t0.setHours(0,0,0,0);
+    const t1 = new Date(t0); t1.setDate(t1.getDate()+1);
+    if (dt.getTime() === t0.getTime()) activeIdx = 0;
+    else if (dt.getTime() === t1.getTime()) activeIdx = 1;
+  }
+  today.classList.toggle('active', activeIdx === 0);
+  tomorrow.classList.toggle('active', activeIdx === 1);
+}
+
+function toggleAddLinkInput() {
+  if (addLinkValue) {
+    addLinkValue = '';
+    renderAddLinkUI();
+    return;
+  }
+  const popup = document.getElementById('addLinkPopup');
+  const isOpen = popup.style.display !== 'none';
+  popup.style.display = isOpen ? 'none' : 'flex';
+  if (!isOpen) document.getElementById('addLinkInput').focus();
+}
+
+function commitAddLink() {
+  const inp = document.getElementById('addLinkInput');
+  const v = (inp?.value || '').trim();
+  if (v) addLinkValue = v;
+  renderAddLinkUI();
+}
+
+function renderAddLinkUI() {
+  const popup = document.getElementById('addLinkPopup');
+  const wrap  = document.getElementById('addLinkChipWrap');
+  const btn   = document.getElementById('addLinkBtn');
+  const inp   = document.getElementById('addLinkInput');
+  if (!popup || !wrap || !btn || !inp) return;
+  if (addLinkValue) {
+    let domain = addLinkValue;
+    try {
+      const href = /^https?:\/\//i.test(addLinkValue) ? addLinkValue : 'https://' + addLinkValue;
+      domain = new URL(href).hostname.replace(/^www\./, '');
+    } catch(_) {}
+    wrap.innerHTML = '';
+    const chip = document.createElement('div');
+    chip.className = 'add-link-chip';
+    chip.title = addLinkValue;
+    chip.innerHTML = `<span class="mi" style="font-size:14px">link</span><span>${domain}</span><span class="add-link-rm">×</span>`;
+    chip.onclick = () => { addLinkValue = ''; renderAddLinkUI(); };
+    wrap.appendChild(chip);
+    wrap.style.display = '';
+    popup.style.display = 'none';
+    btn.classList.add('active');
+    inp.value = '';
+  } else {
+    wrap.innerHTML = '';
+    wrap.style.display = 'none';
+    btn.classList.remove('active');
+  }
+}
+
+function toggleAddSubtaskInput() {
+  const popup = document.getElementById('addSubtasksPopup');
+  const isOpen = popup.style.display !== 'none';
+  popup.style.display = isOpen ? 'none' : 'flex';
+  if (!isOpen) document.getElementById('addSubtaskInput').focus();
+}
+
+function renderAddSubtasksList() {
+  const list = document.getElementById('addSubtasksList');
+  if (!list) return;
+  list.innerHTML = '';
+  addSubtasks.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.className = 'add-subtask-row';
+    row.innerHTML = `<span class="add-subtask-bullet">○</span><span class="add-subtask-text"></span><span class="add-subtask-rm">×</span>`;
+    row.querySelector('.add-subtask-text').textContent = t;
+    row.querySelector('.add-subtask-rm').onclick = () => {
+      addSubtasks.splice(i, 1);
+      renderAddSubtasksList();
+      renderAddSubtaskBadge();
+    };
+    list.appendChild(row);
+  });
+}
+
+function renderAddSubtaskBadge() {
+  const badge = document.getElementById('addSubtaskBadge');
+  const btn   = document.getElementById('addSubtaskBtn');
+  if (!badge || !btn) return;
+  if (addSubtasks.length > 0) {
+    badge.textContent = addSubtasks.length;
+    badge.style.display = '';
+    btn.classList.add('active');
+  } else {
+    badge.style.display = 'none';
+    btn.classList.remove('active');
+  }
+}
+
+function taskInputAutoGrow() {
+  const ta = document.getElementById('taskInput');
+  if (!ta || ta.tagName !== 'TEXTAREA') return;
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
 }
 
 function isAddFormDirty() {
   const title = document.getElementById('taskInput')?.value.trim();
   const notes = document.getElementById('addNotesInput')?.value.trim();
-  return !!(title || notes || addDueValue || addStarred || addPriority);
+  return !!(title || notes || addDueValue || addStarred || addPriority || addLinkValue || addSubtasks.length);
 }
 
 function closeAddDetailWithConfirm() {
@@ -3609,15 +3864,25 @@ async function addTaskKeepFocus() {
   if (addPriority) payload.priority = addPriority;
   else if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
   if (addStarred) payload.starred = true;
+  if (addLinkValue) payload.link = addLinkValue;
   const addNotes = document.getElementById('addNotesInput')?.value.trim();
   if (addNotes) payload.notes = addNotes;
+  const subs = [...addSubtasks];
   input.value = '';
+  taskInputAutoGrow();
   resetAddForm();
   keepInputFocused = true;
   addingTask = true;
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
-    tasks.unshift(t); recentlyAddedId = t.id; render(); renderSidebar();
+    tasks.unshift(t); recentlyAddedId = t.id;
+    for (const subText of subs) {
+      try {
+        const [s] = await db('/todos', { method:'POST', body: JSON.stringify({ text: subText, done:false, category: t.category, parent_id: t.id, sort_order: Date.now() }) });
+        if (s) tasks.push(s);
+      } catch(_) {}
+    }
+    render(); renderSidebar();
   } catch(e) { alert(e.message); }
   finally {
     addingTask = false;
@@ -3703,14 +3968,48 @@ function closeAddDetail() {
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('taskInput').addEventListener('focus', openAddDetail);
-  document.getElementById('taskInput').addEventListener('keydown', e=>{
-    if (e.key==='Enter') {
+  const taskInputEl = document.getElementById('taskInput');
+  taskInputEl.addEventListener('focus', openAddDetail);
+  taskInputEl.addEventListener('input', taskInputAutoGrow);
+  taskInputEl.addEventListener('keydown', e=>{
+    if (e.key==='Enter' && !e.shiftKey) {
       e.preventDefault(); e.stopPropagation();
       addTaskKeepFocus();
+    } else if (e.key==='Escape') {
+      keepInputFocused=false; closeAddDetailWithConfirm(); e.target.blur();
     }
-    if (e.key==='Escape') { keepInputFocused=false; closeAddDetailWithConfirm(); e.target.blur(); }
   });
+  // Notlar autogrow
+  const notesEl = document.getElementById('addNotesInput');
+  if (notesEl) {
+    const notesGrow = () => { notesEl.style.height='auto'; notesEl.style.height = Math.min(notesEl.scrollHeight, 180) + 'px'; };
+    notesEl.addEventListener('input', notesGrow);
+    notesEl.addEventListener('focus', notesGrow);
+  }
+  // Bağlantı input commit
+  const linkInpEl = document.getElementById('addLinkInput');
+  if (linkInpEl) {
+    linkInpEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commitAddLink(); }
+      else if (e.key === 'Escape') { e.preventDefault(); linkInpEl.value=''; document.getElementById('addLinkPopup').style.display='none'; taskInputEl.focus(); }
+    });
+    linkInpEl.addEventListener('blur', () => commitAddLink());
+  }
+  // Alt görev input
+  const subInpEl = document.getElementById('addSubtaskInput');
+  if (subInpEl) {
+    subInpEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault(); e.stopPropagation();
+        const v = subInpEl.value.trim();
+        if (v) { addSubtasks.push(v); renderAddSubtasksList(); renderAddSubtaskBadge(); subInpEl.value=''; subInpEl.focus(); }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        document.getElementById('addSubtasksPopup').style.display='none';
+        taskInputEl.focus();
+      }
+    });
+  }
   document.getElementById('taskInput').addEventListener('focusout', () => {
     if (keepInputFocused) {
       setTimeout(() => {
@@ -3748,13 +4047,25 @@ document.addEventListener('DOMContentLoaded',()=>{
 function renderAddDueLabel() {
   const el  = document.getElementById('addDueLabel');
   const btn = document.getElementById('addDueBtn');
+  const row = document.getElementById('addDueLabelRow');
   if (!el || !btn) return;
+  let isQuick = false;
   if (addDueValue) {
-    const d = new Date(addDueValue);
-    el.textContent = d.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+' '+
-                     d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+    const dt = new Date(addDueValue);
+    const t0 = new Date(); t0.setHours(0,0,0,0);
+    const t1 = new Date(t0); t1.setDate(t1.getDate()+1);
+    isQuick = (dt.getTime() === t0.getTime() || dt.getTime() === t1.getTime());
+    const dateStr = dt.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});
+    const timeStr = (dt.getHours() === 0 && dt.getMinutes() === 0)
+      ? '' : ' ' + dt.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+    el.textContent = dateStr + timeStr;
     btn.classList.add('has-date');
-  } else { el.textContent=''; btn.classList.remove('has-date'); }
+  } else {
+    el.textContent='';
+    btn.classList.remove('has-date');
+  }
+  if (row) row.classList.toggle('show', !!addDueValue && !isQuick);
+  renderAddDueQuickButtons();
 }
 
 
