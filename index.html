@@ -908,7 +908,14 @@
     .done-list { display:none; flex-direction:column; gap:2px; margin-top:4px; }
     .done-list.open { display:flex; }
 
-    .empty { text-align:center; color:#ccc; padding:40px 0; font-size:.9rem; }
+    .empty { text-align:center; color:#94a3b8; padding:40px 16px 32px; font-size:.95rem; }
+    .empty-cta {
+      margin-top:14px; padding:9px 18px; border:none; border-radius:9px;
+      background:var(--accent); color:#fff; font-size:.9rem; font-weight:600;
+      cursor:pointer; font-family:inherit; transition:opacity .15s;
+      display:inline-flex; align-items:center; gap:6px;
+    }
+    .empty-cta:hover { opacity:.9; }
 
     /* ── Date-Time Picker ── */
     .dtp-overlay { position:fixed; inset:0; z-index:500; display:none; }
@@ -1967,7 +1974,7 @@
 <div id="authBox">
   <div class="auth-card">
     <h1>Yapılacaklar</h1>
-    <p class="auth-subtitle">Görevlerini planla, takip et.</p>
+    <p class="auth-subtitle">Görevlerini yıldızla. Haftanı planla. Gününü uygula.</p>
     <h2 id="authTitle">Giriş Yap</h2>
     <div id="authMsg" class="msg"></div>
     <div class="field">
@@ -2096,7 +2103,10 @@
 
         <div id="taskList"></div>
 
-        <div class="empty" id="empty" style="display:none">Bu listede henüz görev yok.</div>
+        <div class="empty" id="empty" style="display:none">
+          Bu listenin ilk görevi senden.
+          <div><button class="empty-cta" onclick="document.getElementById('taskInput').focus()"><span class="mi s18">add</span>İlk görevini ekle</button></div>
+        </div>
 
         <div class="done-section" id="doneSection" style="display:none">
           <button class="done-toggle" id="doneToggle" onclick="toggleDoneList()" title="Tamamlananları göster/gizle">
@@ -2163,10 +2173,10 @@
     </div>
     <h3 class="welcome-title">Planlama'ya Hoş Geldiniz</h3>
     <p class="welcome-desc">
-      Burada hedeflerinizi planlayabilir, görevlerinizi günlere
-      dağıtabilir ve önceliklerinizi takip edebilirsiniz.
+      Bu hafta için en önemli görevleri seç,
+      günlere dağıt, kararlılıkla uygula.
     </p>
-    <button class="welcome-ok" onclick="closeWeeklyWelcome()">Anladım</button>
+    <button class="welcome-ok" onclick="closeWeeklyWelcome()">İlk görevimi planla</button>
     <label class="welcome-dont-show">
       <input type="checkbox" id="weeklyWelcomeDontShow"> Bir daha gösterme
     </label>
@@ -2706,6 +2716,7 @@ async function initApp() {
   loadSettings();
   scheduleTokenRefresh();
   await Promise.all([loadLists(), loadTasks()]);
+  await seedFirstTask();
   const _hashParams = new URLSearchParams(location.hash.replace(/^#/, ''));
   const _urlList    = _hashParams.get('list');
   const _urlCol     = _hashParams.get('col');
@@ -2823,6 +2834,7 @@ function handleRtList(type, rec, oldRec) {
 }
 
 /* ── Lists CRUD ── */
+let _seedAfterLoad = false;
 async function loadLists() {
   try {
     lists = await db('/lists?order=sort_order.asc,created_at.asc&select=*') || [];
@@ -2834,9 +2846,30 @@ async function loadLists() {
           lists.push(created);
         } catch(_) {}
       }
+      _seedAfterLoad = true;
     }
   } catch(e) { console.error('loadLists:', e); }
   renderSidebar();
+}
+
+async function seedFirstTask() {
+  if (!_seedAfterLoad) return;
+  if (tasks.length > 0) return;
+  const now = new Date();
+  const dueLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const payload = {
+    text: 'Bugün 30 dk yürüyüş',
+    notes: 'Bu örneği silebilir veya kendi görevinle değiştirebilirsin. Yıldız bu günün odak görevidir.',
+    starred: true,
+    done: false,
+    category: 'genel',
+    due_at: dueLocal.toISOString(),
+    sort_order: Date.now(),
+  };
+  try {
+    const [t] = await db('/todos', { method: 'POST', body: JSON.stringify(payload) });
+    if (t) tasks.unshift(t);
+  } catch (e) { console.warn('seed task failed', e); }
 }
 
 async function createList(name) {
@@ -3115,6 +3148,7 @@ function renderSidebar() {
   const starCount = tasks.filter(t=>!t.parent_id && t.starred && !t.done).length;
   const starItem  = document.createElement('div');
   starItem.className = 'list-item' + (activeListId===STARRED_LIST_ID?' active':'');
+  starItem.title     = 'Günde tek yıldız. Bu, o günün odağı.';
   starItem.onclick   = () => selectList(STARRED_LIST_ID);
   starItem.innerHTML = `
     <span class="list-icon">${mi('star','18')}</span>
@@ -3802,7 +3836,7 @@ function renderSidebarCalendar() {
     else if (count === 1) btn.classList.add('has-task-1');
     if (hasStar) btn.classList.add('has-star');
     const titleParts = [count > 0 ? `${count} aktif görev` : 'Görev yok'];
-    if (hasStar) titleParts.push('⭐ Günün Odağı');
+    if (hasStar) titleParts.push('⭐ Günde tek yıldız. Bu, o günün odağı.');
     btn.title = titleParts.join(' · ');
     btn.onclick = () => selectCalDay(iso);
     grid.appendChild(btn);
@@ -4298,7 +4332,7 @@ function buildTaskCard(task, isDone) {
 
   const starBtn = document.createElement('button');
   starBtn.className = 'btn-star' + (task.starred?' starred':'');
-  starBtn.title     = task.starred ? 'Yıldızı kaldır' : 'Yıldızla';
+  starBtn.title     = task.starred ? 'Yıldızı kaldır' : 'Günde tek yıldız. Bu, o günün odağı.';
   starBtn.innerHTML = mi('star', 18);
   starBtn.onclick   = (e) => { e.stopPropagation(); toggleStar(task); };
 
@@ -5079,6 +5113,7 @@ function renderWeekly() {
   topTr.className = 'wk-row-toptask';
   const topLblTd = document.createElement('td');
   topLblTd.className = 'wk-row-lbl';
+  topLblTd.title = 'Günde tek yıldız. Bu, o günün odağı.';
   topLblTd.innerHTML = mi('star', 16);
   topTr.appendChild(topLblTd);
   dates.forEach(d => {
