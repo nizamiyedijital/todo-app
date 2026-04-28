@@ -566,8 +566,97 @@
       border-bottom:1px solid #f4f5f9; border-right:1px solid #f4f5f9;
       position:relative;
       min-height:clamp(36px, calc((100vh - 240px) / var(--lc-visible-rows, 14)), 64px);
+      overflow:visible;
     }
     .lc-hour-cell:hover { background:rgba(79,110,247,.04); }
+
+    /* Tüm gün şeridi */
+    .lc-cell-allday {
+      border-bottom:1px solid #f0f2f8; border-right:1px solid #f0f2f8;
+      background:var(--surface);
+      padding:4px; min-height:32px;
+      display:flex; flex-wrap:wrap; gap:3px;
+      align-items:flex-start;
+    }
+    .lc-allday-chip {
+      font-size:.68rem; padding:2px 6px; border-radius:5px;
+      background:#eef1fd; color:#1f3b8c;
+      max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      cursor:pointer; line-height:1.3;
+    }
+    .lc-allday-chip[data-cat="mental"]    { background:#dceaf6; color:#1f5b8c; }
+    .lc-allday-chip[data-cat="physical"]  { background:#d4f4e0; color:#15803d; }
+    .lc-allday-chip[data-cat="spiritual"] { background:#ede0fa; color:#7c3aed; }
+    .lc-allday-chip.is-done { text-decoration:line-through; opacity:.55; }
+
+    /* Saat hücresi içindeki görev blokları */
+    .lc-task-block {
+      position:absolute;
+      left:2px; right:2px; top:0; height:100%;
+      background:#eef1fd;
+      border-left:3px solid #4f6ef7;
+      border-radius:4px;
+      padding:3px 6px;
+      font-size:.72rem; line-height:1.2;
+      color:#1f3b8c;
+      cursor:pointer;
+      overflow:hidden;
+      z-index:2;
+      box-shadow:0 1px 2px rgba(0,0,0,.06);
+      transition:transform .12s, box-shadow .12s;
+    }
+    .lc-task-block:hover {
+      transform:translateY(-1px);
+      box-shadow:0 2px 6px rgba(0,0,0,.1);
+      z-index:3;
+    }
+    .lc-task-block .lc-task-text {
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+    .lc-task-block[data-cat="mental"]    { background:#dceaf6; border-left-color:#5B9BD5; color:#1f5b8c; }
+    .lc-task-block[data-cat="physical"]  { background:#d4f4e0; border-left-color:#22c55e; color:#15803d; }
+    .lc-task-block[data-cat="spiritual"] { background:#ede0fa; border-left-color:#a855f7; color:#7c3aed; }
+    .lc-task-block.is-done { text-decoration:line-through; opacity:.55; }
+
+    /* Tema & odak chip'leri */
+    .lc-theme-chip, .lc-focus-chip {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:3px 6px; background:var(--accent-bg); color:var(--accent);
+      border-radius:6px; font-size:.7rem; max-width:100%;
+    }
+    .lc-theme-chip .lc-theme-name, .lc-focus-chip .lc-focus-name {
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .lc-meta-rm {
+      cursor:pointer; opacity:.6; padding:0 2px; font-size:.85rem;
+      flex-shrink:0;
+    }
+    .lc-meta-rm:hover { opacity:1; }
+
+    /* Popover */
+    .lc-popover {
+      background:#fff; border:1px solid var(--border2); border-radius:10px;
+      box-shadow:0 6px 20px rgba(0,0,0,.12);
+      padding:6px; min-width:220px; max-width:300px; max-height:320px;
+      overflow-y:auto;
+    }
+    body.theme-dark .lc-popover { background:var(--card-bg); }
+    .lc-pop-title {
+      font-size:.7rem; color:var(--text4); padding:6px 10px 4px;
+      font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+    }
+    .lc-pop-opt {
+      display:flex; align-items:center; gap:8px; width:100%;
+      padding:7px 10px; border:none; background:transparent;
+      cursor:pointer; border-radius:6px;
+      font-size:.86rem; color:var(--text); font-family:inherit;
+      text-align:left;
+    }
+    .lc-pop-opt:hover { background:var(--surface2); }
+    .lc-pop-empty {
+      padding:10px 12px; font-size:.78rem; color:var(--text4); line-height:1.4;
+    }
 
     /* Hour expand butonları */
     .lc-expand-row { display:contents; }
@@ -5409,6 +5498,42 @@ function escapeHtml(s) {
 /* ── List calendar (sağ pano) ── */
 let lcWeekStart = null;     // Pazartesi 00:00 olarak güne sabitlenir
 let lcVisibleHours = null;  // { start: 9, end: 22 }  inclusive
+let dayMeta = {};           // { 'YYYY-MM-DD': { theme_list_id, focus_task_id } }
+let dayMetaLoadedRange = null;  // { from: 'YYYY-MM-DD', to: '...' }
+
+async function loadDayMeta(weekStart) {
+  if (!session?.access_token) return;
+  const from = new Date(weekStart); from.setDate(from.getDate() - 7);
+  const to   = new Date(weekStart); to.setDate(to.getDate() + 14);
+  const fromStr = from.toISOString().slice(0,10);
+  const toStr   = to.toISOString().slice(0,10);
+  try {
+    const rows = await db(`/day_meta?date=gte.${fromStr}&date=lte.${toStr}&select=*`) || [];
+    for (const r of rows) {
+      dayMeta[r.date] = { theme_list_id: r.theme_list_id || null, focus_task_id: r.focus_task_id || null };
+    }
+    dayMetaLoadedRange = { from: fromStr, to: toStr };
+  } catch (e) { console.error('loadDayMeta:', e); }
+}
+
+async function saveDayMeta(dateISO, patch) {
+  const date = dateISO.slice(0,10);
+  const cur  = dayMeta[date] || {};
+  const next = { ...cur, ...patch };
+  dayMeta[date] = next;
+  if (!session?.access_token) return;
+  try {
+    const payload = { date, ...next };
+    await db('/day_meta?on_conflict=user_id,date', {
+      method:'POST',
+      headers:{ Prefer:'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(payload),
+    });
+  } catch (e) {
+    console.error('saveDayMeta:', e);
+    showToast('Kaydedilemedi: '+e.message);
+  }
+}
 
 function lcStartOfWeek(d) {
   const x = new Date(d);
@@ -5481,6 +5606,10 @@ function renderListCalendar() {
   const root = document.getElementById('listCalendar');
   if (!root || root.style.display === 'none') return;
   lcInitState();
+  // day_meta ilk render'da arka planda yüklenir; gelince re-render eder
+  if (!dayMetaLoadedRange) {
+    loadDayMeta(lcWeekStart).then(() => renderListCalendar());
+  }
 
   // Toolbar week label
   const days = [];
@@ -5499,14 +5628,17 @@ function renderListCalendar() {
   const grid = document.getElementById('lcGrid');
   grid.innerHTML = '';
 
-  // 1) Aktif Yaşam Dengesi satırı
+  // 1) Aktif Yaşam Dengesi satırı (günün renk durumu)
   grid.appendChild(lcLabelCell('AKTİF YAŞAM DENGESİ', 'row-balance'));
   for (const d of days) {
     const cell = document.createElement('div');
     cell.className = 'lc-cell-balance';
     cell.dataset.dateIso = d.toISOString().slice(0,10);
-    // Faz B'de placeholder gri; Faz C'de calculateDailyActiveLifeBalance ile renkli
-    cell.style.background = '#f4f5f9';
+    const r = calculateDailyActiveLifeBalance(tasks, d.toISOString());
+    cell.style.background = r.color;
+    cell.title = `${LC_DAY_NAMES[(d.getDay()+6)%7]} ${d.getDate()} ${LC_MONTHS_TR[d.getMonth()]} — ${r.label}\n` +
+                 `🧠 %${Math.round(r.mentalRatio)} · 🚶 %${Math.round(r.physicalRatio)} · 🤲 %${Math.round(r.spiritualRatio)}\n` +
+                 (r.message || '');
     grid.appendChild(cell);
   }
 
@@ -5523,26 +5655,85 @@ function renderListCalendar() {
     grid.appendChild(cell);
   }
 
-  // 3) Günün Teması satırı (Faz B placeholder)
+  // 3) Günün Teması satırı
   grid.appendChild(lcLabelCell('GÜNÜN TEMASI', 'row-theme'));
   for (const d of days) {
+    const dateKey = d.toISOString().slice(0,10);
     const cell = document.createElement('div');
     cell.className = 'lc-cell-theme';
-    cell.dataset.dateIso = d.toISOString().slice(0,10);
-    cell.innerHTML = `<span style="opacity:.5">+ Tema</span>`;
-    cell.title = 'Günün teması (Faz C)';
+    cell.dataset.dateIso = dateKey;
+    const meta = dayMeta[dateKey] || {};
+    if (meta.theme_list_id) {
+      const list = lists.find(l => l.id === meta.theme_list_id);
+      if (list) {
+        cell.innerHTML = `<span class="lc-theme-chip"><span>${list.icon || '📋'}</span><span class="lc-theme-name">${escapeHtml(list.name)}</span><span class="lc-meta-rm">×</span></span>`;
+        cell.querySelector('.lc-meta-rm').onclick = (e) => {
+          e.stopPropagation();
+          saveDayMeta(dateKey, { theme_list_id: null });
+          renderListCalendar();
+        };
+      } else {
+        cell.innerHTML = `<span style="opacity:.5">+ Tema</span>`;
+      }
+    } else {
+      cell.innerHTML = `<span style="opacity:.5">+ Tema</span>`;
+    }
+    cell.onclick = (e) => {
+      if (e.target.closest('.lc-meta-rm')) return;
+      lcOpenThemePicker(cell, dateKey);
+    };
     grid.appendChild(cell);
   }
 
-  // 4) Günün Odağı satırı (Faz B placeholder)
+  // 4) Günün Odağı satırı
   grid.appendChild(lcLabelCell('GÜNÜN ODAĞI', 'row-focus'));
   for (const d of days) {
+    const dateKey = d.toISOString().slice(0,10);
     const cell = document.createElement('div');
     cell.className = 'lc-cell-focus';
-    cell.dataset.dateIso = d.toISOString().slice(0,10);
-    cell.innerHTML = `<span style="opacity:.5">+ Odak</span>`;
-    cell.title = 'Günün odağı (Faz C)';
+    cell.dataset.dateIso = dateKey;
+    const meta = dayMeta[dateKey] || {};
+    let focusTask = null;
+    if (meta.focus_task_id) focusTask = tasks.find(t => t.id === meta.focus_task_id);
+    // Otomatik öneri: kullanıcı focus seçmediyse o günün starred görevi
+    if (!focusTask) {
+      const dayStart = new Date(d); dayStart.setHours(0,0,0,0);
+      const dayEnd   = new Date(dayStart); dayEnd.setDate(dayEnd.getDate()+1);
+      focusTask = tasks.find(t => !t.parent_id && t.starred && t.due_at &&
+        new Date(t.due_at) >= dayStart && new Date(t.due_at) < dayEnd);
+    }
+    if (focusTask) {
+      const emoji = focusTask.balance_category ? BALANCE_CATEGORIES[focusTask.balance_category].emoji : '⭐';
+      cell.innerHTML = `<span class="lc-focus-chip"><span>${emoji}</span><span class="lc-focus-name">${escapeHtml(focusTask.text)}</span>${meta.focus_task_id ? '<span class="lc-meta-rm">×</span>' : ''}</span>`;
+      const rm = cell.querySelector('.lc-meta-rm');
+      if (rm) rm.onclick = (e) => {
+        e.stopPropagation();
+        saveDayMeta(dateKey, { focus_task_id: null });
+        renderListCalendar();
+      };
+    } else {
+      cell.innerHTML = `<span style="opacity:.5">+ Odak</span>`;
+    }
+    cell.onclick = (e) => {
+      if (e.target.closest('.lc-meta-rm')) return;
+      lcOpenFocusPicker(cell, dateKey);
+    };
     grid.appendChild(cell);
+  }
+
+  // 4b) Tüm gün şeridi (saati 00:00 olan görevler)
+  let hasAllDayTasks = false;
+  for (const d of days) if (lcTasksAllDay(d).length) { hasAllDayTasks = true; break; }
+  if (hasAllDayTasks) {
+    grid.appendChild(lcLabelCell('TÜM GÜN', 'row-allday'));
+    for (const d of days) {
+      const cell = document.createElement('div');
+      cell.className = 'lc-cell-allday';
+      cell.dataset.dateIso = d.toISOString().slice(0,10);
+      const list = lcTasksAllDay(d);
+      for (const t of list) cell.appendChild(lcMakeAllDayChip(t));
+      grid.appendChild(cell);
+    }
   }
 
   // 5) Saat blokları üstündeki "Öncesini göster"
@@ -5567,6 +5758,9 @@ function renderListCalendar() {
       cell.className = 'lc-hour-cell';
       cell.dataset.dateIso = d.toISOString().slice(0,10);
       cell.dataset.hour    = h;
+      // Bu hücrede başlayan görevler
+      const inHour = lcTasksForDayHour(d, h);
+      for (const t of inHour) cell.appendChild(lcMakeTaskBlock(t));
       grid.appendChild(cell);
     }
   }
@@ -5586,6 +5780,130 @@ function lcLabelCell(text, extraCls) {
   el.className = 'lc-cell-label ' + (extraCls || '');
   el.textContent = text;
   return el;
+}
+
+function lcTasksForDayHour(dayDate, hour) {
+  const hStart = new Date(dayDate); hStart.setHours(hour, 0, 0, 0);
+  const hEnd   = new Date(hStart); hEnd.setHours(hour + 1, 0, 0, 0);
+  return tasks.filter(t => {
+    if (t.parent_id) return false;
+    if (t.category !== activeListId) return false;
+    if (!t.due_at) return false;
+    const d = new Date(t.due_at);
+    if (d.getHours() === 0 && d.getMinutes() === 0) return false;
+    return d >= hStart && d < hEnd;
+  });
+}
+
+function lcTasksAllDay(dayDate) {
+  const dStart = new Date(dayDate); dStart.setHours(0,0,0,0);
+  const dEnd   = new Date(dStart); dEnd.setDate(dEnd.getDate() + 1);
+  return tasks.filter(t => {
+    if (t.parent_id) return false;
+    if (t.category !== activeListId) return false;
+    if (!t.due_at) return false;
+    const d = new Date(t.due_at);
+    return d >= dStart && d < dEnd && d.getHours() === 0 && d.getMinutes() === 0;
+  });
+}
+
+function lcMakeTaskBlock(t) {
+  const block = document.createElement('div');
+  block.className = 'lc-task-block';
+  if (t.balance_category) block.dataset.cat = t.balance_category;
+  if (t.done) block.classList.add('is-done');
+  const d = new Date(t.due_at);
+  const startMin = d.getMinutes();
+  const minutes  = (t.estimated_minutes != null && t.estimated_minutes > 0) ? t.estimated_minutes : DEFAULT_TASK_MINUTES;
+  block.style.top    = `${(startMin / 60) * 100}%`;
+  block.style.height = `calc(${(minutes / 60) * 100}% - 2px)`;
+  block.dataset.taskId = t.id;
+  const emoji = t.balance_category ? BALANCE_CATEGORIES[t.balance_category].emoji + ' ' : '';
+  block.innerHTML = `<span class="lc-task-text">${emoji}${escapeHtml(t.text)}</span>`;
+  block.title = `${t.text} · ${fmtBalanceMinutes(minutes)}`;
+  block.onclick = (e) => { e.stopPropagation(); openMobTaskSheet(t); };
+  return block;
+}
+
+function lcOpenThemePicker(anchor, dateKey) {
+  closeAllPopovers();
+  const pop = document.createElement('div');
+  pop.className = 'lc-popover lc-theme-popover';
+  pop.innerHTML = `<div class="lc-pop-title">Günün Teması</div>`;
+  for (const l of lists) {
+    const opt = document.createElement('button');
+    opt.className = 'lc-pop-opt';
+    opt.innerHTML = `<span>${l.icon || '📋'}</span><span>${escapeHtml(l.name)}</span>`;
+    opt.onclick = async (e) => {
+      e.stopPropagation();
+      await saveDayMeta(dateKey, { theme_list_id: l.id });
+      pop.remove();
+      renderListCalendar();
+    };
+    pop.appendChild(opt);
+  }
+  document.body.appendChild(pop);
+  positionPopover(pop, anchor);
+  setTimeout(() => document.addEventListener('click', () => pop.remove(), { once:true }), 0);
+}
+
+function lcOpenFocusPicker(anchor, dateKey) {
+  closeAllPopovers();
+  const pop = document.createElement('div');
+  pop.className = 'lc-popover lc-focus-popover';
+  pop.innerHTML = `<div class="lc-pop-title">Günün Odağı</div>`;
+  // O güne ait yıldızlı görevler
+  const dayStart = new Date(dateKey); dayStart.setHours(0,0,0,0);
+  const dayEnd   = new Date(dayStart); dayEnd.setDate(dayEnd.getDate()+1);
+  const candidates = tasks.filter(t => !t.parent_id && t.starred && t.due_at &&
+    new Date(t.due_at) >= dayStart && new Date(t.due_at) < dayEnd);
+  if (!candidates.length) {
+    const empty = document.createElement('div');
+    empty.className = 'lc-pop-empty';
+    empty.textContent = 'Bu güne planlı yıldızlı görev yok. Önce bir göreve yıldız ver, sonra tekrar dene.';
+    pop.appendChild(empty);
+  }
+  for (const t of candidates) {
+    const opt = document.createElement('button');
+    opt.className = 'lc-pop-opt';
+    const emoji = t.balance_category ? BALANCE_CATEGORIES[t.balance_category].emoji : '⭐';
+    opt.innerHTML = `<span>${emoji}</span><span>${escapeHtml(t.text)}</span>`;
+    opt.onclick = async (e) => {
+      e.stopPropagation();
+      await saveDayMeta(dateKey, { focus_task_id: t.id });
+      pop.remove();
+      renderListCalendar();
+    };
+    pop.appendChild(opt);
+  }
+  document.body.appendChild(pop);
+  positionPopover(pop, anchor);
+  setTimeout(() => document.addEventListener('click', () => pop.remove(), { once:true }), 0);
+}
+
+function closeAllPopovers() {
+  document.querySelectorAll('.lc-popover').forEach(p => p.remove());
+}
+
+function positionPopover(pop, anchor) {
+  const r = anchor.getBoundingClientRect();
+  pop.style.position = 'fixed';
+  pop.style.top  = (r.bottom + 4) + 'px';
+  pop.style.left = Math.min(r.left, window.innerWidth - 240) + 'px';
+  pop.style.zIndex = 5000;
+}
+
+function lcMakeAllDayChip(t) {
+  const chip = document.createElement('div');
+  chip.className = 'lc-allday-chip';
+  if (t.balance_category) chip.dataset.cat = t.balance_category;
+  if (t.done) chip.classList.add('is-done');
+  chip.dataset.taskId = t.id;
+  const emoji = t.balance_category ? BALANCE_CATEGORIES[t.balance_category].emoji + ' ' : '';
+  chip.innerHTML = `<span>${emoji}${escapeHtml(t.text)}</span>`;
+  chip.title = t.text;
+  chip.onclick = (e) => { e.stopPropagation(); openMobTaskSheet(t); };
+  return chip;
 }
 
 /* ── Helpers ── */
