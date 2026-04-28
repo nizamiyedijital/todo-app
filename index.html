@@ -3718,15 +3718,16 @@ function selectList(id) {
   document.getElementById('mainContent').style.display  = isBoard ? 'none' : 'flex';
   document.getElementById('boardArea').style.display    = isBoard ? 'flex' : 'none';
   document.getElementById('boardNav').style.display     = isBoard ? '' : 'none';
-  // List calendar: sadece custom liste aktifken
+  // List calendar: custom liste VEYA Yıldızlı modunda görünür
   const isStarredView = id === STARRED_LIST_ID;
   const isDayView     = id === DAY_LIST_ID;
   const isCustomList  = !isBoard && !isStarredView && !isDayView;
-  if (isCustomList) {
+  const showCalendar  = isCustomList || isStarredView;
+  if (showCalendar) {
     lcPendingScrollToNow = true;
-    lcSingleDate = null;  // custom listeye geçince hafta moduna dön
+    lcSingleDate = null;  // custom/yıldızlı'ya geçince hafta moduna dön
   }
-  document.getElementById('listCalendar').style.display = isCustomList ? 'flex' : 'none';
+  document.getElementById('listCalendar').style.display = showCalendar ? 'flex' : 'none';
   updateMobTabBar();
   renderSidebar();
   render();
@@ -4576,7 +4577,7 @@ function render() {
   });
 
   renderBalanceCard(isCustomList ? new Date() : null);
-  if (isCustomList || isDayFilter) renderListCalendar();
+  if (isCustomList || isDayFilter || isStarred) renderListCalendar();
 
   document.getElementById('empty').style.display = active.length===0 ? 'block' : 'none';
 
@@ -5252,7 +5253,11 @@ function fmtBalanceMinutes(mins) {
 }
 
 function calculateListStats(listId) {
-  const items = (tasks || []).filter(t => !t.parent_id && t.category === listId);
+  const items = (tasks || []).filter(t => {
+    if (t.parent_id) return false;
+    if (listId === STARRED_LIST_ID) return !!t.starred;
+    return t.category === listId;
+  });
   const active = items.filter(t => !t.done);
   const totalMinutes = active.reduce((s, t) => {
     const m = (t.estimated_minutes != null && t.estimated_minutes >= 0) ? t.estimated_minutes : 0;
@@ -5324,12 +5329,16 @@ function renderBalanceCard(forDate) {
   // forDate parametresi geriye uyumluluk için kalır ama artık aktif liste kullanılır.
   const card = document.getElementById('balanceCard');
   if (!card) return;
-  const isCustom = activeListId && activeListId !== BOARD_LIST_ID && activeListId !== STARRED_LIST_ID && activeListId !== DAY_LIST_ID;
-  if (!isCustom) { card.style.display = 'none'; return; }
+  const isStarred = activeListId === STARRED_LIST_ID;
+  const isCardScope = activeListId && activeListId !== BOARD_LIST_ID && activeListId !== DAY_LIST_ID;
+  if (!isCardScope) { card.style.display = 'none'; return; }
   const list = lists.find(l => l.id === activeListId);
   const s = calculateListStats(activeListId);
   card.style.display = '';
   card.style.borderLeftColor = s.color;
+  const titleText  = isStarred ? 'Yıldızlı' : (list?.name || 'Liste');
+  const subTitle   = isStarred ? 'Yıldızlı Görev İstatistikleri' : 'Liste İstatistikleri';
+  const starLabel  = isStarred ? 'Yıldızlı Görev'                : 'Günün Odağı';
 
   const seg = (cat, ratio) => {
     if (ratio <= 0) return '';
@@ -5347,12 +5356,12 @@ function renderBalanceCard(forDate) {
        </div>`;
 
   card.innerHTML = `
-    <div class="bc-title">${escapeHtml(list?.name || 'Liste')}</div>
-    <div class="bc-sub">Liste İstatistikleri</div>
+    <div class="bc-title">${escapeHtml(titleText)}</div>
+    <div class="bc-sub">${escapeHtml(subTitle)}</div>
     <div class="bc-stat-row">
       <div class="bc-stat"><div class="bc-stat-num">${s.taskCount}</div><div class="bc-stat-label">Görev</div></div>
       <div class="bc-stat"><div class="bc-stat-num" title="${s.totalMinutes > 0 ? fmtBalanceMinutes(s.totalMinutes) : ''}">${s.totalMinutes > 0 ? fmtBalanceMinutes(s.totalMinutes) : '—'}</div><div class="bc-stat-label">Toplam süre</div></div>
-      <div class="bc-stat"><div class="bc-stat-num">${s.starredCount}</div><div class="bc-stat-label">Günün Odağı</div></div>
+      <div class="bc-stat"><div class="bc-stat-num">${s.starredCount}</div><div class="bc-stat-label">${escapeHtml(starLabel)}</div></div>
     </div>
     <div class="bc-stack-bar">
       ${seg('mental', s.mentalRatio)}
@@ -5789,12 +5798,19 @@ function lcLabelCell(text, extraCls) {
   return el;
 }
 
+function lcTaskInScope(t) {
+  // Aktif moda göre takvime hangi görevler düşer
+  if (t.parent_id) return false;
+  if (activeListId === STARRED_LIST_ID) return !!t.starred;
+  if (activeListId === DAY_LIST_ID)     return true;  // tüm listeler
+  return t.category === activeListId;
+}
+
 function lcTasksForDayHour(dayDate, hour) {
   const hStart = new Date(dayDate); hStart.setHours(hour, 0, 0, 0);
   const hEnd   = new Date(hStart); hEnd.setHours(hour + 1, 0, 0, 0);
   return tasks.filter(t => {
-    if (t.parent_id) return false;
-    if (t.category !== activeListId) return false;
+    if (!lcTaskInScope(t)) return false;
     if (!t.due_at) return false;
     const d = new Date(t.due_at);
     return d >= hStart && d < hEnd;
@@ -5805,8 +5821,7 @@ function lcTimedTasksForDay(dayDate) {
   const dStart = new Date(dayDate); dStart.setHours(0,0,0,0);
   const dEnd   = new Date(dStart); dEnd.setDate(dEnd.getDate() + 1);
   return tasks.filter(t => {
-    if (t.parent_id) return false;
-    if (t.category !== activeListId) return false;
+    if (!lcTaskInScope(t)) return false;
     if (!t.due_at) return false;
     const d = new Date(t.due_at);
     return d >= dStart && d < dEnd;
@@ -6092,12 +6107,10 @@ async function dropTaskOnCalendar(task, target) {
   const oldCategory = task.category;
   const newDueAt = lcBuildDueAt(target.date, target.hour, target.minute);
   const updates = { due_at: newDueAt };
-  // Eğer görev başka listedense bu listeye taşı
-  if (task.category !== activeListId) updates.category = activeListId;
+  // Görevin listesi (category) korunur — sadece zaman güncellenir.
 
   // Optimistic update
   task.due_at = newDueAt;
-  if (updates.category) task.category = activeListId;
   render(); renderSidebar();
 
   try {
