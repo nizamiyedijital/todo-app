@@ -692,9 +692,12 @@
       display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
       overflow:hidden;
     }
-    .lc-task-block[data-cat="mental"]    { background:#dceaf6; border-left-color:#5B9BD5; color:#1f5b8c; }
-    .lc-task-block[data-cat="physical"]  { background:#d4f4e0; border-left-color:#22c55e; color:#15803d; }
-    .lc-task-block[data-cat="spiritual"] { background:#ede0fa; border-left-color:#a855f7; color:#7c3aed; }
+    /* Block sol kenar rengi: priority'ye göre */
+    .lc-task-block[data-prio="p0"] { border-left-color:var(--prio-0-main); }
+    .lc-task-block[data-prio="p1"] { border-left-color:var(--prio-1-main); }
+    .lc-task-block[data-prio="p2"] { border-left-color:var(--prio-2-main); }
+    .lc-task-block[data-prio="p3"] { border-left-color:var(--prio-3-main); }
+    .lc-task-block[data-prio="p4"] { border-left-color:var(--prio-4-main); }
     .lc-task-block.is-conflict { box-shadow:0 1px 2px rgba(0,0,0,.1), -1px 0 0 rgba(255,255,255,.7); padding:3px 4px 3px 22px; }
     .lc-task-block.is-conflict .lc-task-text { font-size:14px; }
     .lc-task-block.is-done { opacity:.55; }
@@ -6171,7 +6174,7 @@ function lcComputeDayLayout(dayTasks) {
 function lcMakeTaskBlock(t, layout) {
   const block = document.createElement('div');
   block.className = 'lc-task-block';
-  if (t.balance_category) block.dataset.cat = t.balance_category;
+  if (t.priority) block.dataset.prio = t.priority;
   if (t.done) block.classList.add('is-done');
   const d = new Date(t.due_at);
   const startMin = d.getMinutes();
@@ -6189,9 +6192,8 @@ function lcMakeTaskBlock(t, layout) {
     block.classList.add('is-conflict');
   }
   block.dataset.taskId = t.id;
-  const emoji = t.balance_category ? BALANCE_CATEGORIES[t.balance_category].emoji + ' ' : '';
   block.innerHTML = `<span class="lc-block-check${t.done ? ' checked' : ''}" title="Tamamla"></span>` +
-                    `<span class="lc-task-text">${emoji}${escapeHtml(t.text)}</span>`;
+                    `<span class="lc-task-text">${escapeHtml(t.text)}</span>`;
   const conflictNote = total > 1 ? ` · ${total} görev çakışıyor` : '';
   // Checkbox: sadece toggle done; block click'ini durdur
   const checkEl = block.querySelector('.lc-block-check');
