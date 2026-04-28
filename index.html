@@ -533,6 +533,10 @@
       --lc-sticky-4: calc(var(--lc-row-balance) + var(--lc-row-date) + var(--lc-row-theme));
       --lc-today-bg: #f3f5fc;
     }
+    .lc-grid.is-single-day {
+      grid-template-columns: 72px minmax(280px, 408px);
+      max-width:480px; margin-left:auto; margin-right:auto;
+    }
     body.theme-dark .lc-grid { --lc-today-bg: var(--surface2); }
     .lc-grid::-webkit-scrollbar { width:6px; }
     .lc-grid::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
@@ -2394,10 +2398,11 @@
       <!-- Sağ pano: özel liste haftalık takvim (Faz B/C) -->
       <div class="list-cal" id="listCalendar" style="display:none">
         <div class="lc-toolbar">
-          <button class="lc-nav" id="lcPrevWeek" title="Önceki hafta"><span class="mi s18">chevron_left</span></button>
+          <button class="lc-nav" id="lcPrevWeek" title="Önceki"><span class="mi s18">chevron_left</span></button>
           <span class="lc-week-label" id="lcWeekLabel"></span>
-          <button class="lc-nav" id="lcNextWeek" title="Sonraki hafta"><span class="mi s18">chevron_right</span></button>
-          <button class="lc-today-btn" id="lcTodayBtn" title="Bu haftaya dön">Bugün</button>
+          <button class="lc-nav" id="lcNextWeek" title="Sonraki"><span class="mi s18">chevron_right</span></button>
+          <button class="lc-today-btn" id="lcBackToWeek" title="Hafta görünümüne dön" style="display:none">‹ Hafta</button>
+          <button class="lc-today-btn" id="lcTodayBtn" title="Bugüne dön">Bugün</button>
         </div>
         <div class="lc-grid-wrap" id="lcGridWrap">
           <div class="lc-grid" id="lcGrid"></div>
@@ -3717,7 +3722,10 @@ function selectList(id) {
   const isStarredView = id === STARRED_LIST_ID;
   const isDayView     = id === DAY_LIST_ID;
   const isCustomList  = !isBoard && !isStarredView && !isDayView;
-  if (isCustomList) lcPendingScrollToNow = true;
+  if (isCustomList) {
+    lcPendingScrollToNow = true;
+    lcSingleDate = null;  // custom listeye geçince hafta moduna dön
+  }
   document.getElementById('listCalendar').style.display = isCustomList ? 'flex' : 'none';
   updateMobTabBar();
   renderSidebar();
@@ -4216,6 +4224,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('lcPrevWeek')?.addEventListener('click', () => lcShiftWeek(-1));
   document.getElementById('lcNextWeek')?.addEventListener('click', () => lcShiftWeek(+1));
   document.getElementById('lcTodayBtn')?.addEventListener('click', () => lcGoToday());
+  document.getElementById('lcBackToWeek')?.addEventListener('click', () => {
+    lcSingleDate = null;
+    if (activeListId === DAY_LIST_ID) { activeDayDate = null; selectList(BOARD_LIST_ID); return; }
+    lcPendingScrollToNow = true;
+    renderListCalendar();
+  });
 
   document.getElementById('taskInput').addEventListener('focusout', () => {
     if (keepInputFocused) {
@@ -4388,18 +4402,24 @@ function sidebarCalToday() {
 function selectCalDay(iso) {
   if (activeListId === DAY_LIST_ID && activeDayDate === iso) {
     activeDayDate = null;
+    lcSingleDate = null;
     selectList(BOARD_LIST_ID);
     renderSidebarCalendar();
     return;
   }
   activeDayDate = iso;
   activeListId  = DAY_LIST_ID;
+  lcSingleDate  = iso;
+  lcWeekStart   = lcStartOfWeek(new Date(iso + 'T00:00:00'));
+  lcPendingScrollToNow = true;
   doneOpen = false;
   document.getElementById('mainListTitle').textContent = `${fmtLongDate(iso)} Görevleri`;
   document.getElementById('addWrap').style.display   = 'none';
   document.getElementById('mainBody').style.display  = '';
+  document.getElementById('mainContent').style.display = 'flex';
   document.getElementById('boardArea').style.display = 'none';
   document.getElementById('boardNav').style.display  = 'none';
+  document.getElementById('listCalendar').style.display = 'flex';
   updateMobTabBar();
   renderSidebar();
   renderSidebarCalendar();
@@ -4556,7 +4576,7 @@ function render() {
   });
 
   renderBalanceCard(isCustomList ? new Date() : null);
-  if (isCustomList) renderListCalendar();
+  if (isCustomList || isDayFilter) renderListCalendar();
 
   document.getElementById('empty').style.display = active.length===0 ? 'block' : 'none';
 
@@ -5370,6 +5390,7 @@ function escapeHtml(s) {
 let lcWeekStart = null;     // Pazartesi 00:00 olarak güne sabitlenir
 let lcVisibleHours = null;  // { start: 0, end: 23 }  inclusive (24 saat)
 let lcPendingScrollToNow = true;  // ilk renderda şu anki saate scroll et
+let lcSingleDate = null;    // null = hafta modu; "YYYY-MM-DD" = tek gün odak modu
 let dayMeta = {};           // { 'YYYY-MM-DD': { theme_list_id, focus_task_id } }
 let dayMetaLoadedRange = null;  // { from: 'YYYY-MM-DD', to: '...' }
 
@@ -5434,17 +5455,41 @@ function lcShiftWeek(delta) {
   lcInitState();
   const wrap = document.getElementById('lcGridWrap');
   const savedScroll = wrap ? wrap.scrollTop : 0;
-  lcWeekStart.setDate(lcWeekStart.getDate() + delta * 7);
+  if (lcSingleDate) {
+    // Tek gün modunda ±1 gün
+    const d = new Date(lcSingleDate + 'T00:00:00');
+    d.setDate(d.getDate() + delta);
+    lcSingleDate = lcDateKey(d);
+    lcWeekStart = lcStartOfWeek(d);
+    if (activeListId === DAY_LIST_ID) {
+      activeDayDate = lcSingleDate;
+      document.getElementById('mainListTitle').textContent = `${fmtLongDate(lcSingleDate)} Görevleri`;
+      renderSidebarCalendar();
+      render();
+      return;
+    }
+  } else {
+    lcWeekStart.setDate(lcWeekStart.getDate() + delta * 7);
+  }
   lcEnsureDayMetaRange();
   renderListCalendar();
   if (wrap) requestAnimationFrame(() => { wrap.scrollTop = savedScroll; });
 }
 
 function lcGoToday() {
+  const todayKey = lcDateKey(new Date());
+  if (lcSingleDate) {
+    lcSingleDate = todayKey;
+    if (activeListId === DAY_LIST_ID) {
+      activeDayDate = todayKey;
+      document.getElementById('mainListTitle').textContent = `${fmtLongDate(todayKey)} Görevleri`;
+    }
+  }
   lcWeekStart = lcStartOfWeek(new Date());
   lcPendingScrollToNow = true;
   lcEnsureDayMetaRange();
   renderListCalendar();
+  if (activeListId === DAY_LIST_ID) { renderSidebarCalendar(); render(); }
 }
 
 function lcEnsureDayMetaRange() {
@@ -5457,6 +5502,7 @@ function lcEnsureDayMetaRange() {
 }
 
 const LC_DAY_NAMES = ['PZT','SAL','ÇAR','PER','CUM','CMT','PAZ'];
+const LC_DAY_NAMES_FULL = ['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
 const LC_MONTHS_TR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 
 function renderListCalendar() {
@@ -5468,22 +5514,35 @@ function renderListCalendar() {
     loadDayMeta(lcWeekStart).then(() => renderListCalendar());
   }
 
-  // Toolbar week label
+  // Tek gün modu mu, hafta modu mu?
+  const isSingle = !!lcSingleDate;
   const days = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(lcWeekStart); d.setDate(d.getDate() + i); d.setHours(0,0,0,0);
+  if (isSingle) {
+    const d = new Date(lcSingleDate + 'T00:00:00'); d.setHours(0,0,0,0);
     days.push(d);
-  }
-  const first = days[0], last = days[6];
-  const wkLabelEl = document.getElementById('lcWeekLabel');
-  if (first.getMonth() === last.getMonth()) {
-    wkLabelEl.textContent = `${first.getDate()}–${last.getDate()} ${LC_MONTHS_TR[first.getMonth()]} ${first.getFullYear()}`;
   } else {
-    wkLabelEl.textContent = `${first.getDate()} ${LC_MONTHS_TR[first.getMonth()]} – ${last.getDate()} ${LC_MONTHS_TR[last.getMonth()]} ${first.getFullYear()}`;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(lcWeekStart); d.setDate(d.getDate() + i); d.setHours(0,0,0,0);
+      days.push(d);
+    }
   }
+  const wkLabelEl = document.getElementById('lcWeekLabel');
+  if (isSingle) {
+    const d = days[0];
+    wkLabelEl.textContent = `${LC_DAY_NAMES_FULL[(d.getDay()+6)%7]} ${d.getDate()} ${LC_MONTHS_TR[d.getMonth()]} ${d.getFullYear()}`;
+  } else {
+    const first = days[0], last = days[6];
+    if (first.getMonth() === last.getMonth()) {
+      wkLabelEl.textContent = `${first.getDate()}–${last.getDate()} ${LC_MONTHS_TR[first.getMonth()]} ${first.getFullYear()}`;
+    } else {
+      wkLabelEl.textContent = `${first.getDate()} ${LC_MONTHS_TR[first.getMonth()]} – ${last.getDate()} ${LC_MONTHS_TR[last.getMonth()]} ${first.getFullYear()}`;
+    }
+  }
+  document.getElementById('lcBackToWeek').style.display = isSingle ? '' : 'none';
 
   const grid = document.getElementById('lcGrid');
   grid.innerHTML = '';
+  grid.classList.toggle('is-single-day', isSingle);
 
   const today = new Date(); today.setHours(0,0,0,0);
   const todayKey = lcDateKey(today);
@@ -5501,13 +5560,24 @@ function renderListCalendar() {
 
   // 2) Tarih satırı
   grid.appendChild(lcLabelCell('TARİH', 'row-date'));
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < days.length; i++) {
     const d = days[i];
     const cell = document.createElement('div');
     cell.className = 'lc-cell-date';
     if (lcDateKey(d) === todayKey) cell.classList.add('is-today');
     cell.dataset.dateIso = lcDateKey(d);
-    cell.innerHTML = `<span class="lc-day-name">${LC_DAY_NAMES[i]}</span><span class="lc-day-num">${d.getDate()}</span>`;
+    const dayIdx = (d.getDay() + 6) % 7;
+    cell.innerHTML = `<span class="lc-day-name">${LC_DAY_NAMES[dayIdx]}</span><span class="lc-day-num">${d.getDate()}</span>`;
+    if (!isSingle) {
+      cell.style.cursor = 'pointer';
+      cell.title = 'Tek gün görünümü';
+      cell.onclick = () => {
+        lcSingleDate = lcDateKey(d);
+        lcWeekStart = lcStartOfWeek(d);
+        lcPendingScrollToNow = true;
+        renderListCalendar();
+      };
+    }
     grid.appendChild(cell);
   }
 
