@@ -658,6 +658,43 @@
       padding:10px 12px; font-size:.78rem; color:var(--text4); line-height:1.4;
     }
 
+    /* Drag-and-drop */
+    .lc-drop-active {
+      outline:2px dashed var(--accent); outline-offset:-2px;
+      background:rgba(79,110,247,.08) !important;
+    }
+    .lc-drag-ghost {
+      position:fixed; pointer-events:none; z-index:9999;
+      background:#fff; border:1.5px solid var(--accent);
+      border-radius:6px; padding:6px 10px;
+      box-shadow:0 4px 14px rgba(0,0,0,.18);
+      font-size:.78rem; color:var(--text);
+      max-width:240px; opacity:.95;
+    }
+    .lc-drag-ghost-text { font-weight:500; }
+    .lc-drag-ghost-meta { font-size:.7rem; color:var(--text4); margin-top:2px; }
+    .task-card.is-dragging,
+    .lc-task-block.is-dragging,
+    .lc-allday-chip.is-dragging { opacity:.35; }
+    body.theme-dark .lc-drag-ghost { background:var(--card-bg); }
+
+    /* Undo toast */
+    .lc-undo-toast {
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+      background:#1a1a2e; color:#fff;
+      padding:10px 14px; border-radius:10px;
+      font-size:.84rem; box-shadow:0 4px 18px rgba(0,0,0,.22);
+      display:flex; align-items:center; gap:12px;
+      opacity:0; pointer-events:none; transition:opacity .2s, transform .2s;
+      z-index:9999;
+    }
+    .lc-undo-toast.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+    .lc-undo-btn {
+      background:transparent; color:#9bb1ff; border:none; cursor:pointer;
+      font-weight:600; font-size:.84rem; padding:2px 6px;
+    }
+    .lc-undo-btn:hover { color:#fff; }
+
     /* Hour expand butonları */
     .lc-expand-row { display:contents; }
     .lc-expand-btn {
@@ -4740,10 +4777,14 @@ function render() {
 
   const taskList = document.getElementById('taskList');
   taskList.innerHTML = '';
-  active.forEach(t=>taskList.appendChild(buildTaskCard(t, false)));
-
   // Bugünkü Aktif Yaşam Dengesi kartı: sadece custom liste aktifken
   const isCustomList = !isStarred && !isDayFilter && activeListId !== BOARD_LIST_ID && activeListId !== WEEKLY_LIST_ID;
+  active.forEach(t => {
+    const card = buildTaskCard(t, false);
+    if (isCustomList) initLcDrag(card, t);
+    taskList.appendChild(card);
+  });
+
   renderBalanceCard(isCustomList ? new Date() : null);
   if (isCustomList) renderListCalendar();
 
@@ -5822,6 +5863,7 @@ function lcMakeTaskBlock(t) {
   block.innerHTML = `<span class="lc-task-text">${emoji}${escapeHtml(t.text)}</span>`;
   block.title = `${t.text} · ${fmtBalanceMinutes(minutes)}`;
   block.onclick = (e) => { e.stopPropagation(); openMobTaskSheet(t); };
+  initLcDrag(block, t);
   return block;
 }
 
@@ -5903,7 +5945,200 @@ function lcMakeAllDayChip(t) {
   chip.innerHTML = `<span>${emoji}${escapeHtml(t.text)}</span>`;
   chip.title = t.text;
   chip.onclick = (e) => { e.stopPropagation(); openMobTaskSheet(t); };
+  initLcDrag(chip, t);
   return chip;
+}
+
+/* ── Drag-and-drop: liste/takvim → takvim ── */
+function initLcDrag(el, task) {
+  el.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    if (e.target.closest('button,input,textarea,select,.task-check,.lc-meta-rm')) return;
+    const isTouch = e.pointerType === 'touch';
+    const startX = e.clientX, startY = e.clientY;
+    let dragging = false, ghost = null, lastTarget = null, longPressTimer = null;
+    const startedFromBlock = el.classList.contains('lc-task-block') || el.classList.contains('lc-allday-chip');
+
+    function startDrag(ev) {
+      dragging = true;
+      document.body.style.userSelect = 'none';
+      const rect = el.getBoundingClientRect();
+      ghost = document.createElement('div');
+      ghost.className = 'drag-ghost lc-drag-ghost';
+      ghost.style.width  = Math.max(120, Math.min(rect.width, 240)) + 'px';
+      ghost.style.left   = (ev.clientX - rect.width/2) + 'px';
+      ghost.style.top    = (ev.clientY - 16) + 'px';
+      const emoji = task.balance_category ? BALANCE_CATEGORIES[task.balance_category].emoji + ' ' : '';
+      const minutes = task.estimated_minutes || DEFAULT_TASK_MINUTES;
+      ghost.innerHTML = `<div class="lc-drag-ghost-text">${emoji}${escapeHtml(task.text)}</div><div class="lc-drag-ghost-meta">${fmtBalanceMinutes(minutes)}</div>`;
+      document.body.appendChild(ghost);
+      el.classList.add('is-dragging');
+    }
+
+    function clearTarget() {
+      document.querySelectorAll('.lc-drop-active').forEach(n => n.classList.remove('lc-drop-active'));
+      lastTarget = null;
+    }
+
+    function onMove(ev) {
+      const dx = ev.clientX - startX, dy = ev.clientY - startY;
+      if (!dragging) {
+        if (isTouch) return; // touch'ta long-press ile başlar
+        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+        startDrag(ev);
+      }
+      ghost.style.left = (ev.clientX - parseFloat(ghost.style.width)/2) + 'px';
+      ghost.style.top  = (ev.clientY - 16) + 'px';
+
+      ghost.style.visibility = 'hidden';
+      const elAt = document.elementFromPoint(ev.clientX, ev.clientY);
+      ghost.style.visibility = '';
+
+      const target = lcParseDropTarget(elAt, ev.clientX, ev.clientY);
+      clearTarget();
+      if (target) {
+        target.cell.classList.add('lc-drop-active');
+        lastTarget = target;
+      }
+    }
+
+    async function onUp(ev) {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('keydown', onKey);
+      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+      document.body.style.userSelect = '';
+      el.classList.remove('is-dragging');
+
+      if (!dragging) return;
+      if (ghost) { ghost.remove(); ghost = null; }
+      clearTarget();
+
+      if (lastTarget) {
+        await dropTaskOnCalendar(task, lastTarget);
+      }
+    }
+
+    function onKey(ev) {
+      if (ev.key === 'Escape') {
+        if (ghost) ghost.remove();
+        clearTarget();
+        dragging = false;
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+        window.removeEventListener('keydown', onKey);
+        document.body.style.userSelect = '';
+        el.classList.remove('is-dragging');
+      }
+    }
+
+    if (isTouch) {
+      longPressTimer = setTimeout(() => { startDrag(e); }, 400);
+    }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('keydown', onKey);
+  });
+}
+
+function lcParseDropTarget(elAt, x, y) {
+  if (!elAt) return null;
+  // Sıraya göre kontrol: hour cell > all-day cell > date header
+  const hourCell = elAt.closest('.lc-hour-cell');
+  if (hourCell) {
+    const date = hourCell.dataset.dateIso;
+    const hour = parseInt(hourCell.dataset.hour, 10);
+    const r = hourCell.getBoundingClientRect();
+    const frac = Math.max(0, Math.min(1, (y - r.top) / r.height));
+    let totalMin = hour * 60 + frac * 60;
+    totalMin = Math.round(totalMin / 15) * 15;
+    const hh = Math.floor(totalMin / 60);
+    const mm = totalMin % 60;
+    return { kind:'hour', cell: hourCell, date, hour: hh, minute: mm };
+  }
+  const allDayCell = elAt.closest('.lc-cell-allday');
+  if (allDayCell) {
+    return { kind:'allday', cell: allDayCell, date: allDayCell.dataset.dateIso };
+  }
+  const dateCell = elAt.closest('.lc-cell-date');
+  if (dateCell) {
+    return { kind:'allday', cell: dateCell, date: dateCell.dataset.dateIso };
+  }
+  return null;
+}
+
+function lcBuildDueAt(date, hour, minute) {
+  // date = "YYYY-MM-DD" (lokal gün)
+  const d = new Date(date + 'T00:00:00');
+  d.setHours(hour || 0, minute || 0, 0, 0);
+  return d.toISOString();
+}
+
+async function dropTaskOnCalendar(task, target) {
+  const oldDueAt = task.due_at;
+  const oldCategory = task.category;
+  let newDueAt;
+  if (target.kind === 'hour') {
+    newDueAt = lcBuildDueAt(target.date, target.hour, target.minute);
+  } else {
+    newDueAt = lcBuildDueAt(target.date, 0, 0);
+  }
+  const updates = { due_at: newDueAt };
+  // Eğer görev başka listedense bu listeye taşı
+  if (task.category !== activeListId) updates.category = activeListId;
+
+  // Optimistic update
+  task.due_at = newDueAt;
+  if (updates.category) task.category = activeListId;
+  render(); renderSidebar();
+
+  try {
+    if (session?.access_token) {
+      await db(`/todos?id=eq.${task.id}`, { method:'PATCH', body: JSON.stringify(updates) });
+    }
+    showUndoToast(task, { due_at: oldDueAt, category: oldCategory });
+  } catch (e) {
+    // Rollback
+    task.due_at = oldDueAt;
+    task.category = oldCategory;
+    render(); renderSidebar();
+    showToast('Atama kaydedilemedi: ' + e.message);
+  }
+}
+
+function showUndoToast(task, prev) {
+  let toast = document.getElementById('lcUndoToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'lcUndoToast';
+    toast.className = 'lc-undo-toast';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `<span>Görev taşındı</span><button class="lc-undo-btn">Geri al</button>`;
+  toast.classList.add('show');
+  const btn = toast.querySelector('.lc-undo-btn');
+  const close = () => { toast.classList.remove('show'); };
+  btn.onclick = async () => {
+    const cur = { due_at: task.due_at, category: task.category };
+    task.due_at = prev.due_at;
+    task.category = prev.category;
+    render(); renderSidebar();
+    try {
+      if (session?.access_token) {
+        await db(`/todos?id=eq.${task.id}`, { method:'PATCH', body: JSON.stringify({ due_at: prev.due_at, category: prev.category }) });
+      }
+    } catch (e) {
+      // Re-rollback
+      task.due_at = cur.due_at;
+      task.category = cur.category;
+      render(); renderSidebar();
+      showToast('Geri alınamadı: ' + e.message);
+    }
+    close();
+  };
+  clearTimeout(showUndoToast._t);
+  showUndoToast._t = setTimeout(close, 5000);
 }
 
 /* ── Helpers ── */
