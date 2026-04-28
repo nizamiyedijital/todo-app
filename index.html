@@ -482,12 +482,116 @@
     .main-list-icon { font-size:1.4rem; }
     .main-list-title { font-size:1.3rem; font-weight:700; color:#1a1a2e; }
 
+    /* main-content: mainBody (sol) + listCalendar (sağ) yan yana */
+    .main-content {
+      flex:1; display:flex; min-height:0;
+    }
     .main-body {
       flex:1; overflow-y:auto; padding:12px 26px 40px;
       max-width:332px;
     }
     .main-body::-webkit-scrollbar { width:5px; }
     .main-body::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
+
+    /* List calendar (sağ pano) */
+    .list-cal {
+      flex:1; min-width:0; min-height:0;
+      display:flex; flex-direction:column;
+      border-left:1px solid #e8ecf4; background:#fff;
+    }
+    .lc-toolbar {
+      display:flex; align-items:center; gap:8px;
+      padding:10px 14px; border-bottom:1px solid #f0f2f8;
+      flex-shrink:0;
+    }
+    .lc-nav {
+      width:28px; height:28px; border-radius:6px; border:none;
+      background:transparent; color:var(--text3); cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center;
+      transition:background .15s, color .15s;
+    }
+    .lc-nav:hover { background:var(--surface2); color:var(--text); }
+    .lc-week-label { font-size:.92rem; font-weight:600; color:var(--text); flex:1; text-align:left; }
+    .lc-today-btn {
+      font-size:.74rem; padding:5px 10px; border-radius:7px;
+      border:1.5px solid var(--border2); background:var(--surface);
+      color:var(--text2); cursor:pointer;
+    }
+    .lc-today-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+    .lc-grid-wrap { flex:1; overflow-y:auto; min-height:0; }
+    .lc-grid {
+      display:grid; grid-template-columns: 56px repeat(7, 1fr);
+      width:100%;
+    }
+    .lc-grid::-webkit-scrollbar { width:6px; }
+    .lc-grid::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
+
+    /* Üst başlık satırları (sticky) */
+    .lc-row-balance, .lc-row-date, .lc-row-theme, .lc-row-focus {
+      display:contents;
+    }
+    .lc-cell-label {
+      font-size:.6rem; font-weight:700; color:var(--text4); letter-spacing:.06em;
+      padding:8px 6px; border-bottom:1px solid #f0f2f8; border-right:1px solid #f0f2f8;
+      text-transform:uppercase; background:var(--surface);
+      display:flex; align-items:center; justify-content:flex-end;
+      text-align:right; line-height:1.2;
+    }
+    .lc-cell-balance, .lc-cell-date, .lc-cell-theme, .lc-cell-focus {
+      border-bottom:1px solid #f0f2f8; border-right:1px solid #f0f2f8;
+      background:var(--surface);
+      padding:6px 6px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.78rem; color:var(--text2); min-height:34px;
+    }
+    .lc-cell-balance { min-height:18px; padding:0; }
+    .lc-cell-date { flex-direction:column; gap:2px; line-height:1.2; }
+    .lc-cell-date .lc-day-name { font-size:.62rem; font-weight:700; color:var(--text4); letter-spacing:.06em; text-transform:uppercase; }
+    .lc-cell-date .lc-day-num  { font-size:1rem;   font-weight:600; color:var(--text); }
+    .lc-cell-date.is-today .lc-day-num { color:var(--accent); }
+    .lc-cell-date.is-today .lc-day-name { color:var(--accent); }
+    .lc-cell-theme, .lc-cell-focus {
+      font-size:.7rem; color:var(--text4); cursor:pointer; user-select:none;
+    }
+    .lc-cell-theme:hover, .lc-cell-focus:hover { background:var(--surface2); color:var(--accent); }
+
+    /* Saat hücreleri */
+    .lc-hour-label {
+      font-size:.68rem; color:var(--text4);
+      padding:4px 8px 0 0; border-right:1px solid #f0f2f8;
+      text-align:right; line-height:1;
+    }
+    .lc-hour-cell {
+      border-bottom:1px solid #f4f5f9; border-right:1px solid #f4f5f9;
+      position:relative;
+      min-height:clamp(36px, calc((100vh - 240px) / var(--lc-visible-rows, 14)), 64px);
+    }
+    .lc-hour-cell:hover { background:rgba(79,110,247,.04); }
+
+    /* Hour expand butonları */
+    .lc-expand-row { display:contents; }
+    .lc-expand-btn {
+      grid-column: 1 / -1;
+      font-size:.7rem; color:var(--text3); cursor:pointer;
+      padding:6px; background:var(--surface); border:none;
+      border-bottom:1px solid #f0f2f8;
+      display:flex; align-items:center; justify-content:center; gap:4px;
+      transition:background .15s, color .15s;
+    }
+    .lc-expand-btn:hover { background:var(--surface2); color:var(--accent); }
+
+    body.theme-dark .list-cal { background:var(--card-bg); border-left-color:var(--border2); }
+    body.theme-dark .lc-cell-label,
+    body.theme-dark .lc-cell-balance,
+    body.theme-dark .lc-cell-date,
+    body.theme-dark .lc-cell-theme,
+    body.theme-dark .lc-cell-focus { background:var(--card-bg); border-color:var(--border2); }
+
+    @media (max-width:900px) {
+      .list-cal { display:none !important; }
+      .main-body { max-width:none; }
+    }
 
     /* ── Add task ── */
     .add-wrap {
@@ -2212,6 +2316,7 @@
         <span class="main-list-title" id="mainListTitle"></span>
       </div>
 
+      <div class="main-content" id="mainContent">
       <div class="main-body" id="mainBody">
         <div class="add-wrap" id="addWrap" style="display:none">
           <input style="display:none" type="text" name="prevent-autofill-text">
@@ -2310,6 +2415,19 @@
           </button>
           <div class="done-list" id="doneList"></div>
         </div>
+      </div>
+      <!-- Sağ pano: özel liste haftalık takvim (Faz B/C) -->
+      <div class="list-cal" id="listCalendar" style="display:none">
+        <div class="lc-toolbar">
+          <button class="lc-nav" id="lcPrevWeek" title="Önceki hafta"><span class="mi s18">chevron_left</span></button>
+          <span class="lc-week-label" id="lcWeekLabel"></span>
+          <button class="lc-nav" id="lcNextWeek" title="Sonraki hafta"><span class="mi s18">chevron_right</span></button>
+          <button class="lc-today-btn" id="lcTodayBtn" title="Bu haftaya dön">Bugün</button>
+        </div>
+        <div class="lc-grid-wrap" id="lcGridWrap">
+          <div class="lc-grid" id="lcGrid"></div>
+        </div>
+      </div>
       </div>
 
       <div class="board-nav" id="boardNav" style="display:none"></div>
@@ -3685,9 +3803,15 @@ function selectList(id) {
   document.getElementById('mainListTitle').textContent = isBoard ? 'Tüm Görevler' : isWeekly ? 'Planlama' : (list?.name || '');
   document.getElementById('addWrap').style.display      = (isBoard||isWeekly) ? 'none' : 'block';
   document.getElementById('mainBody').style.display     = (isBoard||isWeekly) ? 'none' : '';
+  document.getElementById('mainContent').style.display  = (isBoard||isWeekly) ? 'none' : 'flex';
   document.getElementById('boardArea').style.display    = isBoard ? 'flex' : 'none';
   document.getElementById('boardNav').style.display     = isBoard ? '' : 'none';
   document.getElementById('weeklyArea').style.display   = isWeekly ? 'flex' : 'none';
+  // List calendar: sadece custom liste aktifken
+  const isStarredView = id === STARRED_LIST_ID;
+  const isDayView     = id === DAY_LIST_ID;
+  const isCustomList  = !isBoard && !isWeekly && !isStarredView && !isDayView;
+  document.getElementById('listCalendar').style.display = isCustomList ? 'flex' : 'none';
   updateMobTabBar();
   renderSidebar();
   render();
@@ -4182,6 +4306,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
     minsInpEl.addEventListener('blur', commit);
   }
+  // List calendar toolbar
+  document.getElementById('lcPrevWeek')?.addEventListener('click', () => lcShiftWeek(-1));
+  document.getElementById('lcNextWeek')?.addEventListener('click', () => lcShiftWeek(+1));
+  document.getElementById('lcTodayBtn')?.addEventListener('click', () => lcGoToday());
+
   document.getElementById('taskInput').addEventListener('focusout', () => {
     if (keepInputFocused) {
       setTimeout(() => {
@@ -4527,6 +4656,7 @@ function render() {
   // Bugünkü Aktif Yaşam Dengesi kartı: sadece custom liste aktifken
   const isCustomList = !isStarred && !isDayFilter && activeListId !== BOARD_LIST_ID && activeListId !== WEEKLY_LIST_ID;
   renderBalanceCard(isCustomList ? new Date() : null);
+  if (isCustomList) renderListCalendar();
 
   document.getElementById('empty').style.display = active.length===0 ? 'block' : 'none';
 
@@ -5274,6 +5404,188 @@ function addBalanceQuickTask(cat, mins, text) {
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+/* ── List calendar (sağ pano) ── */
+let lcWeekStart = null;     // Pazartesi 00:00 olarak güne sabitlenir
+let lcVisibleHours = null;  // { start: 9, end: 22 }  inclusive
+
+function lcStartOfWeek(d) {
+  const x = new Date(d);
+  x.setHours(0,0,0,0);
+  const day = x.getDay();   // 0 Sun .. 6 Sat
+  // Haftaya Pazartesi'den başla (weekStart preference yok varsayılan)
+  const diff = (day === 0 ? -6 : 1 - day);
+  x.setDate(x.getDate() + diff);
+  return x;
+}
+
+function lcInitState() {
+  if (!lcWeekStart) lcWeekStart = lcStartOfWeek(new Date());
+  if (!lcVisibleHours) lcVisibleHours = computeSmartHours();
+}
+
+function computeSmartHours() {
+  if (!Array.isArray(tasks) || !lcWeekStart) return { start: 9, end: 22 };
+  const wkStart = lcWeekStart;
+  const wkEnd   = new Date(wkStart); wkEnd.setDate(wkEnd.getDate() + 7);
+  const hours = [];
+  for (const t of tasks) {
+    if (t.parent_id) continue;
+    if (t.category !== activeListId) continue;
+    if (!t.due_at) continue;
+    const d = new Date(t.due_at);
+    if (d < wkStart || d >= wkEnd) continue;
+    if (d.getHours() === 0 && d.getMinutes() === 0) continue; // tüm-gün
+    hours.push(d.getHours());
+  }
+  if (!hours.length) return { start: 9, end: 22 };
+  let lo = Math.min(...hours);
+  let hi = Math.max(...hours);
+  lo = Math.max(0, lo - 1);
+  hi = Math.min(23, hi + 1);
+  if (hi - lo < 6) {
+    // En az 6 saat genişliğinde bir aralık göster
+    const need = 6 - (hi - lo);
+    const before = Math.min(lo, Math.ceil(need/2));
+    const after  = Math.min(23 - hi, need - before);
+    lo -= before; hi += after;
+  }
+  return { start: lo, end: hi };
+}
+
+function lcExpand(direction) {
+  if (!lcVisibleHours) lcVisibleHours = { start: 9, end: 22 };
+  if (direction === 'before') lcVisibleHours.start = Math.max(0,  lcVisibleHours.start - 3);
+  if (direction === 'after')  lcVisibleHours.end   = Math.min(23, lcVisibleHours.end   + 3);
+  renderListCalendar();
+}
+
+function lcShiftWeek(delta) {
+  lcInitState();
+  lcWeekStart.setDate(lcWeekStart.getDate() + delta * 7);
+  lcVisibleHours = computeSmartHours();
+  renderListCalendar();
+}
+
+function lcGoToday() {
+  lcWeekStart = lcStartOfWeek(new Date());
+  lcVisibleHours = computeSmartHours();
+  renderListCalendar();
+}
+
+const LC_DAY_NAMES = ['PZT','SAL','ÇAR','PER','CUM','CMT','PAZ'];
+const LC_MONTHS_TR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+function renderListCalendar() {
+  const root = document.getElementById('listCalendar');
+  if (!root || root.style.display === 'none') return;
+  lcInitState();
+
+  // Toolbar week label
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(lcWeekStart); d.setDate(d.getDate() + i); d.setHours(0,0,0,0);
+    days.push(d);
+  }
+  const first = days[0], last = days[6];
+  const wkLabelEl = document.getElementById('lcWeekLabel');
+  if (first.getMonth() === last.getMonth()) {
+    wkLabelEl.textContent = `${first.getDate()}–${last.getDate()} ${LC_MONTHS_TR[first.getMonth()]} ${first.getFullYear()}`;
+  } else {
+    wkLabelEl.textContent = `${first.getDate()} ${LC_MONTHS_TR[first.getMonth()]} – ${last.getDate()} ${LC_MONTHS_TR[last.getMonth()]} ${first.getFullYear()}`;
+  }
+
+  const grid = document.getElementById('lcGrid');
+  grid.innerHTML = '';
+
+  // 1) Aktif Yaşam Dengesi satırı
+  grid.appendChild(lcLabelCell('AKTİF YAŞAM DENGESİ', 'row-balance'));
+  for (const d of days) {
+    const cell = document.createElement('div');
+    cell.className = 'lc-cell-balance';
+    cell.dataset.dateIso = d.toISOString().slice(0,10);
+    // Faz B'de placeholder gri; Faz C'de calculateDailyActiveLifeBalance ile renkli
+    cell.style.background = '#f4f5f9';
+    grid.appendChild(cell);
+  }
+
+  // 2) Tarih satırı
+  grid.appendChild(lcLabelCell('TARİH', 'row-date'));
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = 0; i < 7; i++) {
+    const d = days[i];
+    const cell = document.createElement('div');
+    cell.className = 'lc-cell-date';
+    if (d.getTime() === today.getTime()) cell.classList.add('is-today');
+    cell.dataset.dateIso = d.toISOString().slice(0,10);
+    cell.innerHTML = `<span class="lc-day-name">${LC_DAY_NAMES[i]}</span><span class="lc-day-num">${d.getDate()}</span>`;
+    grid.appendChild(cell);
+  }
+
+  // 3) Günün Teması satırı (Faz B placeholder)
+  grid.appendChild(lcLabelCell('GÜNÜN TEMASI', 'row-theme'));
+  for (const d of days) {
+    const cell = document.createElement('div');
+    cell.className = 'lc-cell-theme';
+    cell.dataset.dateIso = d.toISOString().slice(0,10);
+    cell.innerHTML = `<span style="opacity:.5">+ Tema</span>`;
+    cell.title = 'Günün teması (Faz C)';
+    grid.appendChild(cell);
+  }
+
+  // 4) Günün Odağı satırı (Faz B placeholder)
+  grid.appendChild(lcLabelCell('GÜNÜN ODAĞI', 'row-focus'));
+  for (const d of days) {
+    const cell = document.createElement('div');
+    cell.className = 'lc-cell-focus';
+    cell.dataset.dateIso = d.toISOString().slice(0,10);
+    cell.innerHTML = `<span style="opacity:.5">+ Odak</span>`;
+    cell.title = 'Günün odağı (Faz C)';
+    grid.appendChild(cell);
+  }
+
+  // 5) Saat blokları üstündeki "Öncesini göster"
+  if (lcVisibleHours.start > 0) {
+    const btn = document.createElement('button');
+    btn.className = 'lc-expand-btn';
+    btn.innerHTML = `<span class="mi s14">expand_less</span> Öncesini göster`;
+    btn.onclick = () => lcExpand('before');
+    grid.appendChild(btn);
+  }
+
+  // 6) Saat satırları
+  const visibleRows = lcVisibleHours.end - lcVisibleHours.start + 1;
+  grid.style.setProperty('--lc-visible-rows', visibleRows);
+  for (let h = lcVisibleHours.start; h <= lcVisibleHours.end; h++) {
+    const lbl = document.createElement('div');
+    lbl.className = 'lc-hour-label';
+    lbl.textContent = String(h).padStart(2,'0') + ':00';
+    grid.appendChild(lbl);
+    for (const d of days) {
+      const cell = document.createElement('div');
+      cell.className = 'lc-hour-cell';
+      cell.dataset.dateIso = d.toISOString().slice(0,10);
+      cell.dataset.hour    = h;
+      grid.appendChild(cell);
+    }
+  }
+
+  // 7) Saat bloklarının altında "Sonrasını göster"
+  if (lcVisibleHours.end < 23) {
+    const btn = document.createElement('button');
+    btn.className = 'lc-expand-btn';
+    btn.innerHTML = `<span class="mi s14">expand_more</span> Sonrasını göster`;
+    btn.onclick = () => lcExpand('after');
+    grid.appendChild(btn);
+  }
+}
+
+function lcLabelCell(text, extraCls) {
+  const el = document.createElement('div');
+  el.className = 'lc-cell-label ' + (extraCls || '');
+  el.textContent = text;
+  return el;
 }
 
 /* ── Helpers ── */
