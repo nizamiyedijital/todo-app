@@ -754,6 +754,30 @@
       outline:2px dashed var(--accent); outline-offset:-2px;
       background:rgba(79,110,247,.08) !important;
     }
+    /* Block hover popover (kısa görevlerde okunabilirlik) */
+    .lc-block-popover {
+      position:fixed; z-index:9000;
+      background:#fff; border:1px solid var(--border2);
+      border-radius:8px; padding:8px 12px;
+      box-shadow:0 6px 20px rgba(0,0,0,.16);
+      max-width:280px; min-width:180px;
+      pointer-events:none;
+      font-size:.78rem; line-height:1.35;
+      animation:lcBpFade .12s ease-out;
+    }
+    @keyframes lcBpFade { from { opacity:0; transform:translateY(-2px); } to { opacity:1; transform:translateY(0); } }
+    .lc-bp-title { font-weight:600; color:var(--text); margin-bottom:4px; word-break:break-word; }
+    .lc-bp-meta {
+      display:flex; justify-content:space-between; gap:12px;
+      font-size:.7rem; color:var(--text3);
+      font-variant-numeric:tabular-nums;
+    }
+    .lc-bp-list {
+      font-size:.7rem; color:var(--text3); margin-top:6px;
+      padding-top:6px; border-top:1px solid var(--border2);
+    }
+    body.theme-dark .lc-block-popover { background:var(--card-bg); border-color:var(--border); }
+
     /* Snap önizleme: çizgi + saat etiketi, hücre kenarından dışarı taşar (ghost'un üstünde kalır) */
     .lc-drop-snap-line {
       position:absolute; left:-4px; right:-12px; height:0;
@@ -5905,10 +5929,45 @@ function lcMakeTaskBlock(t, layout) {
   const emoji = t.balance_category ? BALANCE_CATEGORIES[t.balance_category].emoji + ' ' : '';
   block.innerHTML = `<span class="lc-task-text">${emoji}${escapeHtml(t.text)}</span>`;
   const conflictNote = total > 1 ? ` · ${total} görev çakışıyor` : '';
-  block.title = `${t.text} · ${fmtBalanceMinutes(minutes)}${conflictNote}`;
   block.onclick = (e) => { e.stopPropagation(); openMobTaskSheet(t); };
+  block.addEventListener('mouseenter', () => lcShowBlockPopover(block, t));
+  block.addEventListener('mouseleave', lcHideBlockPopover);
   initLcDrag(block, t);
   return block;
+}
+
+function lcShowBlockPopover(block, t) {
+  // Drag esnasında popup açma
+  if (block.classList.contains('is-dragging') || document.querySelector('.lc-drag-ghost')) return;
+  lcHideBlockPopover();
+  const start = new Date(t.due_at);
+  const minutes = (t.estimated_minutes != null && t.estimated_minutes > 0) ? t.estimated_minutes : DEFAULT_TASK_MINUTES;
+  const end = new Date(start.getTime() + minutes * 60000);
+  const fmt = d => `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  const emoji = t.balance_category ? BALANCE_CATEGORIES[t.balance_category].emoji + ' ' : '';
+  const list = lists.find(l => l.id === t.category);
+  const pop = document.createElement('div');
+  pop.id = 'lcBlockPopover';
+  pop.className = 'lc-block-popover';
+  pop.innerHTML = `
+    <div class="lc-bp-title">${emoji}${escapeHtml(t.text)}</div>
+    <div class="lc-bp-meta">
+      <span>${fmt(start)} – ${fmt(end)}</span>
+      <span>${fmtBalanceMinutes(minutes)}</span>
+    </div>
+    ${list ? `<div class="lc-bp-list">${list.icon || '📋'} ${escapeHtml(list.name)}</div>` : ''}
+  `;
+  document.body.appendChild(pop);
+  // Konumla: önce blok altı; ekrana sığmazsa üst
+  const r = block.getBoundingClientRect();
+  pop.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - pop.offsetWidth - 8))}px`;
+  let topPx = r.bottom + 6;
+  if (topPx + pop.offsetHeight > window.innerHeight - 8) topPx = r.top - pop.offsetHeight - 6;
+  pop.style.top = `${Math.max(8, topPx)}px`;
+}
+
+function lcHideBlockPopover() {
+  document.getElementById('lcBlockPopover')?.remove();
 }
 
 function lcOpenThemePicker(anchor, dateKey) {
@@ -6007,6 +6066,7 @@ function initLcDrag(el, task) {
 
     function startDrag(ev) {
       dragging = true;
+      if (typeof lcHideBlockPopover === 'function') lcHideBlockPopover();
       document.body.style.userSelect = 'none';
       const rect = el.getBoundingClientRect();
       ghost = document.createElement('div');
