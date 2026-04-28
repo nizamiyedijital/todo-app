@@ -625,6 +625,24 @@
     }
     .add-due-label-row.show { display:flex; }
     .add-due-label-row .mi { color:var(--accent); }
+    /* Aktif Yaşam Dengesi: kategori + süre chip satırları */
+    .add-balance-row, .add-mins-row {
+      display:flex; flex-wrap:nowrap; gap:5px; padding-top:6px; align-items:center;
+    }
+    .add-balance-chip, .add-mins-chip {
+      font-size:.66rem; color:var(--text3); cursor:pointer; padding:3px 8px;
+      border:1.5px solid var(--border2); border-radius:14px; background:var(--surface2);
+      white-space:nowrap; transition:all .15s; user-select:none; line-height:1.3; flex-shrink:0;
+    }
+    .add-balance-chip:hover, .add-mins-chip:hover { border-color:var(--accent); color:var(--accent); }
+    .add-balance-chip.active[data-cat="mental"]    { background:#dceaf6; color:#1f5b8c; border-color:#5B9BD5; }
+    .add-balance-chip.active[data-cat="physical"]  { background:#d4f4e0; color:#15803d; border-color:#22c55e; }
+    .add-balance-chip.active[data-cat="spiritual"] { background:#ede0fa; color:#7c3aed; border-color:#a855f7; }
+    .add-mins-chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .add-mins-input {
+      width:60px; padding:3px 7px; font-size:.7rem; border:1.5px solid var(--accent);
+      border-radius:10px; outline:none; font-family:inherit;
+    }
     .add-due-sel-label { font-size:.77rem; color:var(--accent); font-weight:500; cursor:pointer; }
     .add-bottom-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .btn-cal {
@@ -738,6 +756,68 @@
     .tib-subs .tib-lbl { max-width:0; }
     .tib-due.today .mi, .tib-due.today .tib-lbl   { color:#c2410c; }
     .tib-due.overdue .mi, .tib-due.overdue .tib-lbl { color:#dc2626; }
+    .tib-balance .tib-bal-emoji { font-size:11px; line-height:1; flex-shrink:0; }
+    .tib-balance .tib-lbl { max-width:0; transition:max-width .2s ease; }
+    .task-card:hover .tib-balance .tib-lbl { max-width:50px; }
+    .tib-balance[data-cat="mental"]    .tib-lbl { color:#1f5b8c; }
+    .tib-balance[data-cat="physical"]  .tib-lbl { color:#15803d; }
+    .tib-balance[data-cat="spiritual"] .tib-lbl { color:#7c3aed; }
+
+    /* Bugünkü Aktif Yaşam Dengesi kartı */
+    #balanceCard {
+      background:#fff; border-radius:12px; padding:12px 14px;
+      margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,.05);
+      border-left:3px solid var(--border2);
+    }
+    #balanceCard .bc-title {
+      font-size:.78rem; font-weight:700; color:var(--text2); margin-bottom:2px;
+    }
+    #balanceCard .bc-sub { font-size:.7rem; color:var(--text4); margin-bottom:8px; }
+    #balanceCard .bc-row {
+      display:flex; align-items:center; justify-content:space-between;
+      font-size:.78rem; padding:3px 0; color:var(--text2);
+    }
+    #balanceCard .bc-row-left { display:flex; align-items:center; gap:6px; }
+    #balanceCard .bc-bar {
+      flex:1; height:4px; background:var(--surface2); border-radius:2px; margin:0 8px;
+      position:relative; overflow:hidden;
+    }
+    #balanceCard .bc-bar-fill { position:absolute; left:0; top:0; height:100%; border-radius:2px; }
+    #balanceCard .bc-status {
+      display:inline-block; font-size:.68rem; font-weight:600; padding:2px 8px;
+      border-radius:10px; color:#fff; margin-top:6px;
+    }
+    #balanceCard .bc-msg {
+      font-size:.74rem; color:var(--text2); margin-top:6px; line-height:1.4;
+    }
+    #balanceCard .bc-suggestion {
+      font-size:.72rem; color:var(--text3); margin-top:4px; line-height:1.4;
+    }
+    #balanceCard .bc-quick-row {
+      display:flex; flex-wrap:wrap; gap:5px; margin-top:8px;
+    }
+    #balanceCard .bc-quick-chip {
+      font-size:.66rem; color:var(--accent); cursor:pointer; padding:3px 8px;
+      border:1.5px solid var(--accent-bg); border-radius:12px; background:var(--accent-bg);
+      transition:all .15s;
+    }
+    #balanceCard .bc-quick-chip:hover { background:var(--accent); color:#fff; }
+    body.theme-dark #balanceCard { background:var(--card-bg); }
+
+    /* Edit sheet — balance + mins chip'leri (global, hem masaüstü hem mobil) */
+    .mob-balance-section { padding:10px 0; border-bottom:1px solid var(--border2); display:flex; flex-direction:column; gap:6px; }
+    .mob-balance-row, .mob-mins-row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    .mob-balance-chip, .mob-mins-chip {
+      font-size:.78rem; color:var(--text3); cursor:pointer; padding:5px 11px;
+      border:1.5px solid var(--border2); border-radius:14px; background:var(--surface2);
+      white-space:nowrap; transition:all .15s; user-select:none;
+    }
+    .mob-balance-chip:hover, .mob-mins-chip:hover { border-color:var(--accent); color:var(--accent); }
+    .mob-balance-chip.active[data-cat="mental"]    { background:#dceaf6; color:#1f5b8c; border-color:#5B9BD5; }
+    .mob-balance-chip.active[data-cat="physical"]  { background:#d4f4e0; color:#15803d; border-color:#22c55e; }
+    .mob-balance-chip.active[data-cat="spiritual"] { background:#ede0fa; color:#7c3aed; border-color:#a855f7; }
+    .mob-mins-chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .mob-mins-input { width:70px; padding:4px 8px; font-size:.78rem; border:1.5px solid var(--accent); border-radius:12px; outline:none; font-family:inherit; }
     .tib-list-lbl { font-size:11.5px; color:#999; flex-shrink:0; opacity:.85; }
     .tib-completed-date .tib-lbl,
     .tib-completed-time .tib-lbl { max-width:90px; font-size:10px; }
@@ -2176,6 +2256,21 @@
               <span class="mi s14">schedule</span>
               <span class="add-due-sel-label" id="addDueLabel" onclick="document.getElementById('addDueBtn').click()"></span>
             </div>
+            <!-- Aktif Yaşam Dengesi: kategori chip'leri -->
+            <div class="add-balance-row">
+              <span class="add-balance-chip" data-cat="mental"    onclick="toggleAddBalance('mental')">🧠 Zihin</span>
+              <span class="add-balance-chip" data-cat="physical"  onclick="toggleAddBalance('physical')">🚶 Beden</span>
+              <span class="add-balance-chip" data-cat="spiritual" onclick="toggleAddBalance('spiritual')">🤲 Ruh</span>
+            </div>
+            <!-- Tahmini süre chip'leri -->
+            <div class="add-mins-row">
+              <span class="add-mins-chip" data-mins="15"  onclick="toggleAddMins(15)">15dk</span>
+              <span class="add-mins-chip" data-mins="30"  onclick="toggleAddMins(30)">30dk</span>
+              <span class="add-mins-chip" data-mins="60"  onclick="toggleAddMins(60)">1sa</span>
+              <span class="add-mins-chip" data-mins="120" onclick="toggleAddMins(120)">2sa</span>
+              <span class="add-mins-chip add-mins-custom" onclick="openAddMinsCustom()">⋯</span>
+              <input class="add-mins-input" id="addMinsCustomInp" type="number" min="1" max="600" placeholder="dk" style="display:none">
+            </div>
             <!-- Bağlantı popup -->
             <div class="add-link-popup" id="addLinkPopup" style="display:none">
               <input class="add-link-input" id="addLinkInput" type="url" placeholder="https://..." autocomplete="off">
@@ -2197,6 +2292,8 @@
             </div>
           </div>
         </div>
+
+        <div id="balanceCard" style="display:none"></div>
 
         <div id="taskList"></div>
 
@@ -2569,6 +2666,22 @@
     <div class="mob-prio-section">
       <div class="mob-prio-row" id="mobTaskPrioRow"></div>
     </div>
+    <!-- Aktif Yaşam Dengesi: kategori + süre -->
+    <div class="mob-balance-section">
+      <div class="mob-balance-row">
+        <span class="mob-balance-chip" data-cat="mental"    onclick="toggleMobBalance('mental')">🧠 Zihin</span>
+        <span class="mob-balance-chip" data-cat="physical"  onclick="toggleMobBalance('physical')">🚶 Beden</span>
+        <span class="mob-balance-chip" data-cat="spiritual" onclick="toggleMobBalance('spiritual')">🤲 Ruh</span>
+      </div>
+      <div class="mob-mins-row">
+        <span class="mob-mins-chip" data-mins="15"  onclick="toggleMobMins(15)">15dk</span>
+        <span class="mob-mins-chip" data-mins="30"  onclick="toggleMobMins(30)">30dk</span>
+        <span class="mob-mins-chip" data-mins="60"  onclick="toggleMobMins(60)">1sa</span>
+        <span class="mob-mins-chip" data-mins="120" onclick="toggleMobMins(120)">2sa</span>
+        <span class="mob-mins-chip mob-mins-custom" onclick="openMobMinsCustom()">⋯</span>
+        <input class="mob-mins-input" id="mobMinsCustomInp" type="number" min="1" max="600" placeholder="dk" style="display:none">
+      </div>
+    </div>
     <!-- Tarih: Bugün / Yarın / Takvim -->
     <div class="mob-due-row">
       <span class="mi s18 mob-due-icon">schedule</span>
@@ -2640,6 +2753,8 @@ let addStarred   = false;
 let addPriority  = null;
 let addLinkValue = '';
 let addSubtasks  = [];
+let addBalanceCategory  = null;     // 'mental' | 'physical' | 'spiritual' | null
+let addEstimatedMinutes = null;     // dakika veya null
 let editTimers   = {};
 let isRegMode    = false;
 let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', dir:'asc'|'desc' } }
@@ -3597,6 +3712,8 @@ async function addTask() {
   else if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
   if (addStarred) payload.starred = true;
   if (addLinkValue) payload.link = addLinkValue;
+  if (addBalanceCategory) payload.balance_category = addBalanceCategory;
+  if (addEstimatedMinutes) payload.estimated_minutes = addEstimatedMinutes;
   const addNotes = document.getElementById('addNotesInput')?.value.trim();
   if (addNotes) payload.notes = addNotes;
   const subs = [...addSubtasks];
@@ -3629,6 +3746,8 @@ async function addTask() {
 function resetAddForm() {
   addDueValue = ''; addStarred = false; addPriority = null;
   addLinkValue = ''; addSubtasks = [];
+  addBalanceCategory = null; addEstimatedMinutes = null;
+  renderAddBalanceChips(); renderAddMinsChips();
   renderAddDueLabel();
   const notesEl = document.getElementById('addNotesInput');
   if (notesEl) notesEl.value = '';
@@ -3825,10 +3944,45 @@ function taskInputAutoGrow() {
   ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
 }
 
+function toggleAddBalance(cat) {
+  addBalanceCategory = (addBalanceCategory === cat) ? null : cat;
+  renderAddBalanceChips();
+}
+function renderAddBalanceChips() {
+  document.querySelectorAll('.add-balance-chip').forEach(el => {
+    el.classList.toggle('active', el.dataset.cat === addBalanceCategory);
+  });
+}
+function toggleAddMins(mins) {
+  addEstimatedMinutes = (addEstimatedMinutes === mins) ? null : mins;
+  renderAddMinsChips();
+}
+function renderAddMinsChips() {
+  document.querySelectorAll('.add-mins-chip').forEach(el => {
+    if (el.classList.contains('add-mins-custom')) {
+      const isCustom = addEstimatedMinutes != null && ![15,30,60,120].includes(addEstimatedMinutes);
+      el.textContent = isCustom ? `${addEstimatedMinutes}dk` : '⋯';
+      el.classList.toggle('active', isCustom);
+    } else {
+      const m = parseInt(el.dataset.mins, 10);
+      el.classList.toggle('active', addEstimatedMinutes === m);
+    }
+  });
+  const inp = document.getElementById('addMinsCustomInp');
+  if (inp) inp.style.display = 'none';
+}
+function openAddMinsCustom() {
+  const inp = document.getElementById('addMinsCustomInp');
+  if (!inp) return;
+  inp.style.display = '';
+  inp.value = (addEstimatedMinutes != null && ![15,30,60,120].includes(addEstimatedMinutes)) ? addEstimatedMinutes : '';
+  inp.focus();
+}
+
 function isAddFormDirty() {
   const title = document.getElementById('taskInput')?.value.trim();
   const notes = document.getElementById('addNotesInput')?.value.trim();
-  return !!(title || notes || addDueValue || addStarred || addPriority || addLinkValue || addSubtasks.length);
+  return !!(title || notes || addDueValue || addStarred || addPriority || addLinkValue || addSubtasks.length || addBalanceCategory || addEstimatedMinutes);
 }
 
 function closeAddDetailWithConfirm() {
@@ -3865,6 +4019,8 @@ async function addTaskKeepFocus() {
   else if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
   if (addStarred) payload.starred = true;
   if (addLinkValue) payload.link = addLinkValue;
+  if (addBalanceCategory) payload.balance_category = addBalanceCategory;
+  if (addEstimatedMinutes) payload.estimated_minutes = addEstimatedMinutes;
   const addNotes = document.getElementById('addNotesInput')?.value.trim();
   if (addNotes) payload.notes = addNotes;
   const subs = [...addSubtasks];
@@ -4009,6 +4165,22 @@ document.addEventListener('DOMContentLoaded',()=>{
         taskInputEl.focus();
       }
     });
+  }
+  // Tahmini süre özel input
+  const minsInpEl = document.getElementById('addMinsCustomInp');
+  if (minsInpEl) {
+    const commit = () => {
+      const v = parseInt(minsInpEl.value, 10);
+      if (Number.isFinite(v) && v > 0 && v <= 600) {
+        addEstimatedMinutes = v;
+      }
+      renderAddMinsChips();
+    };
+    minsInpEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter')  { e.preventDefault(); e.stopPropagation(); commit(); taskInputEl.focus(); }
+      if (e.key === 'Escape') { e.preventDefault(); minsInpEl.style.display='none'; taskInputEl.focus(); }
+    });
+    minsInpEl.addEventListener('blur', commit);
   }
   document.getElementById('taskInput').addEventListener('focusout', () => {
     if (keepInputFocused) {
@@ -4352,6 +4524,10 @@ function render() {
   taskList.innerHTML = '';
   active.forEach(t=>taskList.appendChild(buildTaskCard(t, false)));
 
+  // Bugünkü Aktif Yaşam Dengesi kartı: sadece custom liste aktifken
+  const isCustomList = !isStarred && !isDayFilter && activeListId !== BOARD_LIST_ID && activeListId !== WEEKLY_LIST_ID;
+  renderBalanceCard(isCustomList ? new Date() : null);
+
   document.getElementById('empty').style.display = active.length===0 ? 'block' : 'none';
 
   const doneSection = document.getElementById('doneSection');
@@ -4517,6 +4693,20 @@ function buildTaskCard(task, isDone) {
 
   if (subs.length > 0) {
     const chip = mkChip('tib-subs', 'check_box', `${subsDone}/${subs.length}`);
+    infoBar.appendChild(chip);
+  }
+
+  if (task.balance_category && BALANCE_CATEGORIES[task.balance_category]) {
+    const cat = BALANCE_CATEGORIES[task.balance_category];
+    const chip = document.createElement('span');
+    chip.className = 'tib-chip tib-balance';
+    chip.dataset.cat = task.balance_category;
+    chip.innerHTML = `<span class="tib-bal-emoji">${cat.emoji}</span><span class="tib-lbl">${cat.label}</span>`;
+    chip.title = `${cat.label}${task.estimated_minutes ? ' · ' + fmtBalanceMinutes(task.estimated_minutes) : ''}`;
+    infoBar.appendChild(chip);
+  } else if (task.estimated_minutes) {
+    // Kategori yok ama süre var → sadece süre chip'i
+    const chip = mkChip('tib-mins', 'schedule', fmtBalanceMinutes(task.estimated_minutes));
     infoBar.appendChild(chip);
   }
 
@@ -4850,6 +5040,240 @@ async function updatePriority(task, val) {
   const priority = val || null;
   await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify({priority})});
   task.priority = priority;
+}
+
+/* ── Aktif Yaşam Dengesi ── */
+const BALANCE_CATEGORIES = {
+  mental:    { emoji:'🧠', label:'Zihin', color:'#5B9BD5', soft:'#dceaf6' },
+  physical:  { emoji:'🚶', label:'Beden', color:'#22c55e', soft:'#d4f4e0' },
+  spiritual: { emoji:'🤲', label:'Ruh',   color:'#a855f7', soft:'#ede0fa' },
+};
+const DEFAULT_TASK_MINUTES          = 30;
+const dailyActiveLifeBalanceTargets = { mental:480, physical:120, spiritual:40 };
+const TARGET_RATIOS                 = { mental:75,  physical:19,  spiritual:6  };
+const BALANCE_RATIO_TOLERANCE       = { mental:15,  physical:10,  spiritual:5  };
+const MIN_THRESHOLDS                = { mental:25,  physical:20,  spiritual:10 };
+const BALANCE_STATUS = {
+  no_data:    { key:'no_data',   label:'Denge Verisi Yok', color:'#9ca3af' },
+  one_sided:  { key:'one_sided', label:'Tek Yönlü Gün',    color:'#ef4444' },
+  missing:    { key:'missing',   label:'Denge Eksik',      color:'#f97316' },
+  near:       { key:'near',      label:'Dengeye Yakın',    color:'#eab308' },
+  balanced:   { key:'balanced',  label:'Dengeli Gün',      color:'#22c55e' },
+};
+const BALANCE_MESSAGES = {
+  no_data: {
+    message: 'Bugün için henüz Zihin–Beden–Ruh kategorisinde görev yok.',
+    suggestion:'Bir görevin kategorisini seçtiğinde dengen burada görünecek.',
+  },
+  balanced: {
+    message: 'Dengeli gün: Zihin çalışıyor, beden hareket ediyor, ruh besleniyor.',
+    suggestion:'Bu dengeyi koruyarak günü sürdürülebilir şekilde tamamlayabilirsin.',
+  },
+  // missing/near/one_sided: combo'ya göre balanceAdvice() üretir
+};
+const BALANCE_ADVICE = {
+  // hasMental, hasPhysical, hasSpiritual kombinasyonları
+  '100': { // sadece zihin
+    message: 'Bugün zihinsel yük yoğun. Beden hareketi ve iç denge alanı eksik görünüyor.',
+    suggestion:'20 dakikalık hareket molası ve 10 dakikalık tefekkür, dua veya günlük muhasebe zamanı ekleyerek günü dengeleyebilirsin.',
+  },
+  '010': { // sadece beden
+    message: 'Bugün beden alanı aktif; zihin ve ruh alanları eksik kalmış olabilir.',
+    suggestion:'Kısa bir okuma görevi ve bir tefekkür/dua/muhasebe zamanı ekleyebilirsin.',
+  },
+  '001': { // sadece ruh
+    message: 'Bugün ruh alanı aktif; zihin ve beden alanları eksik kalmış olabilir.',
+    suggestion:'25 dk okuma/planlama ve 20 dk yürüyüş/esneme ekleyebilirsin.',
+  },
+  '110': { // zihin + beden
+    message: 'Zihin ve beden alanların aktif görünüyor; fakat anlam, iç denge ve ruhsal yenilenme alanı eksik kalmış olabilir.',
+    suggestion:'Kısa bir tefekkür, dua, şükür, ibadet, günlük muhasebe veya sessiz iç toparlanma zamanı ekleyebilirsin.',
+  },
+  '101': { // zihin + ruh
+    message: 'Zihin ve ruh alanın aktif; beden hareketi eksik kaldı.',
+    suggestion:'Kısa bir yürüyüş, esneme, ev/oda düzenleme veya hafif egzersiz ekleyebilirsin.',
+  },
+  '011': { // beden + ruh
+    message: 'Beden ve ruh dengeli görünüyor; zihinsel üretim alanı düşük.',
+    suggestion:'25 dakikalık okuma, planlama, öğrenme veya yazma görevi ekleyebilirsin.',
+  },
+};
+const BALANCE_SUGGEST_TASKS = {
+  physical: [
+    { text:'20 dk yürüyüş', minutes:20 },
+    { text:'10 dk esneme',  minutes:10 },
+    { text:'Çalışma alanını düzenle', minutes:15 },
+    { text:'Hafif egzersiz', minutes:20 },
+    { text:'Kısa hareket molası', minutes:10 },
+  ],
+  spiritual: [
+    { text:'10 dk iç denge zamanı', minutes:10 },
+    { text:'Kısa tefekkür molası', minutes:10 },
+    { text:'Dua et', minutes:10 },
+    { text:'Şükür günlüğü yaz', minutes:10 },
+    { text:'Günlük muhasebe yap', minutes:10 },
+    { text:'Bugünün niyetini belirle', minutes:10 },
+  ],
+  mental: [
+    { text:'25 dk odaklı okuma', minutes:25 },
+    { text:'Günlük planını gözden geçir', minutes:15 },
+    { text:'Bir konu hakkında not çıkar', minutes:25 },
+    { text:'Yazma / analiz görevi', minutes:30 },
+  ],
+};
+
+function calculateDailyActiveLifeBalance(allTasks, dateISO) {
+  const dayStart = new Date(dateISO); dayStart.setHours(0,0,0,0);
+  const dayEnd   = new Date(dayStart); dayEnd.setDate(dayEnd.getDate()+1);
+  const todays = (allTasks || []).filter(t => {
+    if (t.parent_id) return false;
+    if (!t.due_at) return false;
+    const d = new Date(t.due_at);
+    if (d < dayStart || d >= dayEnd) return false;
+    return t.balance_category && BALANCE_CATEGORIES[t.balance_category];
+  });
+  const sum = { mental:0, physical:0, spiritual:0 };
+  for (const t of todays) {
+    const mins = (t.estimated_minutes != null && t.estimated_minutes >= 0) ? t.estimated_minutes : DEFAULT_TASK_MINUTES;
+    sum[t.balance_category] += mins;
+  }
+  const total = sum.mental + sum.physical + sum.spiritual;
+  const ratios = total > 0
+    ? { mental: (sum.mental/total)*100, physical: (sum.physical/total)*100, spiritual: (sum.spiritual/total)*100 }
+    : { mental: 0, physical: 0, spiritual: 0 };
+
+  // Status
+  let status;
+  if (total === 0) {
+    status = 'no_data';
+  } else {
+    const has = { mental: sum.mental > 0, physical: sum.physical > 0, spiritual: sum.spiritual > 0 };
+    const presentCount = (has.mental?1:0) + (has.physical?1:0) + (has.spiritual?1:0);
+    if (presentCount === 1) {
+      status = 'one_sided';
+    } else if (presentCount === 2) {
+      status = 'missing';
+    } else {
+      // 3 var. Min eşik kontrolü
+      const meetsMin = sum.mental    >= MIN_THRESHOLDS.mental
+                    && sum.physical  >= MIN_THRESHOLDS.physical
+                    && sum.spiritual >= MIN_THRESHOLDS.spiritual;
+      if (!meetsMin) {
+        status = 'missing';
+      } else {
+        // Tolerans kontrolü
+        const inTol = Math.abs(ratios.mental    - TARGET_RATIOS.mental)    <= BALANCE_RATIO_TOLERANCE.mental
+                   && Math.abs(ratios.physical  - TARGET_RATIOS.physical)  <= BALANCE_RATIO_TOLERANCE.physical
+                   && Math.abs(ratios.spiritual - TARGET_RATIOS.spiritual) <= BALANCE_RATIO_TOLERANCE.spiritual;
+        status = inTol ? 'balanced' : 'near';
+      }
+    }
+  }
+  const stat = BALANCE_STATUS[status];
+  let message, suggestion;
+  if (status === 'no_data' || status === 'balanced') {
+    message    = BALANCE_MESSAGES[status].message;
+    suggestion = BALANCE_MESSAGES[status].suggestion;
+  } else {
+    const key = (sum.mental>0?'1':'0') + (sum.physical>0?'1':'0') + (sum.spiritual>0?'1':'0');
+    const advice = BALANCE_ADVICE[key];
+    if (advice) {
+      message    = advice.message;
+      suggestion = advice.suggestion;
+    } else {
+      // 'near' için (3 var ama oran tolerans dışı)
+      const lowest = Object.entries(ratios).sort((a,b)=>a[1]-b[1])[0][0];
+      message    = `Bugün ${BALANCE_CATEGORIES[lowest].label.toLowerCase()} alanı hedef oranın altında.`;
+      suggestion = `${BALANCE_CATEGORIES[lowest].label} kategorisinde kısa bir görev daha ekleyerek günü dengeleyebilirsin.`;
+    }
+  }
+  return {
+    mentalMinutes: sum.mental, physicalMinutes: sum.physical, spiritualMinutes: sum.spiritual,
+    totalActiveLifeBalanceMinutes: total,
+    mentalRatio: ratios.mental, physicalRatio: ratios.physical, spiritualRatio: ratios.spiritual,
+    status, label: stat.label, color: stat.color, message, suggestion,
+  };
+}
+
+function fmtBalanceMinutes(mins) {
+  if (mins < 60) return `${mins} dk`;
+  const h = Math.floor(mins/60), m = mins%60;
+  return m === 0 ? `${h} sa` : `${h} sa ${m} dk`;
+}
+
+function renderBalanceCard(forDate) {
+  const card = document.getElementById('balanceCard');
+  if (!card) return;
+  if (!forDate) { card.style.display = 'none'; return; }
+  const dateISO = forDate.toISOString();
+  const r = calculateDailyActiveLifeBalance(tasks, dateISO);
+  card.style.display = '';
+  card.style.borderLeftColor = r.color;
+
+  // Eksik kategoriler için "tek tıkla görev ekle" chip'leri (no_data ve balanced dışında)
+  const missing = [];
+  if (r.status !== 'no_data' && r.status !== 'balanced') {
+    if (r.mentalMinutes    === 0) missing.push('mental');
+    if (r.physicalMinutes  === 0) missing.push('physical');
+    if (r.spiritualMinutes === 0) missing.push('spiritual');
+  }
+  let quickHTML = '';
+  if (missing.length) {
+    const chips = [];
+    for (const cat of missing) {
+      const list = BALANCE_SUGGEST_TASKS[cat];
+      if (!list) continue;
+      // Her eksik kategoriden ilk 2 öneri
+      for (const s of list.slice(0, 2)) {
+        chips.push(`<span class="bc-quick-chip" onclick="addBalanceQuickTask('${cat}', ${s.minutes}, ${JSON.stringify(s.text).replace(/"/g,'&quot;')})">${BALANCE_CATEGORIES[cat].emoji} ${escapeHtml(s.text)}</span>`);
+      }
+    }
+    if (chips.length) quickHTML = `<div class="bc-quick-row">${chips.join('')}</div>`;
+  }
+
+  const bar = (cat, mins, ratio) => {
+    const c = BALANCE_CATEGORIES[cat];
+    const pct = r.totalActiveLifeBalanceMinutes > 0 ? Math.round(ratio) : 0;
+    return `
+      <div class="bc-row">
+        <span class="bc-row-left">${c.emoji} ${c.label}</span>
+        <span class="bc-bar"><span class="bc-bar-fill" style="width:${pct}%; background:${c.color}"></span></span>
+        <span>${fmtBalanceMinutes(mins)} — %${pct}</span>
+      </div>`;
+  };
+
+  card.innerHTML = `
+    <div class="bc-title">Bugünkü Aktif Yaşam Dengesi</div>
+    <div class="bc-sub">Planladığın aktif görevlerin Zihin–Beden–Ruh dağılımı</div>
+    ${bar('mental',    r.mentalMinutes,    r.mentalRatio)}
+    ${bar('physical',  r.physicalMinutes,  r.physicalRatio)}
+    ${bar('spiritual', r.spiritualMinutes, r.spiritualRatio)}
+    <div class="bc-status" style="background:${r.color}">${r.label}</div>
+    <div class="bc-msg">${escapeHtml(r.message)}</div>
+    ${r.suggestion ? `<div class="bc-suggestion">${escapeHtml(r.suggestion)}</div>` : ''}
+    ${quickHTML}
+  `;
+}
+
+function addBalanceQuickTask(cat, mins, text) {
+  const inp = document.getElementById('taskInput');
+  if (!inp) return;
+  inp.value = text;
+  taskInputAutoGrow();
+  addBalanceCategory  = cat;
+  addEstimatedMinutes = mins;
+  // Bugün otomatik
+  const t = new Date(); t.setHours(0,0,0,0);
+  addDueValue = t.toISOString();
+  renderAddBalanceChips();
+  renderAddMinsChips();
+  renderAddDueLabel();
+  openAddDetail();
+  inp.focus();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 }
 
 /* ── Helpers ── */
@@ -5590,6 +6014,8 @@ let mobTaskSheetDue     = '';
 let mobTaskSheetPrio    = null;
 let mobTaskSheetCat     = null;
 let mobTaskSheetStarred = false;
+let mobTaskSheetBalance = null;
+let mobTaskSheetMins    = null;
 
 function openMobTaskSheet(task) {
   mobTaskSheetTask    = task;
@@ -5597,6 +6023,8 @@ function openMobTaskSheet(task) {
   mobTaskSheetPrio    = task.priority || null;
   mobTaskSheetCat     = task.category || activeListId;
   mobTaskSheetStarred = task.starred  || false;
+  mobTaskSheetBalance = task.balance_category || null;
+  mobTaskSheetMins    = task.estimated_minutes != null ? task.estimated_minutes : null;
   document.getElementById('mobTaskTitleInput').innerText = task.text;
   document.getElementById('mobTaskNotesInput').innerText = task.notes || '';
   const _mobLinkInp = document.getElementById('mobTaskLinkInput');
@@ -5611,6 +6039,8 @@ function openMobTaskSheet(task) {
   dueBtn.onclick = () => dtpOpen(dueBtn, mobTaskSheetDue||null, v => { mobTaskSheetDue = v; renderMobTaskSheetDue(); });
   renderMobTaskSheetDue();
   renderMobTaskSheetPrio();
+  renderMobBalanceChips();
+  renderMobMinsChips();
   renderMobMITBtn();
   renderMobDoneBtn();
   renderMobListChip();
@@ -5805,6 +6235,9 @@ async function saveMobTaskSheet() {
   if (mobTaskSheetPrio    !== (task.priority||null))  { updates.priority = mobTaskSheetPrio;          task.priority = mobTaskSheetPrio; }
   if (mobTaskSheetCat     !== task.category)          { updates.category = mobTaskSheetCat;           task.category = mobTaskSheetCat; }
   if (mobTaskSheetStarred !== (task.starred||false))  { updates.starred  = mobTaskSheetStarred;       task.starred  = mobTaskSheetStarred; }
+  if (mobTaskSheetBalance !== (task.balance_category||null)) { updates.balance_category = mobTaskSheetBalance; task.balance_category = mobTaskSheetBalance; }
+  const oldMins = task.estimated_minutes != null ? task.estimated_minutes : null;
+  if (mobTaskSheetMins    !== oldMins)                { updates.estimated_minutes = mobTaskSheetMins; task.estimated_minutes = mobTaskSheetMins; }
   closeMobTaskSheet();
   if (Object.keys(updates).length > 0) {
     try {
@@ -5819,6 +6252,54 @@ async function deleteMobTaskSheet() {
   const taskId = mobTaskSheetTask.id;
   closeMobTaskSheet();
   await deleteTask(taskId);
+}
+
+function toggleMobBalance(cat) {
+  mobTaskSheetBalance = (mobTaskSheetBalance === cat) ? null : cat;
+  renderMobBalanceChips();
+}
+function renderMobBalanceChips() {
+  document.querySelectorAll('.mob-balance-chip').forEach(el => {
+    el.classList.toggle('active', el.dataset.cat === mobTaskSheetBalance);
+  });
+}
+function toggleMobMins(mins) {
+  mobTaskSheetMins = (mobTaskSheetMins === mins) ? null : mins;
+  renderMobMinsChips();
+}
+function renderMobMinsChips() {
+  document.querySelectorAll('.mob-mins-chip').forEach(el => {
+    if (el.classList.contains('mob-mins-custom')) {
+      const isCustom = mobTaskSheetMins != null && ![15,30,60,120].includes(mobTaskSheetMins);
+      el.textContent = isCustom ? `${mobTaskSheetMins}dk` : '⋯';
+      el.classList.toggle('active', isCustom);
+    } else {
+      const m = parseInt(el.dataset.mins, 10);
+      el.classList.toggle('active', mobTaskSheetMins === m);
+    }
+  });
+  const inp = document.getElementById('mobMinsCustomInp');
+  if (inp) inp.style.display = 'none';
+}
+function openMobMinsCustom() {
+  const inp = document.getElementById('mobMinsCustomInp');
+  if (!inp) return;
+  inp.style.display = '';
+  inp.value = (mobTaskSheetMins != null && ![15,30,60,120].includes(mobTaskSheetMins)) ? mobTaskSheetMins : '';
+  inp.focus();
+  if (!inp._setup) {
+    inp._setup = true;
+    const commit = () => {
+      const v = parseInt(inp.value, 10);
+      if (Number.isFinite(v) && v > 0 && v <= 600) mobTaskSheetMins = v;
+      renderMobMinsChips();
+    };
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter')  { e.preventDefault(); e.stopPropagation(); commit(); }
+      if (e.key === 'Escape') { e.preventDefault(); inp.style.display='none'; }
+    });
+    inp.addEventListener('blur', commit);
+  }
 }
 
 /* ── Settings ── */
