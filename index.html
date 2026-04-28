@@ -492,6 +492,13 @@
     }
     .main-body::-webkit-scrollbar { width:5px; }
     .main-body::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
+    /* Board modunda mainBody'i tam genişlik yap (sadece addWrap içerir, board kolonları altta görünür) */
+    body[data-view-mode="board"] .main-body { max-width:none; flex:0 0 auto; padding:12px 24px 0; }
+    body[data-view-mode="board"] .main-content { flex:0 0 auto; }
+    body[data-view-mode="board"] #taskList,
+    body[data-view-mode="board"] #empty,
+    body[data-view-mode="board"] #doneSection,
+    body[data-view-mode="board"] #balanceCard { display:none !important; }
 
     /* List calendar (sağ pano) */
     .list-cal {
@@ -3843,11 +3850,12 @@ function selectList(id) {
   const isBoard  = id === BOARD_LIST_ID;
   const list     = lists.find(l=>l.id===id);
   document.getElementById('mainListTitle').textContent = isBoard ? 'Tüm Görevler' : (list?.name || '');
-  document.getElementById('addWrap').style.display      = isBoard ? 'none' : 'block';
-  document.getElementById('mainBody').style.display     = isBoard ? 'none' : '';
-  document.getElementById('mainContent').style.display  = isBoard ? 'none' : 'flex';
+  document.getElementById('addWrap').style.display      = 'block';
+  document.getElementById('mainBody').style.display     = '';
+  document.getElementById('mainContent').style.display  = 'flex';
   document.getElementById('boardArea').style.display    = isBoard ? 'flex' : 'none';
   document.getElementById('boardNav').style.display     = isBoard ? '' : 'none';
+  document.body.dataset.viewMode = isBoard ? 'board' : '';
   // List calendar: custom liste VEYA Yıldızlı modunda görünür
   const isStarredView = id === STARRED_LIST_ID;
   const isDayView     = id === DAY_LIST_ID;
@@ -3858,18 +3866,18 @@ function selectList(id) {
     lcSingleDate = null;  // custom/yıldızlı'ya geçince hafta moduna dön
   }
   document.getElementById('listCalendar').style.display = showCalendar ? 'flex' : 'none';
-  // Liste seçici: kategori belirsiz olan modlarda (yıldızlı/board/day) göster
+  // Liste seçici: tüm modlarda görünür; default aktif liste (custom) veya ilk liste (meta)
   populateAddListSelect();
-  const showListPicker = !isCustomList && id !== BOARD_LIST_ID;  // BOARD'da addWrap zaten gizli
   const listRowEl = document.getElementById('addListRow');
-  if (listRowEl) listRowEl.style.display = showListPicker ? 'flex' : 'none';
-  if (isCustomList) addCategoryOverride = null;
-  else if (showListPicker && !addCategoryOverride) {
-    // Default: ilk custom liste
+  if (listRowEl) listRowEl.style.display = 'flex';
+  if (isCustomList) {
+    // Custom modda override aktif listeye eşitle (kullanıcı dropdown'dan değiştirebilir)
+    addCategoryOverride = id;
+  } else if (!addCategoryOverride) {
     addCategoryOverride = lists[0]?.id || null;
-    const sel = document.getElementById('addListSelect');
-    if (sel && addCategoryOverride) sel.value = addCategoryOverride;
   }
+  const sel = document.getElementById('addListSelect');
+  if (sel && addCategoryOverride) sel.value = addCategoryOverride;
   updateMobTabBar();
   renderSidebar();
   render();
@@ -3887,11 +3895,12 @@ async function addTask() {
   const input   = document.getElementById('taskInput');
   const text    = input.value.trim();
   if (!text || !activeListId) { input.focus(); return; }
-  // Kategori: aktif liste BOARD/STARRED/DAY ise gerçek bir custom liste'ye fallback
+  // Kategori: önce dropdown override; yoksa aktif liste (custom) veya ilk liste (meta)
   const isMetaList = activeListId === BOARD_LIST_ID || activeListId === STARRED_LIST_ID || activeListId === DAY_LIST_ID;
-  const targetCategory = isMetaList
-    ? (addCategoryOverride || lists[0]?.id || (DEFAULT_LISTS[0] && DEFAULT_LISTS[0].id))
-    : activeListId;
+  const targetCategory = addCategoryOverride
+    || (!isMetaList ? activeListId : null)
+    || lists[0]?.id
+    || (DEFAULT_LISTS[0] && DEFAULT_LISTS[0].id);
   if (!targetCategory) { showToast('Görev için liste seç'); input.focus(); return; }
   const payload = { text, done:false, category: targetCategory, sort_order: Date.now() };
   if (addDueValue) payload.due_at = addDueValue;
@@ -4206,11 +4215,12 @@ async function addTaskKeepFocus() {
   const input   = document.getElementById('taskInput');
   const text    = input.value.trim();
   if (!text || !activeListId) { input.focus(); return; }
-  // Kategori fallback (BOARD/STARRED/DAY için)
+  // Kategori: önce dropdown override; yoksa aktif liste (custom) veya ilk liste (meta)
   const isMetaList = activeListId === BOARD_LIST_ID || activeListId === STARRED_LIST_ID || activeListId === DAY_LIST_ID;
-  const targetCategory = isMetaList
-    ? (addCategoryOverride || lists[0]?.id || (DEFAULT_LISTS[0] && DEFAULT_LISTS[0].id))
-    : activeListId;
+  const targetCategory = addCategoryOverride
+    || (!isMetaList ? activeListId : null)
+    || lists[0]?.id
+    || (DEFAULT_LISTS[0] && DEFAULT_LISTS[0].id);
   if (!targetCategory) { showToast('Görev için liste seç'); input.focus(); return; }
   const payload = { text, done:false, category: targetCategory, sort_order: Date.now() };
   if (addDueValue) payload.due_at = addDueValue;
@@ -4581,12 +4591,23 @@ function selectCalDay(iso) {
   lcPendingScrollToNow = true;
   doneOpen = false;
   document.getElementById('mainListTitle').textContent = `${fmtLongDate(iso)} Görevleri`;
-  document.getElementById('addWrap').style.display   = 'none';
+  document.getElementById('addWrap').style.display   = 'block';
   document.getElementById('mainBody').style.display  = '';
   document.getElementById('mainContent').style.display = 'flex';
   document.getElementById('boardArea').style.display = 'none';
   document.getElementById('boardNav').style.display  = 'none';
   document.getElementById('listCalendar').style.display = 'flex';
+  // Liste seçici görünür + default ilk liste
+  populateAddListSelect();
+  document.getElementById('addListRow').style.display = 'flex';
+  if (!addCategoryOverride) addCategoryOverride = lists[0]?.id || null;
+  const sel = document.getElementById('addListSelect');
+  if (sel && addCategoryOverride) sel.value = addCategoryOverride;
+  // Tarih default: seçili gün 09:00
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(y, m - 1, d, 9, 0, 0, 0);
+  addDueValue = dt.toISOString();
+  if (typeof renderAddDueLabel === 'function') renderAddDueLabel();
   updateMobTabBar();
   renderSidebar();
   renderSidebarCalendar();
