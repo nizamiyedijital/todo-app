@@ -1088,7 +1088,12 @@
       margin-bottom:14px; padding:8px 0; border-top:1px solid var(--border2); border-bottom:1px solid var(--border2);
     }
     #balanceCard .bc-stat { text-align:center; }
-    #balanceCard .bc-stat-num { font-size:1.35rem; font-weight:700; color:var(--text); line-height:1.1; }
+    #balanceCard .bc-stat-num {
+      font-size:1.35rem; font-weight:700; color:var(--text); line-height:1.1;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    /* Dar sütunlarda 'X sa Y dk' tek satıra sığsın */
+    #balanceCard .bc-stat-num.is-long { font-size:1.05rem; }
     #balanceCard .bc-stat-label { font-size:.65rem; color:var(--text3); margin-top:2px; letter-spacing:.02em; }
     #balanceCard .bc-stack-bar {
       display:flex; height:10px; border-radius:5px; overflow:hidden;
@@ -2287,6 +2292,7 @@
 
       <div class="main-content" id="mainContent">
       <div class="main-body" id="mainBody">
+        <div id="balanceCard" style="display:none"></div>
         <div class="add-wrap" id="addWrap" style="display:none">
           <input style="display:none" type="text" name="prevent-autofill-text">
           <input style="display:none" type="password" name="prevent-autofill-pass">
@@ -2366,8 +2372,6 @@
             </div>
           </div>
         </div>
-
-        <div id="balanceCard" style="display:none"></div>
 
         <div id="taskList"></div>
 
@@ -5325,8 +5329,8 @@ function renderBalanceCard(forDate) {
     <div class="bc-sub">Liste İstatistikleri</div>
     <div class="bc-stat-row">
       <div class="bc-stat"><div class="bc-stat-num">${s.taskCount}</div><div class="bc-stat-label">Görev</div></div>
-      <div class="bc-stat"><div class="bc-stat-num">${s.totalMinutes > 0 ? fmtBalanceMinutes(s.totalMinutes) : '—'}</div><div class="bc-stat-label">Toplam süre</div></div>
-      <div class="bc-stat"><div class="bc-stat-num">${s.starredCount}</div><div class="bc-stat-label">⭐ Yıldızlı</div></div>
+      <div class="bc-stat"><div class="bc-stat-num${s.totalMinutes >= 60 ? ' is-long' : ''}" title="${s.totalMinutes > 0 ? fmtBalanceMinutes(s.totalMinutes) : ''}">${s.totalMinutes > 0 ? fmtBalanceMinutes(s.totalMinutes) : '—'}</div><div class="bc-stat-label">Toplam süre</div></div>
+      <div class="bc-stat"><div class="bc-stat-num">${s.starredCount}</div><div class="bc-stat-label">⭐ Günün Odağı</div></div>
     </div>
     <div class="bc-stack-bar">
       ${seg('mental', s.mentalRatio)}
