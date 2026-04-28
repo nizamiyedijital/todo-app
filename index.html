@@ -551,6 +551,13 @@
     .lc-cell-date .lc-day-num  { font-size:1rem;   font-weight:600; color:var(--text); }
     .lc-cell-date.is-today .lc-day-num { color:var(--accent); }
     .lc-cell-date.is-today .lc-day-name { color:var(--accent); }
+    .lc-cell-balance.is-today { box-shadow:inset 0 -3px 0 var(--accent); }
+    .lc-hour-cell.is-today,
+    .lc-cell-allday.is-today,
+    .lc-cell-theme.is-today,
+    .lc-cell-focus.is-today { background:rgba(79,110,247,.04); }
+    .lc-cell-theme.is-today:hover,
+    .lc-cell-focus.is-today:hover { background:rgba(79,110,247,.1); }
     .lc-cell-theme, .lc-cell-focus {
       font-size:.7rem; color:var(--text4); cursor:pointer; user-select:none;
     }
@@ -5546,8 +5553,8 @@ async function loadDayMeta(weekStart) {
   if (!session?.access_token) return;
   const from = new Date(weekStart); from.setDate(from.getDate() - 7);
   const to   = new Date(weekStart); to.setDate(to.getDate() + 14);
-  const fromStr = from.toISOString().slice(0,10);
-  const toStr   = to.toISOString().slice(0,10);
+  const fromStr = lcDateKey(from);
+  const toStr   = lcDateKey(to);
   try {
     const rows = await db(`/day_meta?date=gte.${fromStr}&date=lte.${toStr}&select=*`) || [];
     for (const r of rows) {
@@ -5584,6 +5591,14 @@ function lcStartOfWeek(d) {
   const diff = (day === 0 ? -6 : 1 - day);
   x.setDate(x.getDate() + diff);
   return x;
+}
+
+// Timezone-safe local date key "YYYY-MM-DD" (toISOString UTC sapmasını yapmaz)
+function lcDateKey(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
 }
 
 function lcInitState() {
@@ -5631,13 +5646,24 @@ function lcShiftWeek(delta) {
   lcInitState();
   lcWeekStart.setDate(lcWeekStart.getDate() + delta * 7);
   lcVisibleHours = computeSmartHours();
+  lcEnsureDayMetaRange();
   renderListCalendar();
 }
 
 function lcGoToday() {
   lcWeekStart = lcStartOfWeek(new Date());
   lcVisibleHours = computeSmartHours();
+  lcEnsureDayMetaRange();
   renderListCalendar();
+}
+
+function lcEnsureDayMetaRange() {
+  if (!dayMetaLoadedRange || !lcWeekStart) return;
+  const wkKey = lcDateKey(lcWeekStart);
+  if (wkKey < dayMetaLoadedRange.from || wkKey > dayMetaLoadedRange.to) {
+    dayMetaLoadedRange = null;
+    loadDayMeta(lcWeekStart).then(() => renderListCalendar());
+  }
 }
 
 const LC_DAY_NAMES = ['PZT','SAL','ÇAR','PER','CUM','CMT','PAZ'];
@@ -5669,12 +5695,15 @@ function renderListCalendar() {
   const grid = document.getElementById('lcGrid');
   grid.innerHTML = '';
 
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayKey = lcDateKey(today);
   // 1) Aktif Yaşam Dengesi satırı (günün renk durumu)
   grid.appendChild(lcLabelCell('AKTİF YAŞAM DENGESİ', 'row-balance'));
   for (const d of days) {
     const cell = document.createElement('div');
     cell.className = 'lc-cell-balance';
-    cell.dataset.dateIso = d.toISOString().slice(0,10);
+    if (lcDateKey(d) === todayKey) cell.classList.add('is-today');
+    cell.dataset.dateIso = lcDateKey(d);
     const r = calculateDailyActiveLifeBalance(tasks, d.toISOString());
     cell.style.background = r.color;
     cell.title = `${LC_DAY_NAMES[(d.getDay()+6)%7]} ${d.getDate()} ${LC_MONTHS_TR[d.getMonth()]} — ${r.label}\n` +
@@ -5685,13 +5714,12 @@ function renderListCalendar() {
 
   // 2) Tarih satırı
   grid.appendChild(lcLabelCell('TARİH', 'row-date'));
-  const today = new Date(); today.setHours(0,0,0,0);
   for (let i = 0; i < 7; i++) {
     const d = days[i];
     const cell = document.createElement('div');
     cell.className = 'lc-cell-date';
-    if (d.getTime() === today.getTime()) cell.classList.add('is-today');
-    cell.dataset.dateIso = d.toISOString().slice(0,10);
+    if (lcDateKey(d) === todayKey) cell.classList.add('is-today');
+    cell.dataset.dateIso = lcDateKey(d);
     cell.innerHTML = `<span class="lc-day-name">${LC_DAY_NAMES[i]}</span><span class="lc-day-num">${d.getDate()}</span>`;
     grid.appendChild(cell);
   }
@@ -5699,9 +5727,9 @@ function renderListCalendar() {
   // 3) Günün Teması satırı
   grid.appendChild(lcLabelCell('GÜNÜN TEMASI', 'row-theme'));
   for (const d of days) {
-    const dateKey = d.toISOString().slice(0,10);
+    const dateKey = lcDateKey(d);
     const cell = document.createElement('div');
-    cell.className = 'lc-cell-theme';
+    cell.className = 'lc-cell-theme' + (dateKey === todayKey ? ' is-today' : '');
     cell.dataset.dateIso = dateKey;
     const meta = dayMeta[dateKey] || {};
     if (meta.theme_list_id) {
@@ -5729,9 +5757,9 @@ function renderListCalendar() {
   // 4) Günün Odağı satırı
   grid.appendChild(lcLabelCell('GÜNÜN ODAĞI', 'row-focus'));
   for (const d of days) {
-    const dateKey = d.toISOString().slice(0,10);
+    const dateKey = lcDateKey(d);
     const cell = document.createElement('div');
-    cell.className = 'lc-cell-focus';
+    cell.className = 'lc-cell-focus' + (dateKey === todayKey ? ' is-today' : '');
     cell.dataset.dateIso = dateKey;
     const meta = dayMeta[dateKey] || {};
     let focusTask = null;
@@ -5768,9 +5796,10 @@ function renderListCalendar() {
   if (hasAllDayTasks) {
     grid.appendChild(lcLabelCell('TÜM GÜN', 'row-allday'));
     for (const d of days) {
+      const dKey = lcDateKey(d);
       const cell = document.createElement('div');
-      cell.className = 'lc-cell-allday';
-      cell.dataset.dateIso = d.toISOString().slice(0,10);
+      cell.className = 'lc-cell-allday' + (dKey === todayKey ? ' is-today' : '');
+      cell.dataset.dateIso = dKey;
       const list = lcTasksAllDay(d);
       for (const t of list) cell.appendChild(lcMakeAllDayChip(t));
       grid.appendChild(cell);
@@ -5795,9 +5824,10 @@ function renderListCalendar() {
     lbl.textContent = String(h).padStart(2,'0') + ':00';
     grid.appendChild(lbl);
     for (const d of days) {
+      const dKey = lcDateKey(d);
       const cell = document.createElement('div');
-      cell.className = 'lc-hour-cell';
-      cell.dataset.dateIso = d.toISOString().slice(0,10);
+      cell.className = 'lc-hour-cell' + (dKey === todayKey ? ' is-today' : '');
+      cell.dataset.dateIso = dKey;
       cell.dataset.hour    = h;
       // Bu hücrede başlayan görevler
       const inHour = lcTasksForDayHour(d, h);
@@ -5886,7 +5916,15 @@ function lcOpenThemePicker(anchor, dateKey) {
   }
   document.body.appendChild(pop);
   positionPopover(pop, anchor);
-  setTimeout(() => document.addEventListener('click', () => pop.remove(), { once:true }), 0);
+  setTimeout(() => {
+    const handler = (e) => {
+      if (!pop.contains(e.target)) {
+        pop.remove();
+        document.removeEventListener('click', handler);
+      }
+    };
+    document.addEventListener('click', handler);
+  }, 0);
 }
 
 function lcOpenFocusPicker(anchor, dateKey) {
@@ -5920,7 +5958,15 @@ function lcOpenFocusPicker(anchor, dateKey) {
   }
   document.body.appendChild(pop);
   positionPopover(pop, anchor);
-  setTimeout(() => document.addEventListener('click', () => pop.remove(), { once:true }), 0);
+  setTimeout(() => {
+    const handler = (e) => {
+      if (!pop.contains(e.target)) {
+        pop.remove();
+        document.removeEventListener('click', handler);
+      }
+    };
+    document.addEventListener('click', handler);
+  }, 0);
 }
 
 function closeAllPopovers() {
@@ -6069,9 +6115,9 @@ function lcParseDropTarget(elAt, x, y) {
 }
 
 function lcBuildDueAt(date, hour, minute) {
-  // date = "YYYY-MM-DD" (lokal gün)
-  const d = new Date(date + 'T00:00:00');
-  d.setHours(hour || 0, minute || 0, 0, 0);
+  // date = "YYYY-MM-DD" (lokal gün) — timezone-safe lokal Date inşa et
+  const [y, m, dd] = date.split('-').map(Number);
+  const d = new Date(y, m - 1, dd, hour || 0, minute || 0, 0, 0);
   return d.toISOString();
 }
 
@@ -6154,7 +6200,7 @@ function fmtShort(iso, withTime) {
   const fmt = appSettings?.dateFormat || 'DD/MM';
   let datePart;
   if (fmt === 'MM/DD') datePart = d.toLocaleDateString('en-US', { day:'numeric', month:'short' });
-  else if (fmt === 'YYYY-MM-DD') datePart = d.toISOString().slice(0,10);
+  else if (fmt === 'YYYY-MM-DD') datePart = lcDateKey(d);
   else datePart = d.toLocaleDateString('tr-TR', { day:'numeric', month:'short' });
   if (!withTime) return datePart;
   const use12 = appSettings?.timeFormat === '12h';
