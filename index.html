@@ -624,7 +624,21 @@
     .lc-task-block[data-cat="mental"]    { background:#dceaf6; border-left-color:#5B9BD5; color:#1f5b8c; }
     .lc-task-block[data-cat="physical"]  { background:#d4f4e0; border-left-color:#22c55e; color:#15803d; }
     .lc-task-block[data-cat="spiritual"] { background:#ede0fa; border-left-color:#a855f7; color:#7c3aed; }
+    .lc-task-block.is-conflict { box-shadow:0 1px 2px rgba(0,0,0,.1), -1px 0 0 rgba(255,255,255,.7); padding:3px 4px; }
+    .lc-task-block.is-conflict .lc-task-text { font-size:.68rem; }
     .lc-task-block.is-done { text-decoration:line-through; opacity:.55; }
+
+    /* Empty state — saat satırlarının üstünde ipucu */
+    .lc-empty-hint {
+      grid-column: 1 / -1;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+      padding:22px 20px; border-bottom:1px solid #f0f2f8;
+      color:var(--text3); text-align:center;
+    }
+    .lc-empty-hint .mi { color:var(--accent); opacity:.7; }
+    .lc-empty-title { font-size:.92rem; font-weight:600; color:var(--text2); }
+    .lc-empty-desc  { font-size:.78rem; max-width:340px; line-height:1.45; }
+    body.theme-dark .lc-empty-hint { border-bottom-color:var(--border2); }
 
     /* Tema & odak chip'leri */
     .lc-theme-chip, .lc-focus-chip {
@@ -1432,56 +1446,10 @@
       background:#e53e3e; color:#fff; font-size:.85rem; font-weight:600; cursor:pointer;
     }
 
-    /* Welcome modal */
-    .welcome-overlay {
-      position:fixed; inset:0; background:rgba(0,0,0,0.45);
-      display:none; align-items:center; justify-content:center;
-      z-index:600;
-    }
-    .welcome-overlay.open { display:flex; }
-    .welcome-box {
-      background:#fff; border-radius:16px; padding:28px 28px 18px;
-      width:280px; max-width:calc(100% - 32px);
-      box-shadow:0 10px 40px rgba(0,0,0,0.18);
-      text-align:center; display:flex; flex-direction:column; align-items:center;
-    }
-    .welcome-icon {
-      position:relative; width:70px; height:70px; border-radius:50%;
-      background:var(--accent-bg); display:flex; align-items:center; justify-content:center;
-      color:var(--accent); margin-bottom:14px;
-    }
-    .welcome-icon-star {
-      position:absolute; right:-2px; top:-2px;
-      color:#f59e0b; background:#fff; border-radius:50%; padding:2px;
-      font-variation-settings:'FILL' 1;
-    }
-    .welcome-title {
-      font-size:1.05rem; font-weight:700; color:var(--text);
-      margin:0 0 8px;
-    }
-    .welcome-desc {
-      font-size:.83rem; color:var(--text2); line-height:1.5;
-      margin:0 0 18px;
-    }
-    .welcome-ok {
-      width:100%; padding:11px; border:none; border-radius:10px;
-      background:var(--accent); color:#fff; font-size:.92rem; font-weight:600;
-      cursor:pointer; font-family:inherit; transition:opacity .15s;
-      margin-bottom:12px;
-    }
-    .welcome-ok:hover { opacity:.9; }
-    .welcome-dont-show {
-      display:flex; align-items:center; gap:7px;
-      font-size:.78rem; color:var(--text3); cursor:pointer; user-select:none;
-    }
-    .welcome-dont-show input { cursor:pointer; }
-    body.theme-dark .welcome-box { background:var(--card-bg); }
-    body.theme-dark .welcome-icon-star { background:var(--card-bg); }
-
     /* Mobile-only elements — hidden on desktop */
     #mobTaskSheet, #mobTaskSheetOverlay { display:none; }
 
-    /* Desktop: reuse mob task sheet as a centered modal for editing tasks (e.g., from Planlama chips) */
+    /* Desktop: reuse mob task sheet as a centered modal for editing tasks (e.g., from list/calendar) */
     @media (min-width: 601px) {
       #mobTaskSheetOverlay.open {
         display:block; position:fixed; inset:0;
@@ -1543,163 +1511,6 @@
     .board-col-body::-webkit-scrollbar { width:4px; }
     .board-col-body::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
     .board-col-body.drag-over { background:#eef1fd; }
-
-    /* ── Weekly Planning ── */
-    .weekly-area {
-      flex:1; min-height:0; display:flex; overflow:hidden;
-    }
-    .weekly-left {
-      width:210px; min-width:210px; flex-shrink:0;
-      border-right:1px solid #e8ecf4; overflow-y:auto;
-      background:#fafbff; display:flex; flex-direction:column;
-    }
-    .weekly-left::-webkit-scrollbar { width:3px; }
-    .weekly-left::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:3px; }
-    .wk-panel-title {
-      padding:8px 10px 6px; font-size:.68rem; color:#aaa;
-      font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-      border-bottom:1px solid #f0f2f8; flex-shrink:0;
-    }
-    .wk-list-group { border-bottom:1px solid #f4f6fb; }
-    .wk-list-header {
-      display:flex; align-items:center; gap:7px;
-      padding:7px 10px; cursor:pointer; font-size:.83rem;
-      font-weight:600; color:#444; background:transparent;
-      border:none; width:100%; text-align:left;
-      transition:background .12s;
-    }
-    .wk-list-header:hover { background:#f4f5f9; }
-    .wk-list-header.open { color:#4f6ef7; background:#eef1fd; }
-    .wk-list-tasks { display:none; }
-    .wk-list-tasks.open { display:block; }
-    .wk-task-chip {
-      display:flex; align-items:center; gap:5px;
-      padding:5px 8px 5px 20px; font-size:.77rem; color:#444;
-      cursor:grab; border-radius:6px; margin:2px 6px;
-      background:#fff; border:1px solid #e8ecf4;
-      user-select:none; touch-action:none;
-      transition:background .1s, box-shadow .1s;
-    }
-    .wk-task-chip:hover { background:#f0f2fb; border-color:#c5ceea; }
-    .wk-task-chip.wk-dragging { opacity:.35; }
-    .wk-ghost {
-      position:fixed; z-index:9999; pointer-events:none;
-      background:#4f6ef7; color:#fff; border-radius:8px;
-      padding:5px 12px; font-size:.78rem; max-width:170px;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      box-shadow:0 6px 18px rgba(79,110,247,.35); opacity:.93;
-    }
-    .weekly-grid-wrap {
-      flex:1; overflow:auto; display:flex; flex-direction:column;
-    }
-    .weekly-grid-wrap::-webkit-scrollbar { width:5px; height:5px; }
-    .weekly-grid-wrap::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
-    .wk-nav {
-      display:flex; align-items:center; gap:8px;
-      padding:7px 14px; border-bottom:1px solid #e8ecf4;
-      background:#fff; flex-shrink:0;
-    }
-    .wk-nav-btn {
-      background:none; border:1px solid #e0e4ef; border-radius:7px;
-      padding:3px 11px; cursor:pointer; font-size:.8rem; color:#555;
-      transition:all .12s;
-    }
-    .wk-nav-btn:hover { background:#f4f5f9; border-color:#c5ceea; }
-    .wk-nav-title { flex:1; text-align:center; font-size:.84rem; font-weight:600; color:#333; }
-    .wk-inner {
-      flex:1; overflow:auto; position:relative;
-    }
-    .wk-inner::-webkit-scrollbar { width:5px; height:5px; }
-    .wk-inner::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
-    .wk-table {
-      min-width:760px; width:100%;
-      border-collapse:collapse;
-    }
-    .wk-table th, .wk-table td {
-      border:1px solid #f0f2f8; vertical-align:top;
-    }
-    .wk-day-head {
-      text-align:center; padding:6px 4px;
-      background:#fff; position:sticky; top:0; z-index:5;
-      border-bottom:2px solid #e8ecf4;
-      width:calc((100% - 52px)/7);
-    }
-    .wk-time-col { width:52px; background:#fff; position:sticky; top:0; z-index:5; }
-    .wk-day-name { font-size:.71rem; font-weight:700; color:#888; }
-    .wk-day-date {
-      font-size:.92rem; font-weight:700; color:#1a1a2e;
-      width:26px; height:26px; display:inline-flex;
-      align-items:center; justify-content:center; border-radius:50%;
-      margin:1px auto 0;
-    }
-    .wk-day-head.today .wk-day-date { background:#4f6ef7; color:#fff; }
-    .wk-row-theme td, .wk-row-toptask td {
-      padding:0; height:26px;
-    }
-    .wk-row-theme { background:#f8f9ff; }
-    .wk-row-toptask { background:#fffbeb; }
-    .wk-row-lbl {
-      font-size:.6rem; color:#bbb; text-align:right;
-      padding:4px 5px 0 0; vertical-align:middle;
-      white-space:nowrap;
-    }
-    .wk-row-toptask .wk-row-lbl { color:#d97706; }
-    .wk-theme-input, .wk-toptask-input {
-      width:100%; height:100%; border:none; outline:none;
-      background:transparent; font-size:.75rem; padding:4px 6px;
-      font-family:inherit; color:#555;
-    }
-    .wk-toptask-input { color:#b45309; font-weight:500; }
-    .wk-theme-input::placeholder { color:#ccc; }
-    .wk-toptask-input::placeholder { color:#e5a93a; }
-    .wk-hour-lbl {
-      font-size:.67rem; color:#bbb; text-align:right;
-      padding:3px 6px 0 0; height:50px; vertical-align:top;
-      white-space:nowrap;
-    }
-    .wk-slot {
-      height:50px; position:relative; padding:2px;
-      transition:background .1s; overflow:hidden;
-    }
-    .wk-slot.drag-over { background:#eef1fd !important; outline:2px dashed #4f6ef7; outline-offset:-2px; }
-    .wk-row-notime { background:#fbfcff; }
-    .wk-row-notime .wk-row-lbl { color:#94a3b8; }
-    .wk-slot-notime {
-      height:auto; min-height:32px; max-height:74px; overflow-y:auto; padding:3px;
-    }
-    .wk-day-head { cursor:pointer; user-select:none; }
-    .wk-day-head.drop-active, .wk-slot.drop-active { background:#eef1fd !important; outline:2px dashed #4f6ef7; outline-offset:-2px; }
-    .wk-slot-task {
-      display:flex; align-items:center; gap:3px;
-      background:#4f6ef7; color:#fff; border-radius:5px;
-      font-size:.71rem; padding:2px 5px; margin-bottom:2px;
-      cursor:pointer; white-space:nowrap; overflow:hidden;
-    }
-    .wk-slot-task:hover { opacity:.9; }
-    .wk-slot-task span { overflow:hidden; text-overflow:ellipsis; flex:1; }
-    .wk-list-panel {
-      width:200px; min-width:200px; flex-shrink:0;
-      border-right:1px solid #e8ecf4; overflow-y:auto;
-      background:#fafbff; display:flex; flex-direction:column;
-    }
-    .wk-list-panel::-webkit-scrollbar { width:3px; }
-    .wk-list-panel::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:3px; }
-    .wk-list-panel-head {
-      display:flex; align-items:center; gap:6px;
-      padding:8px 10px 6px; font-size:.78rem; font-weight:700;
-      color:#444; border-bottom:1px solid #f0f2f8;
-    }
-    .wk-list-panel-head .wk-panel-close {
-      background:none; border:none; cursor:pointer; color:#999;
-      font-size:1.05rem; line-height:1; padding:0 4px;
-    }
-    .wk-list-panel-head .wk-panel-close:hover { color:#333; }
-    .wk-list-panel-empty {
-      padding:12px 12px; font-size:.74rem; color:#bbb; font-style:italic; text-align:center;
-    }
-    body.theme-dark .wk-list-panel { background:var(--sidebar-bg); border-right-color:var(--border); }
-    body.theme-dark .wk-list-panel-head { color:var(--text); border-bottom-color:var(--border); }
-    body.theme-dark .wk-row-notime { background:var(--card-bg); }
 
     /* Drag & drop */
     .task-card.is-dragging { opacity:.25; pointer-events:none; }
@@ -2052,7 +1863,7 @@
       #addWrap { bottom:56px !important; left:0 !important; }
       /* main alanı tab bar + addWrap için boşluk bırak */
       #mainBody { padding-bottom:130px; }
-      .board-area, .weekly-area { margin-bottom:56px; }
+      .board-area { margin-bottom:56px; }
       /* main-header'ı sade tut */
       .main-header { padding:12px 14px 8px; border-bottom:1px solid var(--border2); }
     }
@@ -2324,34 +2135,6 @@
     body.theme-dark .mob-task-del-btn:hover { background:rgba(229,62,62,.15); }
     /* Board column title */
     body.theme-dark .board-col-title { color:var(--text); }
-    /* Weekly view */
-    body.theme-dark .weekly-left { background:var(--sidebar-bg); border-right-color:var(--border); }
-    body.theme-dark .wk-panel-title { color:var(--text3); border-bottom-color:var(--border2); }
-    body.theme-dark .wk-list-group { border-bottom-color:var(--border2); }
-    body.theme-dark .wk-list-header { color:var(--text2); }
-    body.theme-dark .wk-list-header:hover { background:var(--surface2); }
-    body.theme-dark .wk-list-header.open { color:var(--accent); background:var(--accent-bg); }
-    body.theme-dark .wk-task-chip { color:var(--text2); background:var(--card-bg); border-color:var(--border); }
-    body.theme-dark .wk-task-chip:hover { background:var(--surface2); border-color:var(--border); }
-    body.theme-dark .wk-nav { background:var(--surface); border-bottom-color:var(--border); }
-    body.theme-dark .wk-nav-btn { border-color:var(--border); color:var(--text2); }
-    body.theme-dark .wk-nav-btn:hover { background:var(--surface2); }
-    body.theme-dark .wk-nav-title { color:var(--text); }
-    body.theme-dark .wk-table th,
-    body.theme-dark .wk-table td { border-color:var(--border2); }
-    body.theme-dark .wk-day-head { background:var(--surface); border-bottom-color:var(--border); }
-    body.theme-dark .wk-time-col { background:var(--surface); }
-    body.theme-dark .wk-day-name { color:var(--text3); }
-    body.theme-dark .wk-day-date { color:var(--text); }
-    body.theme-dark .wk-row-theme { background:var(--surface2); }
-    body.theme-dark .wk-row-toptask { background:#1a1500; }
-    body.theme-dark .wk-row-lbl { color:var(--text4); }
-    body.theme-dark .wk-hour-lbl { color:var(--text4); }
-    body.theme-dark .wk-theme-input { color:var(--text2); }
-    body.theme-dark .wk-toptask-input { color:#d97706; }
-    body.theme-dark .wk-slot.drag-over { background:var(--accent-bg) !important; }
-    body.theme-dark .wk-inner { background:var(--bg); }
-    body.theme-dark .weekly-grid-wrap { background:var(--bg); }
   </style>
 </head>
 <body>
@@ -2565,7 +2348,6 @@
 
       <div class="board-nav" id="boardNav" style="display:none"></div>
       <div class="board-area" id="boardArea" style="display:none"></div>
-      <div class="weekly-area" id="weeklyArea" style="display:none"></div>
     </div>
 
   </div>
@@ -2606,25 +2388,6 @@
       <button class="btn-dc-cancel" onclick="closeDelConfirm()">İptal</button>
       <button class="btn-dc-ok" id="btnDelConfirmOk">Sil</button>
     </div>
-  </div>
-</div>
-
-<!-- Haftalık Planlama hoş geldiniz modalı -->
-<div class="welcome-overlay" id="weeklyWelcomeOverlay">
-  <div class="welcome-box">
-    <div class="welcome-icon">
-      <span class="mi s40">event_available</span>
-      <span class="welcome-icon-star mi s20">star</span>
-    </div>
-    <h3 class="welcome-title">Planlama'ya Hoş Geldiniz</h3>
-    <p class="welcome-desc">
-      Bu hafta için en önemli görevleri seç,
-      günlere dağıt, kararlılıkla uygula.
-    </p>
-    <button class="welcome-ok" onclick="closeWeeklyWelcome()">İlk görevimi planla</button>
-    <label class="welcome-dont-show">
-      <input type="checkbox" id="weeklyWelcomeDontShow"> Bir daha gösterme
-    </label>
   </div>
 </div>
 
@@ -2978,7 +2741,6 @@ const APP_URL = 'https://nizamiyedijital.github.io/todo-app';
 
 const STARRED_LIST_ID = '__starred__';
 const BOARD_LIST_ID   = '__board__';
-const WEEKLY_LIST_ID  = '__weekly__';
 const DAY_LIST_ID     = '__day__';
 let activeDayDate = null;
 let sidebarCalYear  = new Date().getFullYear();
@@ -3012,11 +2774,6 @@ let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', d
 let boardDoneStates  = {};
 let dragState        = null;
 let recentlyAddedId  = null;
-let weeklyOffset     = 0;
-let weeklyExpandedList = null;
-let weeklyListPanelId = null;   // sidebar list click while in Planlama opens drag-source panel
-let weeklySingleDate = null;    // null = 7-day grid; ISO date = single-day focus mode
-let wkDragState      = null;
 
 const SORT_OPTIONS = [
   { key:'created_at', label:'Ekleniş Tarihi' },
@@ -3595,20 +3352,6 @@ function renderSidebar() {
   }
   container.appendChild(boardItem);
 
-  /* Haftalık Planlama */
-  const weeklyItem = document.createElement('div');
-  weeklyItem.className = 'list-item' + (activeListId===WEEKLY_LIST_ID?' active':'');
-  weeklyItem.onclick   = () => selectList(WEEKLY_LIST_ID);
-  weeklyItem.innerHTML = `
-    <span class="list-icon">${mi('calendar_view_week','18')}</span>
-    <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Planlama</span>
-  `;
-  if (activeListId===WEEKLY_LIST_ID) {
-    weeklyItem.querySelector('.list-name').style.color='var(--accent)';
-    weeklyItem.querySelector('.list-name').style.fontWeight='600';
-  }
-  container.appendChild(weeklyItem);
-
   /* Yıldızlı akıllı liste */
   const starCount = tasks.filter(t=>!t.parent_id && t.starred && !t.done).length;
   const starItem  = document.createElement('div');
@@ -3633,19 +3376,10 @@ function renderSidebar() {
 
   lists.forEach(l => {
     const count = tasks.filter(t=>!t.parent_id && t.category===l.id && !t.done).length;
-    const isWeeklyPanelActive = activeListId === WEEKLY_LIST_ID && weeklyListPanelId === l.id;
     const item  = document.createElement('div');
-    item.className      = 'list-item' + (l.id===activeListId || isWeeklyPanelActive ? ' active' : '');
+    item.className      = 'list-item' + (l.id===activeListId ? ' active' : '');
     item.dataset.id     = l.id;
-    item.onclick        = () => {
-      if (activeListId === WEEKLY_LIST_ID) {
-        weeklyListPanelId = (weeklyListPanelId === l.id) ? null : l.id;
-        renderSidebar();
-        renderWeekly();
-      } else {
-        selectList(l.id);
-      }
-    };
+    item.onclick        = () => selectList(l.id);
 
     const name = document.createElement('span');
     name.className   = 'list-name';
@@ -3817,7 +3551,6 @@ function renderMobDrawer() {
   if (el) el.textContent = email || 'Profil';
   // Active state for fixed items
   document.getElementById('mobDrBoard').classList.toggle('active', activeListId===BOARD_LIST_ID);
-  document.getElementById('mobDrWeekly').classList.toggle('active', activeListId===WEEKLY_LIST_ID);
   document.getElementById('mobDrStarred').classList.toggle('active', activeListId===STARRED_LIST_ID);
   // Custom lists
   const container = document.getElementById('mobDrawerLists');
@@ -3861,12 +3594,10 @@ async function saveMobDrawerList() {
 }
 function updateMobTabBar() {
   const isBoard   = activeListId === BOARD_LIST_ID;
-  const isWeekly  = activeListId === WEEKLY_LIST_ID;
   const isStarred = activeListId === STARRED_LIST_ID;
-  const isCustom  = !isBoard && !isWeekly && !isStarred;
+  const isCustom  = !isBoard && !isStarred;
   document.getElementById('mobTabListeler').classList.toggle('active', isCustom);
   document.getElementById('mobTabTumu').classList.toggle('active', isBoard);
-  document.getElementById('mobTabHaftalik').classList.toggle('active', isWeekly);
   document.getElementById('mobTabYildizli').classList.toggle('active', isStarred);
 }
 
@@ -3904,51 +3635,33 @@ function setupLinkDisplay(inp, wrap) {
   if (inp.value.trim()) refresh();
 }
 
-const WEEKLY_WELCOME_KEY = 'weeklyWelcomeDismissed';
-function showWeeklyWelcome() {
-  if (localStorage.getItem(WEEKLY_WELCOME_KEY) === '1') return;
-  document.getElementById('weeklyWelcomeDontShow').checked = false;
-  document.getElementById('weeklyWelcomeOverlay').classList.add('open');
-}
-function closeWeeklyWelcome() {
-  if (document.getElementById('weeklyWelcomeDontShow').checked) {
-    try { localStorage.setItem(WEEKLY_WELCOME_KEY, '1'); } catch {}
-  }
-  document.getElementById('weeklyWelcomeOverlay').classList.remove('open');
-}
-
 function selectList(id) {
-  const isSpecial = id === BOARD_LIST_ID || id === WEEKLY_LIST_ID || id === STARRED_LIST_ID;
+  // '__weekly__' artık geçerli değil — eski state'ten gelirse BOARD'a düş
+  if (id === '__weekly__') id = BOARD_LIST_ID;
+  const isSpecial = id === BOARD_LIST_ID || id === STARRED_LIST_ID;
   if (!isSpecial && !lists.some(l => String(l.id) === String(id))) id = BOARD_LIST_ID;
   activeDayDate = null;
-  if (id !== WEEKLY_LIST_ID) {
-    weeklyListPanelId = null;
-    weeklySingleDate  = null;
-  }
   activeListId = id;
   try { localStorage.setItem('activeListId', id); } catch {}
   try { sessionStorage.setItem('activeListId', id); } catch {}
   try { history.replaceState({ activeListId: id }, '', location.pathname + '#list=' + encodeURIComponent(id)); } catch {}
   doneOpen     = false;
   const isBoard  = id === BOARD_LIST_ID;
-  const isWeekly = id === WEEKLY_LIST_ID;
   const list     = lists.find(l=>l.id===id);
-  document.getElementById('mainListTitle').textContent = isBoard ? 'Tüm Görevler' : isWeekly ? 'Planlama' : (list?.name || '');
-  document.getElementById('addWrap').style.display      = (isBoard||isWeekly) ? 'none' : 'block';
-  document.getElementById('mainBody').style.display     = (isBoard||isWeekly) ? 'none' : '';
-  document.getElementById('mainContent').style.display  = (isBoard||isWeekly) ? 'none' : 'flex';
+  document.getElementById('mainListTitle').textContent = isBoard ? 'Tüm Görevler' : (list?.name || '');
+  document.getElementById('addWrap').style.display      = isBoard ? 'none' : 'block';
+  document.getElementById('mainBody').style.display     = isBoard ? 'none' : '';
+  document.getElementById('mainContent').style.display  = isBoard ? 'none' : 'flex';
   document.getElementById('boardArea').style.display    = isBoard ? 'flex' : 'none';
   document.getElementById('boardNav').style.display     = isBoard ? '' : 'none';
-  document.getElementById('weeklyArea').style.display   = isWeekly ? 'flex' : 'none';
   // List calendar: sadece custom liste aktifken
   const isStarredView = id === STARRED_LIST_ID;
   const isDayView     = id === DAY_LIST_ID;
-  const isCustomList  = !isBoard && !isWeekly && !isStarredView && !isDayView;
+  const isCustomList  = !isBoard && !isStarredView && !isDayView;
   document.getElementById('listCalendar').style.display = isCustomList ? 'flex' : 'none';
   updateMobTabBar();
   renderSidebar();
   render();
-  if (isWeekly) showWeeklyWelcome();
 }
 
 /* ── Load tasks ── */
@@ -4574,7 +4287,6 @@ function renderSidebarCalendar() {
     btn.dataset.date = iso;
     if (isCurMonth && d === today.getDate()) btn.classList.add('today');
     if (activeListId === DAY_LIST_ID && activeDayDate === iso) btn.classList.add('selected');
-    if (activeListId === WEEKLY_LIST_ID && weeklySingleDate === iso) btn.classList.add('selected');
     const { count, hasStar } = tasksOnDate(sidebarCalYear, sidebarCalMonth, d);
     if (count >= 3)      btn.classList.add('has-task-3');
     else if (count === 2) btn.classList.add('has-task-2');
@@ -4614,13 +4326,6 @@ function sidebarCalToday() {
   renderSidebarCalendar();
 }
 function selectCalDay(iso) {
-  // In Planlama: day click toggles single-day focus mode within the weekly view.
-  if (activeListId === WEEKLY_LIST_ID) {
-    weeklySingleDate = (weeklySingleDate === iso) ? null : iso;
-    renderSidebarCalendar();
-    renderWeekly();
-    return;
-  }
   if (activeListId === DAY_LIST_ID && activeDayDate === iso) {
     activeDayDate = null;
     selectList(BOARD_LIST_ID);
@@ -4634,7 +4339,6 @@ function selectCalDay(iso) {
   document.getElementById('addWrap').style.display   = 'none';
   document.getElementById('mainBody').style.display  = '';
   document.getElementById('boardArea').style.display = 'none';
-  document.getElementById('weeklyArea').style.display= 'none';
   document.getElementById('boardNav').style.display  = 'none';
   updateMobTabBar();
   renderSidebar();
@@ -4766,7 +4470,6 @@ function render() {
   try { renderSidebarCalendar(); } catch(e) { console.error('renderSidebarCalendar:', e); }
   if (!activeListId) return;
   if (activeListId === BOARD_LIST_ID)  { renderBoard();  return; }
-  if (activeListId === WEEKLY_LIST_ID) { renderWeekly(); return; }
 
   const isStarred   = activeListId === STARRED_LIST_ID;
   const isDayFilter = activeListId === DAY_LIST_ID;
@@ -4785,7 +4488,7 @@ function render() {
   const taskList = document.getElementById('taskList');
   taskList.innerHTML = '';
   // Bugünkü Aktif Yaşam Dengesi kartı: sadece custom liste aktifken
-  const isCustomList = !isStarred && !isDayFilter && activeListId !== BOARD_LIST_ID && activeListId !== WEEKLY_LIST_ID;
+  const isCustomList = !isStarred && !isDayFilter && activeListId !== BOARD_LIST_ID;
   active.forEach(t => {
     const card = buildTaskCard(t, false);
     if (isCustomList) initLcDrag(card, t);
@@ -5815,7 +5518,34 @@ function renderListCalendar() {
     grid.appendChild(btn);
   }
 
-  // 6) Saat satırları
+  // 6) Saat satırları — önce her gün için lane layout hesapla
+  const dayLayouts = new Map();
+  let totalScheduled = 0;
+  for (const d of days) {
+    const timed = lcTimedTasksForDay(d);
+    dayLayouts.set(lcDateKey(d), lcComputeDayLayout(timed));
+    totalScheduled += timed.length + lcTasksAllDay(d).length;
+  }
+  if (totalScheduled === 0) {
+    const hint = document.createElement('div');
+    hint.className = 'lc-empty-hint';
+    const hasAnyDue = tasks.some(t => !t.parent_id && t.category === activeListId && t.due_at);
+    const hasAnyTask = tasks.some(t => !t.parent_id && t.category === activeListId);
+    let desc;
+    if (!hasAnyTask) {
+      desc = 'Önce soldaki listeye görev ekle, sonra hafta üzerinde sürükleyip planla.';
+    } else if (!hasAnyDue) {
+      desc = 'Soldaki görevleri sürükleyip bir güne veya saate bırak. Süre yoksa 30 dk varsayılır.';
+    } else {
+      desc = 'Bu hafta zamanlanmış görev yok. ‹ › ile başka haftaya bak veya görevi buraya sürükle.';
+    }
+    hint.innerHTML = `
+      <span class="mi s28">event_available</span>
+      <div class="lc-empty-title">Bu haftan boş</div>
+      <div class="lc-empty-desc">${desc}</div>
+    `;
+    grid.appendChild(hint);
+  }
   const visibleRows = lcVisibleHours.end - lcVisibleHours.start + 1;
   grid.style.setProperty('--lc-visible-rows', visibleRows);
   for (let h = lcVisibleHours.start; h <= lcVisibleHours.end; h++) {
@@ -5831,7 +5561,8 @@ function renderListCalendar() {
       cell.dataset.hour    = h;
       // Bu hücrede başlayan görevler
       const inHour = lcTasksForDayHour(d, h);
-      for (const t of inHour) cell.appendChild(lcMakeTaskBlock(t));
+      const layoutMap = dayLayouts.get(dKey);
+      for (const t of inHour) cell.appendChild(lcMakeTaskBlock(t, layoutMap?.get(t.id)));
       grid.appendChild(cell);
     }
   }
@@ -5866,6 +5597,20 @@ function lcTasksForDayHour(dayDate, hour) {
   });
 }
 
+function lcTimedTasksForDay(dayDate) {
+  const dStart = new Date(dayDate); dStart.setHours(0,0,0,0);
+  const dEnd   = new Date(dStart); dEnd.setDate(dEnd.getDate() + 1);
+  return tasks.filter(t => {
+    if (t.parent_id) return false;
+    if (t.category !== activeListId) return false;
+    if (!t.due_at) return false;
+    const d = new Date(t.due_at);
+    if (d < dStart || d >= dEnd) return false;
+    if (d.getHours() === 0 && d.getMinutes() === 0) return false;
+    return true;
+  });
+}
+
 function lcTasksAllDay(dayDate) {
   const dStart = new Date(dayDate); dStart.setHours(0,0,0,0);
   const dEnd   = new Date(dStart); dEnd.setDate(dEnd.getDate() + 1);
@@ -5878,7 +5623,49 @@ function lcTasksAllDay(dayDate) {
   });
 }
 
-function lcMakeTaskBlock(t) {
+function lcComputeDayLayout(dayTasks) {
+  const layout = new Map();
+  if (!dayTasks.length) return layout;
+  const items = dayTasks.map(t => {
+    const d = new Date(t.due_at);
+    const startMin = d.getHours() * 60 + d.getMinutes();
+    const dur = (t.estimated_minutes != null && t.estimated_minutes > 0) ? t.estimated_minutes : DEFAULT_TASK_MINUTES;
+    return { t, startMin, endMin: startMin + dur };
+  }).sort((a, b) => a.startMin - b.startMin || a.endMin - b.endMin);
+
+  // Transitive overlap kümeleri
+  const clusters = [];
+  for (const it of items) {
+    const last = clusters[clusters.length - 1];
+    if (last && it.startMin < last.maxEnd) {
+      last.items.push(it);
+      if (it.endMin > last.maxEnd) last.maxEnd = it.endMin;
+    } else {
+      clusters.push({ items: [it], maxEnd: it.endMin });
+    }
+  }
+
+  // Lane assignment (her cluster içinde)
+  for (const cluster of clusters) {
+    const lanes = []; // lanes[i] = o lane'deki son item'ın endMin'i
+    for (const it of cluster.items) {
+      let lane = -1;
+      for (let i = 0; i < lanes.length; i++) {
+        if (lanes[i] <= it.startMin) { lane = i; break; }
+      }
+      if (lane === -1) { lane = lanes.length; lanes.push(it.endMin); }
+      else lanes[lane] = it.endMin;
+      it.lane = lane;
+    }
+    const total = lanes.length;
+    for (const it of cluster.items) {
+      layout.set(it.t.id, { lane: it.lane, total });
+    }
+  }
+  return layout;
+}
+
+function lcMakeTaskBlock(t, layout) {
   const block = document.createElement('div');
   block.className = 'lc-task-block';
   if (t.balance_category) block.dataset.cat = t.balance_category;
@@ -5888,10 +5675,21 @@ function lcMakeTaskBlock(t) {
   const minutes  = (t.estimated_minutes != null && t.estimated_minutes > 0) ? t.estimated_minutes : DEFAULT_TASK_MINUTES;
   block.style.top    = `${(startMin / 60) * 100}%`;
   block.style.height = `calc(${(minutes / 60) * 100}% - 2px)`;
+  // Çakışma: lane'e göre yatay daralt
+  const lane  = layout?.lane  ?? 0;
+  const total = layout?.total ?? 1;
+  if (total > 1) {
+    const widthPct = 100 / total;
+    block.style.left  = `calc(${lane * widthPct}% + 2px)`;
+    block.style.width = `calc(${widthPct}% - 3px)`;
+    block.style.right = 'auto';
+    block.classList.add('is-conflict');
+  }
   block.dataset.taskId = t.id;
   const emoji = t.balance_category ? BALANCE_CATEGORIES[t.balance_category].emoji + ' ' : '';
   block.innerHTML = `<span class="lc-task-text">${emoji}${escapeHtml(t.text)}</span>`;
-  block.title = `${t.text} · ${fmtBalanceMinutes(minutes)}`;
+  const conflictNote = total > 1 ? ` · ${total} görev çakışıyor` : '';
+  block.title = `${t.text} · ${fmtBalanceMinutes(minutes)}${conflictNote}`;
   block.onclick = (e) => { e.stopPropagation(); openMobTaskSheet(t); };
   initLcDrag(block, t);
   return block;
@@ -6588,333 +6386,6 @@ async function dropTask(task, targetListId, insertBeforeId) {
     Object.assign(task, patch);
     renderBoard(); renderSidebar();
   } catch(e) { showToast('Hata: '+e.message); }
-}
-
-/* ── Weekly Planning ── */
-function wkGetThemes() {
-  try { return JSON.parse(localStorage.getItem('wk_themes')||'{}'); } catch{ return {}; }
-}
-function wkSaveThemes(t) { localStorage.setItem('wk_themes', JSON.stringify(t)); }
-function wkDateKey(d) {
-  // local-date YYYY-MM-DD (NOT UTC) so day boundaries match the user's clock
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  const dd = String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${dd}`;
-}
-function wkGetWeekDates() {
-  const now = new Date();
-  const dow = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (dow===0?6:dow-1) + weeklyOffset*7);
-  monday.setHours(0,0,0,0);
-  return Array.from({length:7},(_,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); return d; });
-}
-
-function makeWkChip(task) {
-  const chip = document.createElement('div');
-  chip.className = 'wk-slot-task';
-  chip.dataset.taskId = task.id;
-  const prioMi = task.priority ? mi(PRIORITIES[task.priority]?.mi||'','14') : '';
-  chip.innerHTML = `<span style="flex-shrink:0;line-height:1">${prioMi}</span><span>${task.text}</span>`;
-  chip.addEventListener('pointerdown', e => wkStartDrag(e, task, chip));
-  return chip;
-}
-
-function renderWeekly() {
-  const area = document.getElementById('weeklyArea');
-  area.innerHTML = '';
-
-  const allDates = wkGetWeekDates();
-  const dates    = weeklySingleDate
-    ? [ new Date(weeklySingleDate + 'T00:00:00') ]
-    : allDates;
-  const today    = wkDateKey(new Date());
-  const DAYS_FULL = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
-  const HOURS    = Array.from({length:16},(_,i)=>i+7); // 07–22
-  const isSingle = !!weeklySingleDate;
-
-  /* ── Optional inline list panel (sidebar list click) ── */
-  if (weeklyListPanelId) {
-    const list = lists.find(l => l.id === weeklyListPanelId);
-    const panel = document.createElement('div');
-    panel.className = 'wk-list-panel';
-    const head = document.createElement('div');
-    head.className = 'wk-list-panel-head';
-    head.innerHTML = `<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${list?.name||''}</span><button class="wk-panel-close" title="Paneli kapat">×</button>`;
-    head.querySelector('.wk-panel-close').onclick = () => { weeklyListPanelId = null; renderSidebar(); renderWeekly(); };
-    panel.appendChild(head);
-
-    const weekStart = wkDateKey(allDates[0]);
-    const weekEnd   = wkDateKey(allDates[6]);
-    const candidates = tasks.filter(t => {
-      if (t.parent_id || t.done) return false;
-      if (t.category !== weeklyListPanelId) return false;
-      if (!t.due_at) return true;
-      const k = wkDateKey(new Date(t.due_at));
-      return k < weekStart || k > weekEnd;
-    });
-
-    if (candidates.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'wk-list-panel-empty';
-      empty.textContent = 'Bu hafta için planlanmamış görev yok.';
-      panel.appendChild(empty);
-    } else {
-      candidates.forEach(task => panel.appendChild(makeWkChip(task)));
-    }
-    area.appendChild(panel);
-  }
-
-  /* ── Right: nav + grid ── */
-  const rightWrap = document.createElement('div');
-  rightWrap.className = 'weekly-grid-wrap';
-
-  /* Nav bar */
-  const nav = document.createElement('div');
-  nav.className = 'wk-nav';
-  if (isSingle) {
-    const d = dates[0];
-    const titleStr = d.toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    nav.innerHTML = `
-      <button class="wk-nav-btn" id="wkBackToWeek">‹ Hafta görünümü</button>
-      <span class="wk-nav-title">${titleStr}</span>
-      <span style="width:1px"></span>
-    `;
-    nav.querySelector('#wkBackToWeek').onclick = () => { weeklySingleDate = null; renderSidebarCalendar(); renderWeekly(); };
-  } else {
-    const s = allDates[0].toLocaleDateString('tr-TR',{day:'numeric',month:'short'});
-    const e = allDates[6].toLocaleDateString('tr-TR',{day:'numeric',month:'short',year:'numeric'});
-    nav.innerHTML = `
-      <button class="wk-nav-btn" onclick="weeklyOffset--;renderWeekly()" title="Önceki hafta">‹</button>
-      <span class="wk-nav-title">${s} – ${e}</span>
-      <button class="wk-nav-btn" onclick="weeklyOffset=0;renderWeekly()" title="Bu hafta">Bugün</button>
-      <button class="wk-nav-btn" onclick="weeklyOffset++;renderWeekly()" title="Sonraki hafta">›</button>
-    `;
-  }
-  rightWrap.appendChild(nav);
-
-  /* Scrollable inner */
-  const inner = document.createElement('div');
-  inner.className = 'wk-inner';
-
-  /* Table */
-  const tbl = document.createElement('table');
-  tbl.className = 'wk-table';
-  if (isSingle) tbl.style.minWidth = '0';
-
-  /* Header row */
-  const thead = document.createElement('thead');
-  const headTr = document.createElement('tr');
-  const timeTh = document.createElement('th');
-  timeTh.className = 'wk-hour-lbl wk-time-col';
-  timeTh.style.cssText = 'position:sticky;top:0;z-index:6;background:#fff;border-bottom:2px solid #e8ecf4;';
-  headTr.appendChild(timeTh);
-  dates.forEach((d) => {
-    const dateStr = wkDateKey(d);
-    const isToday = dateStr === today;
-    const dayIdx  = (d.getDay() + 6) % 7; // Mon=0..Sun=6
-    const th = document.createElement('th');
-    th.className = 'wk-day-head' + (isToday?' today':'');
-    th.dataset.date = dateStr;
-    th.dataset.hour = '';
-    th.innerHTML = `<div class="wk-day-name">${DAYS_FULL[dayIdx]}</div><div class="wk-day-date">${d.getDate()}</div>`;
-    th.addEventListener('click', () => {
-      if (isSingle) { weeklySingleDate = null; renderSidebarCalendar(); renderWeekly(); }
-      else          { weeklySingleDate = dateStr; renderSidebarCalendar(); renderWeekly(); }
-    });
-    headTr.appendChild(th);
-  });
-  thead.appendChild(headTr);
-  tbl.appendChild(thead);
-
-  /* Body */
-  const tbody = document.createElement('tbody');
-  const themes = wkGetThemes();
-
-  /* Theme row */
-  const themeTr = document.createElement('tr');
-  themeTr.className = 'wk-row-theme';
-  const themeLblTd = document.createElement('td');
-  themeLblTd.className = 'wk-row-lbl';
-  themeLblTd.textContent = 'Tema';
-  themeTr.appendChild(themeLblTd);
-  dates.forEach(d => {
-    const key = wkDateKey(d);
-    const td = document.createElement('td');
-    const inp = document.createElement('input');
-    inp.type = 'text'; inp.className = 'wk-theme-input';
-    inp.placeholder = 'Günün teması...'; inp.autocomplete = 'off';
-    inp.value = themes[key]?.theme || '';
-    inp.addEventListener('change', () => {
-      const t = wkGetThemes(); if (!t[key]) t[key]={};
-      t[key].theme = inp.value; wkSaveThemes(t);
-    });
-    td.appendChild(inp); themeTr.appendChild(td);
-  });
-  tbody.appendChild(themeTr);
-
-  /* Top task row */
-  const topTr = document.createElement('tr');
-  topTr.className = 'wk-row-toptask';
-  const topLblTd = document.createElement('td');
-  topLblTd.className = 'wk-row-lbl';
-  topLblTd.title = 'Günde tek yıldız. Bu, o günün odağı.';
-  topLblTd.innerHTML = mi('star', 16);
-  topTr.appendChild(topLblTd);
-  dates.forEach(d => {
-    const key = wkDateKey(d);
-    const td = document.createElement('td');
-    const inp = document.createElement('input');
-    inp.type = 'text'; inp.className = 'wk-toptask-input';
-    inp.placeholder = 'En önemli görev...'; inp.autocomplete = 'off';
-    inp.value = themes[key]?.topTask || '';
-    inp.addEventListener('change', () => {
-      const t = wkGetThemes(); if (!t[key]) t[key]={};
-      t[key].topTask = inp.value; wkSaveThemes(t);
-    });
-    td.appendChild(inp); topTr.appendChild(td);
-  });
-  tbody.appendChild(topTr);
-
-  /* Saatsiz row */
-  const noTimeTr = document.createElement('tr');
-  noTimeTr.className = 'wk-row-notime';
-  const noTimeLblTd = document.createElement('td');
-  noTimeLblTd.className = 'wk-row-lbl';
-  noTimeLblTd.textContent = 'Saatsiz';
-  noTimeTr.appendChild(noTimeLblTd);
-  dates.forEach(d => {
-    const dateStr = wkDateKey(d);
-    const td = document.createElement('td');
-    td.className = 'wk-slot wk-slot-notime';
-    td.dataset.date = dateStr;
-    td.dataset.hour = '';
-    const noTime = tasks.filter(t => {
-      if (t.parent_id || t.done || !t.due_at) return false;
-      if (wkDateKey(new Date(t.due_at)) !== dateStr) return false;
-      return !hasTime(t.due_at);
-    });
-    noTime.forEach(task => td.appendChild(makeWkChip(task)));
-    noTimeTr.appendChild(td);
-  });
-  tbody.appendChild(noTimeTr);
-
-  /* Hour rows */
-  HOURS.forEach(h => {
-    const tr = document.createElement('tr');
-    const lblTd = document.createElement('td');
-    lblTd.className = 'wk-hour-lbl';
-    lblTd.textContent = h + ':00';
-    tr.appendChild(lblTd);
-
-    dates.forEach(d => {
-      const dateStr = wkDateKey(d);
-      const td = document.createElement('td');
-      td.className = 'wk-slot';
-      td.dataset.date = dateStr;
-      td.dataset.hour = String(h);
-
-      const hourTasks = tasks.filter(t => {
-        if (t.parent_id || t.done || !t.due_at) return false;
-        if (wkDateKey(new Date(t.due_at)) !== dateStr) return false;
-        if (!hasTime(t.due_at)) return false;
-        return new Date(t.due_at).getHours() === h;
-      });
-      hourTasks.forEach(task => td.appendChild(makeWkChip(task)));
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  });
-
-  tbl.appendChild(tbody);
-  inner.appendChild(tbl);
-  rightWrap.appendChild(inner);
-
-  area.appendChild(rightWrap);
-}
-
-async function wkScheduleTask(taskId, dateStr, hourOrEmpty) {
-  const t = tasks.find(x => x.id === taskId);
-  if (!t) return;
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const hasHour = hourOrEmpty !== '' && hourOrEmpty !== null && hourOrEmpty !== undefined && !Number.isNaN(Number(hourOrEmpty));
-  const h = hasHour ? Number(hourOrEmpty) : 0;
-  const dt = new Date(y, m - 1, d, h, 0, 0, 0);
-  const iso = dt.toISOString();
-  try {
-    await db('/todos?id=eq.' + encodeURIComponent(taskId), { method: 'PATCH', body: JSON.stringify({ due_at: iso }) });
-    t.due_at = iso;
-  } catch (err) {
-    console.error('wkScheduleTask failed', err);
-    return;
-  }
-  renderSidebar();
-  renderSidebarCalendar();
-  renderWeekly();
-}
-
-function wkStartDrag(e, task, chip) {
-  e.preventDefault();
-  chip.setPointerCapture(e.pointerId);
-  chip.dataset.didDrag = '';
-
-  const ghost = document.createElement('div');
-  ghost.className = 'wk-ghost';
-  ghost.textContent = task.text;
-  ghost.style.left = (e.clientX - 70) + 'px';
-  ghost.style.top  = (e.clientY - 16) + 'px';
-  document.body.appendChild(ghost);
-  chip.classList.add('wk-dragging');
-  const startX = e.clientX, startY = e.clientY;
-  let moved = false;
-  wkDragState = { task, chip, ghost, active: true };
-
-  function clearActive() {
-    document.querySelectorAll('.drop-active').forEach(el => el.classList.remove('drop-active'));
-  }
-
-  function onMove(ev) {
-    if (!wkDragState?.active) return;
-    if (!moved && (Math.abs(ev.clientX - startX) > 4 || Math.abs(ev.clientY - startY) > 4)) {
-      moved = true;
-      chip.dataset.didDrag = '1';
-    }
-    ghost.style.left = (ev.clientX - 70) + 'px';
-    ghost.style.top  = (ev.clientY - 16) + 'px';
-    clearActive();
-    const el = document.elementFromPoint(ev.clientX, ev.clientY);
-    const tgt = el?.closest('.wk-slot, .wk-day-head');
-    if (tgt) tgt.classList.add('drop-active');
-  }
-
-  function onUp(ev) {
-    if (!wkDragState?.active) return;
-    cleanup();
-    if (!moved) {
-      // pure tap → open task editor
-      openMobTaskSheet(task);
-      return;
-    }
-    const el = document.elementFromPoint(ev.clientX, ev.clientY);
-    const tgt = el?.closest('.wk-slot, .wk-day-head');
-    if (!tgt) return;
-    wkScheduleTask(task.id, tgt.dataset.date, tgt.dataset.hour);
-  }
-
-  function cleanup() {
-    ghost.remove();
-    chip.classList.remove('wk-dragging');
-    clearActive();
-    wkDragState = null;
-    chip.removeEventListener('pointermove', onMove);
-    chip.removeEventListener('pointerup',   onUp);
-    chip.removeEventListener('pointercancel', cleanup);
-  }
-
-  chip.addEventListener('pointermove', onMove);
-  chip.addEventListener('pointerup',   onUp);
-  chip.addEventListener('pointercancel', cleanup);
 }
 
 /* ── Mobile bottom sheet ── */
@@ -7767,10 +7238,6 @@ if ('serviceWorker' in navigator) {
     <span class="mi">view_kanban</span>
     <span>Tümü</span>
   </button>
-  <button class="mob-tab" id="mobTabHaftalik" onclick="selectList(WEEKLY_LIST_ID)">
-    <span class="mi">calendar_view_week</span>
-    <span>Planlama</span>
-  </button>
   <button class="mob-tab" id="mobTabYildizli" onclick="selectList(STARRED_LIST_ID)">
     <span class="mi">star</span>
     <span>Yıldızlı</span>
@@ -7790,10 +7257,6 @@ if ('serviceWorker' in navigator) {
     <button class="mob-drawer-item" id="mobDrBoard" onclick="selectList(BOARD_LIST_ID);closeMobDrawer()">
       <span class="mi" style="font-size:20px;color:var(--accent)">view_kanban</span>
       <span>Tüm Görevler</span>
-    </button>
-    <button class="mob-drawer-item" id="mobDrWeekly" onclick="selectList(WEEKLY_LIST_ID);closeMobDrawer()">
-      <span class="mi" style="font-size:20px;color:var(--accent)">calendar_view_week</span>
-      <span>Planlama</span>
     </button>
     <button class="mob-drawer-item" id="mobDrStarred" onclick="selectList(STARRED_LIST_ID);closeMobDrawer()">
       <span class="mi" style="font-size:20px;color:#f5a623">star</span>
