@@ -709,6 +709,10 @@
     .lc-task-block.is-conflict .lc-task-text { font-size:14px; }
     .lc-task-block.is-done { opacity:.55; }
     .lc-task-block.is-done .lc-task-text { text-decoration:line-through; }
+    /* Cross-list: aktif moda ait olmayan görevler solgun, hover'da tam belirgin */
+    .lc-task-block.is-faded { opacity:.42; }
+    .lc-task-block.is-faded:hover { opacity:1; }
+    .lc-task-block.is-faded.is-done { opacity:.28; }
     /* Block içi tamamla butonu (sol üst, absolute) */
     .lc-block-check {
       position:absolute; left:5px; top:5px;
@@ -6127,10 +6131,15 @@ function lcLabelCell(text, extraCls) {
 }
 
 function lcTaskInScope(t) {
-  // Aktif moda göre takvime hangi görevler düşer
-  if (t.parent_id) return false;
+  // Cross-list: tüm görevler tüm modlarda takvimde gözükür.
+  // Aktif liste sadece vurguyu (is-faded) etkiler — bkz. lcIsActiveTask.
+  return !t.parent_id;
+}
+
+function lcIsActiveTask(t) {
+  // Aktif moda göre block "tam" mi yoksa "solgun" mu render edilir
   if (activeListId === STARRED_LIST_ID) return !!t.starred;
-  if (activeListId === DAY_LIST_ID)     return true;  // tüm listeler
+  if (activeListId === DAY_LIST_ID || activeListId === BOARD_LIST_ID) return true;
   return t.category === activeListId;
 }
 
@@ -6203,6 +6212,7 @@ function lcMakeTaskBlock(t, layout) {
   block.className = 'lc-task-block';
   if (t.priority) block.dataset.prio = t.priority;
   if (t.done) block.classList.add('is-done');
+  if (!lcIsActiveTask(t)) block.classList.add('is-faded');
   const d = new Date(t.due_at);
   const startMin = d.getMinutes();
   const minutes  = (t.estimated_minutes != null && t.estimated_minutes > 0) ? t.estimated_minutes : DEFAULT_TASK_MINUTES;
