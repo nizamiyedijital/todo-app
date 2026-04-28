@@ -4188,7 +4188,13 @@ async function addTaskKeepFocus() {
   const input   = document.getElementById('taskInput');
   const text    = input.value.trim();
   if (!text || !activeListId) { input.focus(); return; }
-  const payload = { text, done:false, category:activeListId, sort_order: Date.now() };
+  // Kategori fallback (BOARD/STARRED/DAY için)
+  const isMetaList = activeListId === BOARD_LIST_ID || activeListId === STARRED_LIST_ID || activeListId === DAY_LIST_ID;
+  const targetCategory = isMetaList
+    ? (addCategoryOverride || lists[0]?.id || (DEFAULT_LISTS[0] && DEFAULT_LISTS[0].id))
+    : activeListId;
+  if (!targetCategory) { showToast('Görev için liste seç'); input.focus(); return; }
+  const payload = { text, done:false, category: targetCategory, sort_order: Date.now() };
   if (addDueValue) payload.due_at = addDueValue;
   if (addPriority) payload.priority = addPriority;
   else if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
@@ -4217,8 +4223,12 @@ async function addTaskKeepFocus() {
   } catch(e) { alert(e.message); }
   finally {
     addingTask = false;
-    openAddDetail();
-    input.focus();
+    if (typeof lcAddPopoverState !== 'undefined' && lcAddPopoverState) {
+      lcCloseAddPopover();
+    } else {
+      openAddDetail();
+      input.focus();
+    }
   }
 }
 
@@ -5656,6 +5666,10 @@ function renderListCalendar() {
   const root = document.getElementById('listCalendar');
   if (!root || root.style.display === 'none') return;
   lcInitState();
+  // Render sırasında grid sıfırlandığında scrollTop tarayıcı tarafından 0'a alınıyor.
+  // Render bittikten sonra geri yükle (lcMaybeScrollToNow otomatik scroll istiyorsa override eder).
+  const _wrap = document.getElementById('lcGridWrap');
+  const _savedScroll = _wrap ? _wrap.scrollTop : 0;
   // day_meta ilk render'da arka planda yüklenir; gelince re-render eder
   if (!dayMetaLoadedRange) {
     loadDayMeta(lcWeekStart).then(() => renderListCalendar());
@@ -5855,8 +5869,13 @@ function renderListCalendar() {
   // 7) Şu an çizgisi (bugün bu haftanın içindeyse)
   lcRenderNowLine(grid, days);
 
-  // 8) İlk renderda / Bugün'e dönüşte şu anki saate scroll et
-  lcMaybeScrollToNow();
+  // 8) İlk renderda / Bugün'e dönüşte şu anki saate scroll et;
+  //    aksi halde önceki scroll pozisyonunu koru
+  if (lcPendingScrollToNow) {
+    lcMaybeScrollToNow();
+  } else if (_wrap) {
+    requestAnimationFrame(() => { _wrap.scrollTop = _savedScroll; });
+  }
 }
 
 function lcRenderNowLine(grid, days) {
