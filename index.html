@@ -531,13 +531,11 @@
       --lc-sticky-2: var(--lc-row-balance);
       --lc-sticky-3: calc(var(--lc-row-balance) + var(--lc-row-date));
       --lc-sticky-4: calc(var(--lc-row-balance) + var(--lc-row-date) + var(--lc-row-theme));
-      --lc-today-bg: #f3f5fc;
     }
     .lc-grid.is-single-day {
       grid-template-columns: 72px minmax(280px, 408px);
       max-width:480px; margin-left:auto; margin-right:auto;
     }
-    body.theme-dark .lc-grid { --lc-today-bg: var(--surface2); }
     .lc-grid::-webkit-scrollbar { width:6px; }
     .lc-grid::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
 
@@ -590,11 +588,7 @@
     }
     .lc-cell-date.is-today .lc-day-name { color:var(--accent); }
     /* Bugün vurgusu sadece tarih satırındaki gün rakamında — balance hücresinde ekstra vurgu yok */
-    .lc-hour-cell.is-today { background:rgba(79,110,247,.04); }
-    .lc-cell-theme.is-today,
-    .lc-cell-focus.is-today { background:var(--lc-today-bg); }
-    .lc-cell-theme.is-today:hover,
-    .lc-cell-focus.is-today:hover { background:var(--surface2); }
+    /* Bugün vurgusu yalnızca tarih satırındaki gün rakamı dairesi + now çizgisi ile */
     .lc-cell-theme, .lc-cell-focus {
       font-size:.7rem; color:var(--text4); cursor:pointer; user-select:none;
     }
