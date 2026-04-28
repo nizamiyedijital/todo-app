@@ -755,6 +755,47 @@
       outline:2px dashed var(--accent); outline-offset:-2px;
       background:rgba(79,110,247,.08) !important;
     }
+    /* Takvim hücresine tıklayınca açılan görev ekleme balonu */
+    .lc-add-popover {
+      position:fixed; z-index:9100;
+      background:#fff; border:1px solid var(--border2);
+      border-radius:14px; box-shadow:0 10px 32px rgba(0,0,0,.18);
+      width:340px; max-width:calc(100vw - 24px);
+      max-height:calc(100vh - 48px);
+      overflow:auto;
+      animation:lcApFade .14s ease-out;
+    }
+    body.theme-dark .lc-add-popover { background:var(--card-bg); border-color:var(--border); }
+    @keyframes lcApFade { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+    .lc-add-popover-head {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 14px; border-bottom:1px solid var(--border2);
+      font-size:.78rem; font-weight:700; color:var(--text);
+    }
+    .lc-add-popover-head .lc-ap-time {
+      color:var(--accent); font-variant-numeric:tabular-nums;
+    }
+    .lc-add-popover-head .lc-ap-close {
+      background:none; border:none; cursor:pointer;
+      color:var(--text3); padding:2px; border-radius:5px;
+    }
+    .lc-add-popover-head .lc-ap-close:hover { background:var(--surface2); color:var(--text); }
+    .lc-add-popover .add-wrap { display:block !important; padding:10px 12px; }
+    .lc-add-popover #addDetail { display:flex !important; max-height:none !important; overflow:visible !important; }
+
+    /* Hayalet (önizleme) blok — popover açıkken hücrede görünür */
+    .lc-ghost-block {
+      position:absolute; left:2px; right:2px; top:0;
+      min-height:24px;
+      background:rgba(79,110,247,.14);
+      border:1.5px dashed var(--accent);
+      border-radius:5px;
+      pointer-events:none; z-index:3;
+      font-size:13px; color:var(--accent);
+      padding:3px 6px; line-height:1.2;
+      overflow:hidden;
+    }
+
     /* Block hover popover (kısa görevlerde okunabilirlik) */
     .lc-block-popover {
       position:fixed; z-index:9000;
@@ -3812,8 +3853,13 @@ async function addTask() {
   finally {
     lastAddTaskTime = Date.now();
     addingTask = false;
-    openAddDetail();
-    document.getElementById('taskInput').focus();
+    // Quick-add popover açıksa kapat (form zaten popover içindeydi)
+    if (typeof lcAddPopoverState !== 'undefined' && lcAddPopoverState) {
+      lcCloseAddPopover();
+    } else {
+      openAddDetail();
+      document.getElementById('taskInput').focus();
+    }
     setTimeout(() => { keepInputFocused = false; }, 800);
   }
 }
@@ -4031,6 +4077,7 @@ function renderAddBalanceChips() {
 function toggleAddMins(mins) {
   addEstimatedMinutes = (addEstimatedMinutes === mins) ? null : mins;
   renderAddMinsChips();
+  if (typeof lcUpdateGhostBlock === 'function') lcUpdateGhostBlock();
 }
 function renderAddMinsChips() {
   document.querySelectorAll('.add-mins-chip').forEach(el => {
@@ -4202,6 +4249,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const taskInputEl = document.getElementById('taskInput');
   taskInputEl.addEventListener('focus', openAddDetail);
   taskInputEl.addEventListener('input', taskInputAutoGrow);
+  taskInputEl.addEventListener('input', () => { if (typeof lcUpdateGhostBlock === 'function') lcUpdateGhostBlock(); });
   taskInputEl.addEventListener('keydown', e=>{
     if (e.key==='Enter' && !e.shiftKey) {
       e.preventDefault(); e.stopPropagation();
@@ -4250,6 +4298,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         addEstimatedMinutes = v;
       }
       renderAddMinsChips();
+      if (typeof lcUpdateGhostBlock === 'function') lcUpdateGhostBlock();
     };
     minsInpEl.addEventListener('keydown', e => {
       if (e.key === 'Enter')  { e.preventDefault(); e.stopPropagation(); commit(); taskInputEl.focus(); }
@@ -5720,6 +5769,11 @@ function renderListCalendar() {
     `;
     grid.appendChild(hint);
   }
+  // Sadece custom liste modunda hücre click → quick-add popover (Yıldızlı/Day/Board kapalı)
+  const allowQuickAdd = activeListId
+    && activeListId !== STARRED_LIST_ID
+    && activeListId !== DAY_LIST_ID
+    && activeListId !== BOARD_LIST_ID;
   for (let h = lcVisibleHours.start; h <= lcVisibleHours.end; h++) {
     const lbl = document.createElement('div');
     lbl.className = 'lc-hour-label';
@@ -5735,6 +5789,15 @@ function renderListCalendar() {
       const inHour = lcTasksForDayHour(d, h);
       const layoutMap = dayLayouts.get(dKey);
       for (const t of inHour) cell.appendChild(lcMakeTaskBlock(t, layoutMap?.get(t.id)));
+      if (allowQuickAdd) {
+        cell.style.cursor = 'pointer';
+        cell.addEventListener('click', (e) => {
+          // Mevcut görev block'una veya hayalet bloğa tıklamayı yoksay
+          if (e.target.closest('.lc-task-block, .lc-ghost-block')) return;
+          const tg = lcParseDropTarget(cell, e.clientX, e.clientY);
+          if (tg) lcOpenAddPopover(tg);
+        });
+      }
       grid.appendChild(cell);
     }
   }
@@ -5778,6 +5841,117 @@ function lcMaybeScrollToNow() {
     wrap.scrollTop = Math.max(0, cellTop - wrap.clientHeight / 3);
     lcPendingScrollToNow = false;
   });
+}
+
+/* ── Calendar quick-add popover ── */
+let lcAddPopoverState = null;  // { popover, ghost, target, prevParent, onDoc, onKey }
+
+function lcOpenAddPopover(target) {
+  // Sadece custom liste modunda açılır
+  const isStarred = activeListId === STARRED_LIST_ID;
+  const isDay     = activeListId === DAY_LIST_ID;
+  const isBoard   = activeListId === BOARD_LIST_ID;
+  if (!activeListId || isBoard || isStarred || isDay) return;
+  lcCloseAddPopover();
+
+  const addWrap = document.getElementById('addWrap');
+  const prevParent = addWrap.parentElement;
+  const prevDisplay = addWrap.style.display;
+
+  const pop = document.createElement('div');
+  pop.className = 'lc-add-popover';
+  pop.id = 'lcAddPopover';
+  const head = document.createElement('div');
+  head.className = 'lc-add-popover-head';
+  const dt = new Date(target.date + 'T00:00:00');
+  dt.setHours(target.hour, target.minute, 0, 0);
+  const tStr = `${String(target.hour).padStart(2,'0')}:${String(target.minute).padStart(2,'0')}`;
+  const dStr = dt.toLocaleDateString('tr-TR', { weekday:'short', day:'numeric', month:'short' });
+  head.innerHTML = `<span><span style="color:var(--text3);font-weight:500">${dStr} · </span><span class="lc-ap-time">${tStr}</span><span style="color:var(--text3);font-weight:500"> için yeni görev</span></span>
+                    <button class="lc-ap-close" title="Kapat (Esc)"><span class="mi s18">close</span></button>`;
+  pop.appendChild(head);
+  addWrap.style.display = '';
+  pop.appendChild(addWrap);
+  document.body.appendChild(pop);
+
+  // Tarih state'i clicked time'a ayarla
+  addDueValue = lcBuildDueAt(target.date, target.hour, target.minute);
+  if (typeof renderAddDueLabel === 'function') renderAddDueLabel();
+  if (typeof openAddDetail === 'function') openAddDetail();
+  // Süre default 30 (önizleme yardımcısı)
+  if (addEstimatedMinutes == null) addEstimatedMinutes = DEFAULT_TASK_MINUTES;
+  if (typeof renderAddMinsChips === 'function') renderAddMinsChips();
+
+  // Ghost blok
+  const ghost = document.createElement('div');
+  ghost.className = 'lc-ghost-block';
+  target.cell.appendChild(ghost);
+
+  lcAddPopoverState = {
+    popover: pop, ghost, target, prevParent, prevDisplay,
+    onDoc: (e) => {
+      if (pop.contains(e.target)) return;
+      // dtp/picker overlay'leri için: bu element'ler popover dışında ama UI parçası
+      if (e.target.closest('.dtp-overlay, .dtp-box, .add-prio-picker, .add-link-popup, .add-subtasks-popup')) return;
+      lcCloseAddPopover();
+    },
+    onKey: (e) => { if (e.key === 'Escape') lcCloseAddPopover(); },
+  };
+  setTimeout(() => {
+    document.addEventListener('mousedown', lcAddPopoverState.onDoc);
+    document.addEventListener('keydown',   lcAddPopoverState.onKey);
+  }, 0);
+  // Kapatma butonu
+  head.querySelector('.lc-ap-close').onclick = () => lcCloseAddPopover();
+
+  lcUpdateGhostBlock();
+  lcPositionAddPopover(target.cell);
+  setTimeout(() => document.getElementById('taskInput')?.focus(), 50);
+}
+
+function lcCloseAddPopover() {
+  if (!lcAddPopoverState) return;
+  const { popover, ghost, prevParent, prevDisplay, onDoc, onKey } = lcAddPopoverState;
+  document.removeEventListener('mousedown', onDoc);
+  document.removeEventListener('keydown',   onKey);
+  ghost?.remove();
+  const addWrap = document.getElementById('addWrap');
+  if (addWrap && prevParent) {
+    prevParent.appendChild(addWrap);
+    addWrap.style.display = prevDisplay || '';
+  }
+  popover?.remove();
+  lcAddPopoverState = null;
+  if (typeof closeAddDetail === 'function') closeAddDetail();
+}
+
+function lcPositionAddPopover(cell) {
+  if (!lcAddPopoverState) return;
+  const pop = lcAddPopoverState.popover;
+  const r = cell.getBoundingClientRect();
+  const popW = pop.offsetWidth;
+  const popH = pop.offsetHeight;
+  // Tercih: hücrenin sağında; sığmazsa solunda
+  let left = r.right + 8;
+  if (left + popW > window.innerWidth - 8) left = r.left - popW - 8;
+  if (left < 8) left = 8;
+  // Dikey: üstüne hizala; aşağı taşarsa yukarı al
+  let top = r.top;
+  if (top + popH > window.innerHeight - 8) top = window.innerHeight - popH - 8;
+  if (top < 8) top = 8;
+  pop.style.left = `${Math.round(left)}px`;
+  pop.style.top  = `${Math.round(top)}px`;
+}
+
+function lcUpdateGhostBlock() {
+  if (!lcAddPopoverState) return;
+  const { ghost, target } = lcAddPopoverState;
+  const minutes = (addEstimatedMinutes != null && addEstimatedMinutes > 0) ? addEstimatedMinutes : DEFAULT_TASK_MINUTES;
+  ghost.style.top    = `${(target.minute / 60) * 100}%`;
+  ghost.style.height = `calc(${(minutes / 60) * 100}% - 2px)`;
+  const text = (document.getElementById('taskInput')?.value || 'Yeni görev').slice(0, 60);
+  const tStr = `${String(target.hour).padStart(2,'0')}:${String(target.minute).padStart(2,'0')}`;
+  ghost.textContent = `${text} · ${tStr} · ${fmtBalanceMinutes(minutes)}`;
 }
 
 function lcMakeBalanceContent(r) {
