@@ -754,6 +754,20 @@
       outline:2px dashed var(--accent); outline-offset:-2px;
       background:rgba(79,110,247,.08) !important;
     }
+    /* Snap önizleme: hücre içinde ince çizgi + saat etiketi */
+    .lc-drop-snap-line {
+      position:absolute; left:0; right:0; height:0;
+      border-top:1.5px solid var(--accent);
+      pointer-events:none; z-index:6;
+    }
+    .lc-drop-snap-label {
+      position:absolute; right:4px; top:-9px;
+      background:var(--accent); color:#fff;
+      font-size:.62rem; font-weight:600;
+      padding:2px 6px; border-radius:4px;
+      font-variant-numeric:tabular-nums;
+      box-shadow:0 1px 3px rgba(0,0,0,.18);
+    }
     .lc-drag-ghost {
       position:fixed; pointer-events:none; z-index:9999;
       background:#fff; border:1.5px solid var(--accent);
@@ -6006,6 +6020,7 @@ function initLcDrag(el, task) {
 
     function clearTarget() {
       document.querySelectorAll('.lc-drop-active').forEach(n => n.classList.remove('lc-drop-active'));
+      document.querySelectorAll('.lc-drop-snap-line').forEach(n => n.remove());
       lastTarget = null;
     }
 
@@ -6028,6 +6043,14 @@ function initLcDrag(el, task) {
       if (target) {
         target.cell.classList.add('lc-drop-active');
         lastTarget = target;
+        // Hücre içinde snap önizleme: ince çizgi + saat etiketi
+        const line = document.createElement('div');
+        line.className = 'lc-drop-snap-line';
+        line.style.top = `${(target.minute / 60) * 100}%`;
+        const hh = String(target.hour).padStart(2,'0');
+        const mm = String(target.minute).padStart(2,'0');
+        line.innerHTML = `<span class="lc-drop-snap-label">${hh}:${mm}</span>`;
+        target.cell.appendChild(line);
       }
     }
 
@@ -6077,14 +6100,20 @@ function lcParseDropTarget(elAt, x, y) {
   const hourCell = elAt.closest('.lc-hour-cell');
   if (hourCell) {
     const date = hourCell.dataset.dateIso;
-    const hour = parseInt(hourCell.dataset.hour, 10);
+    const cellHour = parseInt(hourCell.dataset.hour, 10);
     const r = hourCell.getBoundingClientRect();
     const frac = Math.max(0, Math.min(1, (y - r.top) / r.height));
-    let totalMin = hour * 60 + frac * 60;
-    totalMin = Math.round(totalMin / 15) * 15;
+    let totalMin = cellHour * 60 + frac * 60;
+    totalMin = Math.round(totalMin / 5) * 5;  // 5 dk hassasiyetinde snap
     const hh = Math.floor(totalMin / 60);
     const mm = totalMin % 60;
-    return { kind:'hour', cell: hourCell, date, hour: hh, minute: mm };
+    // Snap noktası başka saat hücresine taşınmışsa o hücreyi target.cell yap
+    let snapCell = hourCell;
+    if (hh !== cellHour) {
+      const next = document.querySelector(`.lc-hour-cell[data-date-iso="${date}"][data-hour="${hh}"]`);
+      if (next) snapCell = next;
+    }
+    return { kind:'hour', cell: snapCell, date, hour: hh, minute: mm };
   }
   return null;
 }
