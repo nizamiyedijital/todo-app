@@ -5811,10 +5811,10 @@ function initLcDrag(el, task) {
 
       if (!dragging) return;
       if (ghost) { ghost.remove(); ghost = null; }
+      const dropTarget = lastTarget;
       clearTarget();
-
-      if (lastTarget) {
-        await dropTaskOnCalendar(task, lastTarget);
+      if (dropTarget) {
+        await dropTaskOnCalendar(task, dropTarget);
       }
     }
 
