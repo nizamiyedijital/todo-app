@@ -697,7 +697,21 @@
     .lc-task-block[data-cat="spiritual"] { background:#ede0fa; border-left-color:#a855f7; color:#7c3aed; }
     .lc-task-block.is-conflict { box-shadow:0 1px 2px rgba(0,0,0,.1), -1px 0 0 rgba(255,255,255,.7); padding:3px 4px; }
     .lc-task-block.is-conflict .lc-task-text { font-size:14px; }
-    .lc-task-block.is-done { text-decoration:line-through; opacity:.55; }
+    .lc-task-block.is-done { opacity:.55; }
+    .lc-task-block.is-done .lc-task-text { text-decoration:line-through; }
+    /* Block içi tamamla butonu (sol kenar) */
+    .lc-block-check {
+      width:14px; height:14px; flex-shrink:0;
+      border:1.5px solid #c5cee0; border-radius:50%;
+      display:inline-flex; align-items:center; justify-content:center;
+      background:rgba(255,255,255,.55); cursor:pointer;
+      transition:all .14s;
+    }
+    .lc-block-check:hover { border-color:var(--accent); background:#fff; }
+    .lc-block-check.checked { background:var(--accent); border-color:var(--accent); }
+    .lc-block-check.checked::after {
+      content:'✓'; color:#fff; font-size:.6rem; font-weight:700; line-height:1;
+    }
 
     /* Empty state — saat satırlarının üstünde ipucu */
     .lc-empty-hint {
@@ -6175,8 +6189,21 @@ function lcMakeTaskBlock(t, layout) {
   }
   block.dataset.taskId = t.id;
   const emoji = t.balance_category ? BALANCE_CATEGORIES[t.balance_category].emoji + ' ' : '';
-  block.innerHTML = `<span class="lc-task-text">${emoji}${escapeHtml(t.text)}</span>`;
+  block.innerHTML = `<div style="display:flex;align-items:flex-start;gap:5px;">
+    <span class="lc-block-check${t.done ? ' checked' : ''}" title="Tamamla"></span>
+    <span class="lc-task-text" style="flex:1;min-width:0;">${emoji}${escapeHtml(t.text)}</span>
+  </div>`;
   const conflictNote = total > 1 ? ` · ${total} görev çakışıyor` : '';
+  // Checkbox: sadece toggle done; block click'ini durdur
+  const checkEl = block.querySelector('.lc-block-check');
+  checkEl.addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    lcHideBlockPopover();
+    toggleTask(t);
+  });
+  // Drag başlatmasını da engelle: pointerdown stop
+  checkEl.addEventListener('pointerdown', (e) => e.stopPropagation());
   block.onclick = (e) => { e.stopPropagation(); openMobTaskSheet(t); };
   block.addEventListener('mouseenter', () => lcShowBlockPopover(block, t));
   block.addEventListener('mouseleave', lcHideBlockPopover);
