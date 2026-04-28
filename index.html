@@ -6008,7 +6008,13 @@ function lcCloseAddPopover() {
   ghost?.remove();
   const addWrap = document.getElementById('addWrap');
   if (addWrap && prevParent) {
-    prevParent.appendChild(addWrap);
+    // Orijinal konuma yerleştir: balanceCard'dan sonra, taskList'ten önce
+    const taskList = document.getElementById('taskList');
+    if (taskList && prevParent.contains(taskList)) {
+      prevParent.insertBefore(addWrap, taskList);
+    } else {
+      prevParent.appendChild(addWrap);
+    }
     addWrap.style.display = prevDisplay || '';
   }
   popover?.remove();
