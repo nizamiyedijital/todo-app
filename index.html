@@ -825,6 +825,25 @@
       overflow:hidden;
     }
 
+    /* Tüm Listeler: liste etiketi rozeti (görev kart info bar'ında) */
+    .task-list-badge {
+      display:inline-flex; align-items:center; gap:3px;
+      font-size:11px; color:var(--text3); padding:1px 6px;
+      background:var(--surface2); border-radius:8px;
+      flex-shrink:0;
+    }
+    .task-list-badge .mi { font-size:11px; color:var(--text4); }
+    body.theme-dark .task-list-badge { background:var(--card-bg); }
+
+    /* Boş placeholder (Rutinler vb.) */
+    .empty-placeholder {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:10px; padding:48px 24px; text-align:center;
+      color:var(--text3);
+    }
+    .empty-placeholder h3 { margin:0; color:var(--text); font-size:1.1rem; }
+    .empty-placeholder p  { margin:0; font-size:.86rem; line-height:1.5; max-width:340px; }
+
     /* Block hover popover (kısa görevlerde okunabilirlik) */
     .lc-block-popover {
       position:fixed; z-index:9000;
@@ -2929,9 +2948,11 @@ const SB      = 'https://uzkscrrqyxftbtwkiyra.supabase.co';
 const ANON    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6a3NjcnJxeXhmdGJ0d2tpeXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDkxNDMsImV4cCI6MjA5MjI4NTE0M30.wA7g4SVacghNunC0nt6ZP3SgHZ6U6LAWu3ggUrypBxE';
 const APP_URL = 'https://nizamiyedijital.github.io/todo-app';
 
-const STARRED_LIST_ID = '__starred__';
-const BOARD_LIST_ID   = '__board__';
-const DAY_LIST_ID     = '__day__';
+const STARRED_LIST_ID  = '__starred__';
+const BOARD_LIST_ID    = '__board__';
+const DAY_LIST_ID      = '__day__';
+const ROUTINES_LIST_ID = '__routines__';
+const ALL_LISTS_ID     = '__all_lists__';
 let activeDayDate = null;
 let sidebarCalYear  = new Date().getFullYear();
 let sidebarCalMonth = new Date().getMonth();
@@ -3529,36 +3550,29 @@ function renderSidebar() {
   viewsLabel.textContent = 'Görünümler';
   container.appendChild(viewsLabel);
 
-  /* Tüm Görevler board item */
-  const boardItem = document.createElement('div');
-  boardItem.className = 'list-item' + (activeListId===BOARD_LIST_ID?' active':'');
-  boardItem.onclick   = () => selectList(BOARD_LIST_ID);
-  boardItem.innerHTML = `
-    <span class="list-icon">${mi('view_kanban','18')}</span>
-    <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Tüm Görevler</span>
-  `;
-  if (activeListId===BOARD_LIST_ID) {
-    boardItem.querySelector('.list-name').style.color='var(--accent)';
-    boardItem.querySelector('.list-name').style.fontWeight='600';
+  // Sabit görünümler: Sütun Görünümü, Rutinler, Tüm Listeler, Günün Odağı
+  const fixedItems = [
+    { id: BOARD_LIST_ID,    icon: 'view_kanban',     label: 'Sütun Görünümü', count: 0, title: 'Tüm görevleri liste kolonlarında göster' },
+    { id: ROUTINES_LIST_ID, icon: 'replay',          label: 'Rutinler',        count: 0, title: 'Yakında — düzenli rutinler' },
+    { id: ALL_LISTS_ID,     icon: 'flag',            label: 'Tüm Listeler',    count: tasks.filter(t=>!t.parent_id && !t.done && t.priority).length, title: 'Önceliği atanmış görevler' },
+    { id: STARRED_LIST_ID,  icon: 'star',            label: 'Günün Odağı',     count: tasks.filter(t=>!t.parent_id && t.starred && !t.done).length, title: 'Günde tek yıldız. Bu, o günün odağı.' },
+  ];
+  for (const f of fixedItems) {
+    const item = document.createElement('div');
+    item.className = 'list-item' + (activeListId === f.id ? ' active' : '');
+    if (f.title) item.title = f.title;
+    item.onclick = () => selectList(f.id);
+    item.innerHTML = `
+      <span class="list-icon">${mi(f.icon, '18')}</span>
+      <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">${f.label}</span>
+      <span class="list-count">${f.count > 0 ? f.count : ''}</span>
+    `;
+    if (activeListId === f.id) {
+      item.querySelector('.list-name').style.color = 'var(--accent)';
+      item.querySelector('.list-name').style.fontWeight = '600';
+    }
+    container.appendChild(item);
   }
-  container.appendChild(boardItem);
-
-  /* Yıldızlı akıllı liste */
-  const starCount = tasks.filter(t=>!t.parent_id && t.starred && !t.done).length;
-  const starItem  = document.createElement('div');
-  starItem.className = 'list-item' + (activeListId===STARRED_LIST_ID?' active':'');
-  starItem.title     = 'Günde tek yıldız. Bu, o günün odağı.';
-  starItem.onclick   = () => selectList(STARRED_LIST_ID);
-  starItem.innerHTML = `
-    <span class="list-icon">${mi('star','18')}</span>
-    <span class="list-name" style="flex:1;font-size:.87rem;font-weight:500;">Yıldızlı</span>
-    <span class="list-count">${starCount > 0 ? starCount : ''}</span>
-  `;
-  if (activeListId===STARRED_LIST_ID) {
-    starItem.querySelector('.list-name').style.color='var(--accent)';
-    starItem.querySelector('.list-name').style.fontWeight='600';
-  }
-  container.appendChild(starItem);
 
   const listsLabel = document.createElement('div');
   listsLabel.className = 'sidebar-section-label';
@@ -3843,7 +3857,7 @@ function populateAddListSelect() {
 function selectList(id) {
   // '__weekly__' artık geçerli değil — eski state'ten gelirse BOARD'a düş
   if (id === '__weekly__') id = BOARD_LIST_ID;
-  const isSpecial = id === BOARD_LIST_ID || id === STARRED_LIST_ID;
+  const isSpecial = id === BOARD_LIST_ID || id === STARRED_LIST_ID || id === ROUTINES_LIST_ID || id === ALL_LISTS_ID;
   if (!isSpecial && !lists.some(l => String(l.id) === String(id))) id = BOARD_LIST_ID;
   activeDayDate = null;
   activeListId = id;
@@ -3851,23 +3865,33 @@ function selectList(id) {
   try { sessionStorage.setItem('activeListId', id); } catch {}
   try { history.replaceState({ activeListId: id }, '', location.pathname + '#list=' + encodeURIComponent(id)); } catch {}
   doneOpen     = false;
-  const isBoard  = id === BOARD_LIST_ID;
+  const isBoard       = id === BOARD_LIST_ID;
+  const isStarredView = id === STARRED_LIST_ID;
+  const isDayView     = id === DAY_LIST_ID;
+  const isRoutines    = id === ROUTINES_LIST_ID;
+  const isAllLists    = id === ALL_LISTS_ID;
+  const isCustomList  = !isBoard && !isStarredView && !isDayView && !isRoutines && !isAllLists;
   const list     = lists.find(l=>l.id===id);
-  document.getElementById('mainListTitle').textContent = isBoard ? 'Tüm Görevler' : (list?.name || '');
-  document.getElementById('addWrap').style.display      = 'block';
+  // Başlık etiketi
+  const titleMap = {
+    [BOARD_LIST_ID]:    'Sütun Görünümü',
+    [ROUTINES_LIST_ID]: 'Rutinler',
+    [ALL_LISTS_ID]:     'Tüm Listeler',
+    [STARRED_LIST_ID]:  'Günün Odağı',
+  };
+  document.getElementById('mainListTitle').textContent = titleMap[id] || (list?.name || '');
+  // Ana panel düzeni
+  document.getElementById('addWrap').style.display      = isRoutines ? 'none' : 'block';
   document.getElementById('mainBody').style.display     = '';
   document.getElementById('mainContent').style.display  = 'flex';
   document.getElementById('boardArea').style.display    = isBoard ? 'flex' : 'none';
   document.getElementById('boardNav').style.display     = isBoard ? '' : 'none';
-  document.body.dataset.viewMode = isBoard ? 'board' : '';
-  // List calendar: custom liste VEYA Yıldızlı modunda görünür
-  const isStarredView = id === STARRED_LIST_ID;
-  const isDayView     = id === DAY_LIST_ID;
-  const isCustomList  = !isBoard && !isStarredView && !isDayView;
-  const showCalendar  = isCustomList || isStarredView;
+  document.body.dataset.viewMode = isBoard ? 'board' : (isRoutines ? 'routines' : '');
+  // Takvim: custom, yıldızlı, tüm listeler modlarında görünür (board/routines kapalı)
+  const showCalendar  = isCustomList || isStarredView || isAllLists;
   if (showCalendar) {
     lcPendingScrollToNow = true;
-    lcSingleDate = null;  // custom/yıldızlı'ya geçince hafta moduna dön
+    lcSingleDate = null;
   }
   document.getElementById('listCalendar').style.display = showCalendar ? 'flex' : 'none';
   // Liste seçici: tüm modlarda görünür; default aktif liste (custom) veya ilk liste (meta)
@@ -4738,10 +4762,52 @@ function restoreOpenDetails() {
   }
 }
 
+function renderRoutinesPlaceholder() {
+  const taskList = document.getElementById('taskList');
+  taskList.innerHTML = `
+    <div class="empty-placeholder">
+      <span class="mi s40" style="color:var(--accent);">replay</span>
+      <h3>Rutinler</h3>
+      <p>Çok yakında — düzenli yaşam rutinleri için ayrı bir alan hazırlanıyor.</p>
+    </div>`;
+  document.getElementById('empty').style.display = 'none';
+  document.getElementById('balanceCard').style.display = 'none';
+  document.getElementById('doneSection').style.display = 'none';
+}
+
+function renderAllListsPage() {
+  // Sadece priority atanmış aktif görevler, priority sırasına göre
+  const items = tasks.filter(t => !t.parent_id && !t.done && t.priority);
+  items.sort((a, b) => (PRIO_ORDER[a.priority] ?? 99) - (PRIO_ORDER[b.priority] ?? 99));
+  const taskList = document.getElementById('taskList');
+  taskList.innerHTML = '';
+  items.forEach(t => {
+    const card = buildTaskCard(t, false);
+    // Liste etiketi rozeti
+    const list = lists.find(l => l.id === t.category);
+    if (list) {
+      const badge = document.createElement('span');
+      badge.className = 'task-list-badge';
+      badge.innerHTML = `<span class="mi s12">folder</span>${escapeHtml(list.name)}`;
+      const infoBar = card.querySelector('.task-info-bar');
+      if (infoBar) infoBar.appendChild(badge);
+      else card.appendChild(badge);
+    }
+    initLcDrag(card, t);
+    taskList.appendChild(card);
+  });
+  document.getElementById('empty').style.display = items.length === 0 ? 'block' : 'none';
+  document.getElementById('doneSection').style.display = 'none';
+  renderBalanceCard(new Date());
+  renderListCalendar();
+}
+
 function render() {
   try { renderSidebarCalendar(); } catch(e) { console.error('renderSidebarCalendar:', e); }
   if (!activeListId) return;
-  if (activeListId === BOARD_LIST_ID)  { renderBoard();  return; }
+  if (activeListId === BOARD_LIST_ID)     { renderBoard();              return; }
+  if (activeListId === ROUTINES_LIST_ID)  { renderRoutinesPlaceholder(); return; }
+  if (activeListId === ALL_LISTS_ID)      { renderAllListsPage();        return; }
 
   const isStarred   = activeListId === STARRED_LIST_ID;
   const isDayFilter = activeListId === DAY_LIST_ID;
@@ -5447,6 +5513,7 @@ function calculateListStats(listId) {
   const items = (tasks || []).filter(t => {
     if (t.parent_id) return false;
     if (listId === STARRED_LIST_ID) return !!t.starred;
+    if (listId === ALL_LISTS_ID)    return !!t.priority;
     return t.category === listId;
   });
   const active = items.filter(t => !t.done);
@@ -5521,15 +5588,27 @@ function renderBalanceCard(forDate) {
   const card = document.getElementById('balanceCard');
   if (!card) return;
   const isStarred = activeListId === STARRED_LIST_ID;
-  const isCardScope = activeListId && activeListId !== BOARD_LIST_ID && activeListId !== DAY_LIST_ID;
+  const isAllLists = activeListId === ALL_LISTS_ID;
+  const isCardScope = activeListId && activeListId !== BOARD_LIST_ID && activeListId !== DAY_LIST_ID && activeListId !== ROUTINES_LIST_ID;
   if (!isCardScope) { card.style.display = 'none'; return; }
   const list = lists.find(l => l.id === activeListId);
   const s = calculateListStats(activeListId);
   card.style.display = '';
   card.style.borderLeftColor = s.color;
-  const titleText  = isStarred ? 'Yıldızlı' : (list?.name || 'Liste');
-  const subTitle   = isStarred ? 'Yıldızlı Görev İstatistikleri' : 'Liste İstatistikleri';
-  const starLabel  = isStarred ? 'Yıldızlı Görev'                : 'Günün Odağı';
+  let titleText, subTitle, starLabel;
+  if (isAllLists) {
+    titleText = 'Öncelikli Görevler';
+    subTitle  = 'Tüm Listeler — Öncelik Atanmış Görevler';
+    starLabel = 'Günün Odağı';
+  } else if (isStarred) {
+    titleText = 'Günün Odağı';
+    subTitle  = 'Yıldızlı Görev İstatistikleri';
+    starLabel = 'Yıldızlı Görev';
+  } else {
+    titleText = list?.name || 'Liste';
+    subTitle  = 'Liste İstatistikleri';
+    starLabel = 'Günün Odağı';
+  }
 
   const seg = (cat, ratio) => {
     if (ratio <= 0) return '';
@@ -6139,7 +6218,8 @@ function lcTaskInScope(t) {
 function lcIsActiveTask(t) {
   // Aktif moda göre block "tam" mi yoksa "solgun" mu render edilir
   if (activeListId === STARRED_LIST_ID) return !!t.starred;
-  if (activeListId === DAY_LIST_ID || activeListId === BOARD_LIST_ID) return true;
+  if (activeListId === DAY_LIST_ID || activeListId === BOARD_LIST_ID || activeListId === ALL_LISTS_ID) return true;
+  if (activeListId === ROUTINES_LIST_ID) return true;
   return t.category === activeListId;
 }
 
@@ -7811,11 +7891,11 @@ if ('serviceWorker' in navigator) {
   </button>
   <button class="mob-tab" id="mobTabTumu" onclick="selectList(BOARD_LIST_ID)">
     <span class="mi">view_kanban</span>
-    <span>Tümü</span>
+    <span>Sütun</span>
   </button>
   <button class="mob-tab" id="mobTabYildizli" onclick="selectList(STARRED_LIST_ID)">
     <span class="mi">star</span>
-    <span>Yıldızlı</span>
+    <span>Odak</span>
   </button>
 </div>
 
@@ -7831,11 +7911,19 @@ if ('serviceWorker' in navigator) {
     <div class="mob-drawer-section-lbl">Görünümler</div>
     <button class="mob-drawer-item" id="mobDrBoard" onclick="selectList(BOARD_LIST_ID);closeMobDrawer()">
       <span class="mi" style="font-size:20px;color:var(--accent)">view_kanban</span>
-      <span>Tüm Görevler</span>
+      <span>Sütun Görünümü</span>
+    </button>
+    <button class="mob-drawer-item" id="mobDrRoutines" onclick="selectList(ROUTINES_LIST_ID);closeMobDrawer()">
+      <span class="mi" style="font-size:20px;color:var(--accent)">replay</span>
+      <span>Rutinler</span>
+    </button>
+    <button class="mob-drawer-item" id="mobDrAllLists" onclick="selectList(ALL_LISTS_ID);closeMobDrawer()">
+      <span class="mi" style="font-size:20px;color:var(--accent)">flag</span>
+      <span>Tüm Listeler</span>
     </button>
     <button class="mob-drawer-item" id="mobDrStarred" onclick="selectList(STARRED_LIST_ID);closeMobDrawer()">
       <span class="mi" style="font-size:20px;color:#f5a623">star</span>
-      <span>Yıldızlı</span>
+      <span>Günün Odağı</span>
     </button>
     <!-- Listelerim -->
     <div class="mob-drawer-sep"></div>
