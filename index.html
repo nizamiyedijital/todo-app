@@ -531,9 +531,9 @@
       display:grid; grid-template-columns: 72px repeat(7, minmax(150px, 1fr));
       width:100%;
       --lc-row-balance: 180px;
-      --lc-row-date:    44px;
-      --lc-row-theme:   36px;
-      --lc-row-focus:   36px;
+      --lc-row-date:    clamp(38px, 5.4vh, 56px);
+      --lc-row-theme:   clamp(38px, 5.4vh, 56px);
+      --lc-row-focus:   clamp(38px, 5.4vh, 56px);
       --lc-sticky-1: 0px;
       --lc-sticky-2: var(--lc-row-balance);
       --lc-sticky-3: calc(var(--lc-row-balance) + var(--lc-row-date));
