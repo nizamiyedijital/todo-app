@@ -523,7 +523,17 @@
     .lc-grid {
       display:grid; grid-template-columns: 56px repeat(7, 1fr);
       width:100%;
+      --lc-row-balance: 28px;
+      --lc-row-date:    44px;
+      --lc-row-theme:   36px;
+      --lc-row-focus:   36px;
+      --lc-sticky-1: 0px;
+      --lc-sticky-2: var(--lc-row-balance);
+      --lc-sticky-3: calc(var(--lc-row-balance) + var(--lc-row-date));
+      --lc-sticky-4: calc(var(--lc-row-balance) + var(--lc-row-date) + var(--lc-row-theme));
+      --lc-today-bg: #f3f5fc;
     }
+    body.theme-dark .lc-grid { --lc-today-bg: var(--surface2); }
     .lc-grid::-webkit-scrollbar { width:6px; }
     .lc-grid::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
 
@@ -532,32 +542,44 @@
       display:contents;
     }
     .lc-cell-label {
-      font-size:.6rem; font-weight:700; color:var(--text4); letter-spacing:.06em;
-      padding:8px 6px; border-bottom:1px solid #f0f2f8; border-right:1px solid #f0f2f8;
+      font-size:.58rem; font-weight:700; color:var(--text4); letter-spacing:.04em;
+      padding:4px 6px; border-bottom:1px solid #f0f2f8; border-right:1px solid #f0f2f8;
       text-transform:uppercase; background:var(--surface);
       display:flex; align-items:center; justify-content:flex-end;
-      text-align:right; line-height:1.2;
+      text-align:right; line-height:1.05;
+      position:sticky; left:0; z-index:5;
     }
+    .lc-cell-label.row-balance {
+      top:var(--lc-sticky-1); height:var(--lc-row-balance); min-height:var(--lc-row-balance);
+      flex-direction:column; justify-content:center; align-items:flex-end; gap:0;
+      padding:2px 6px; font-size:.52rem;
+    }
+    .lc-cell-label.row-balance span { display:block; }
+    .lc-cell-label.row-date    { top:var(--lc-sticky-2); height:var(--lc-row-date);    min-height:var(--lc-row-date); }
+    .lc-cell-label.row-theme   { top:var(--lc-sticky-3); height:var(--lc-row-theme);   min-height:var(--lc-row-theme); }
+    .lc-cell-label.row-focus   { top:var(--lc-sticky-4); height:var(--lc-row-focus);   min-height:var(--lc-row-focus); }
     .lc-cell-balance, .lc-cell-date, .lc-cell-theme, .lc-cell-focus {
       border-bottom:1px solid #f0f2f8; border-right:1px solid #f0f2f8;
       background:var(--surface);
       padding:6px 6px;
       display:flex; align-items:center; justify-content:center;
-      font-size:.78rem; color:var(--text2); min-height:34px;
+      font-size:.78rem; color:var(--text2);
+      position:sticky; z-index:4;
     }
-    .lc-cell-balance { min-height:18px; padding:0; }
-    .lc-cell-date { flex-direction:column; gap:2px; line-height:1.2; }
+    .lc-cell-balance { min-height:var(--lc-row-balance); height:var(--lc-row-balance); padding:0; top:var(--lc-sticky-1); }
+    .lc-cell-date    { min-height:var(--lc-row-date);    height:var(--lc-row-date);    top:var(--lc-sticky-2); flex-direction:column; gap:2px; line-height:1.2; }
+    .lc-cell-theme   { min-height:var(--lc-row-theme);   height:var(--lc-row-theme);   top:var(--lc-sticky-3); }
+    .lc-cell-focus   { min-height:var(--lc-row-focus);   height:var(--lc-row-focus);   top:var(--lc-sticky-4); }
     .lc-cell-date .lc-day-name { font-size:.62rem; font-weight:700; color:var(--text4); letter-spacing:.06em; text-transform:uppercase; }
     .lc-cell-date .lc-day-num  { font-size:1rem;   font-weight:600; color:var(--text); }
     .lc-cell-date.is-today .lc-day-num { color:var(--accent); }
     .lc-cell-date.is-today .lc-day-name { color:var(--accent); }
     .lc-cell-balance.is-today { box-shadow:inset 0 -3px 0 var(--accent); }
-    .lc-hour-cell.is-today,
-    .lc-cell-allday.is-today,
+    .lc-hour-cell.is-today { background:rgba(79,110,247,.04); }
     .lc-cell-theme.is-today,
-    .lc-cell-focus.is-today { background:rgba(79,110,247,.04); }
+    .lc-cell-focus.is-today { background:var(--lc-today-bg); }
     .lc-cell-theme.is-today:hover,
-    .lc-cell-focus.is-today:hover { background:rgba(79,110,247,.1); }
+    .lc-cell-focus.is-today:hover { background:var(--surface2); }
     .lc-cell-theme, .lc-cell-focus {
       font-size:.7rem; color:var(--text4); cursor:pointer; user-select:none;
     }
@@ -572,30 +594,29 @@
     .lc-hour-cell {
       border-bottom:1px solid #f4f5f9; border-right:1px solid #f4f5f9;
       position:relative;
-      min-height:clamp(36px, calc((100vh - 240px) / var(--lc-visible-rows, 14)), 64px);
+      min-height:clamp(38px, 5.4vh, 56px);
       overflow:visible;
     }
     .lc-hour-cell:hover { background:rgba(79,110,247,.04); }
 
-    /* Tüm gün şeridi */
-    .lc-cell-allday {
-      border-bottom:1px solid #f0f2f8; border-right:1px solid #f0f2f8;
-      background:var(--surface);
-      padding:4px; min-height:32px;
-      display:flex; flex-wrap:wrap; gap:3px;
-      align-items:flex-start;
+    /* Sticky bloğun en altı (Odak satırı): scroll altında gölge */
+    .lc-cell-label.row-focus,
+    .lc-cell-focus {
+      box-shadow:0 6px 8px -6px rgba(0,0,0,.18);
     }
-    .lc-allday-chip {
-      font-size:.68rem; padding:2px 6px; border-radius:5px;
-      background:#eef1fd; color:#1f3b8c;
-      max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-      cursor:pointer; line-height:1.3;
-    }
-    .lc-allday-chip[data-cat="mental"]    { background:#dceaf6; color:#1f5b8c; }
-    .lc-allday-chip[data-cat="physical"]  { background:#d4f4e0; color:#15803d; }
-    .lc-allday-chip[data-cat="spiritual"] { background:#ede0fa; color:#7c3aed; }
-    .lc-allday-chip.is-done { text-decoration:line-through; opacity:.55; }
+    body.theme-dark .lc-cell-label.row-focus,
+    body.theme-dark .lc-cell-focus { box-shadow:0 6px 10px -6px rgba(0,0,0,.5); }
 
+    /* Şu an çizgisi */
+    .lc-now-line {
+      position:absolute; left:0; right:0; height:1.5px;
+      background:var(--accent);
+      pointer-events:none; z-index:3;
+    }
+    .lc-now-line::before {
+      content:''; position:absolute; left:-4px; top:-3px;
+      width:8px; height:8px; border-radius:50%; background:var(--accent);
+    }
     /* Saat hücresi içindeki görev blokları */
     .lc-task-block {
       position:absolute;
@@ -695,8 +716,7 @@
     .lc-drag-ghost-text { font-weight:500; }
     .lc-drag-ghost-meta { font-size:.7rem; color:var(--text4); margin-top:2px; }
     .task-card.is-dragging,
-    .lc-task-block.is-dragging,
-    .lc-allday-chip.is-dragging { opacity:.35; }
+    .lc-task-block.is-dragging { opacity:.35; }
     body.theme-dark .lc-drag-ghost { background:var(--card-bg); }
 
     /* Undo toast */
@@ -715,18 +735,6 @@
       font-weight:600; font-size:.84rem; padding:2px 6px;
     }
     .lc-undo-btn:hover { color:#fff; }
-
-    /* Hour expand butonları */
-    .lc-expand-row { display:contents; }
-    .lc-expand-btn {
-      grid-column: 1 / -1;
-      font-size:.7rem; color:var(--text3); cursor:pointer;
-      padding:6px; background:var(--surface); border:none;
-      border-bottom:1px solid #f0f2f8;
-      display:flex; align-items:center; justify-content:center; gap:4px;
-      transition:background .15s, color .15s;
-    }
-    .lc-expand-btn:hover { background:var(--surface2); color:var(--accent); }
 
     body.theme-dark .list-cal { background:var(--card-bg); border-left-color:var(--border2); }
     body.theme-dark .lc-cell-label,
@@ -3658,6 +3666,7 @@ function selectList(id) {
   const isStarredView = id === STARRED_LIST_ID;
   const isDayView     = id === DAY_LIST_ID;
   const isCustomList  = !isBoard && !isStarredView && !isDayView;
+  if (isCustomList) lcPendingScrollToNow = true;
   document.getElementById('listCalendar').style.display = isCustomList ? 'flex' : 'none';
   updateMobTabBar();
   renderSidebar();
@@ -5248,7 +5257,8 @@ function escapeHtml(s) {
 
 /* ── List calendar (sağ pano) ── */
 let lcWeekStart = null;     // Pazartesi 00:00 olarak güne sabitlenir
-let lcVisibleHours = null;  // { start: 9, end: 22 }  inclusive
+let lcVisibleHours = null;  // { start: 0, end: 23 }  inclusive (24 saat)
+let lcPendingScrollToNow = true;  // ilk renderda şu anki saate scroll et
 let dayMeta = {};           // { 'YYYY-MM-DD': { theme_list_id, focus_task_id } }
 let dayMetaLoadedRange = null;  // { from: 'YYYY-MM-DD', to: '...' }
 
@@ -5306,56 +5316,22 @@ function lcDateKey(d) {
 
 function lcInitState() {
   if (!lcWeekStart) lcWeekStart = lcStartOfWeek(new Date());
-  if (!lcVisibleHours) lcVisibleHours = computeSmartHours();
-}
-
-function computeSmartHours() {
-  if (!Array.isArray(tasks) || !lcWeekStart) return { start: 9, end: 22 };
-  const wkStart = lcWeekStart;
-  const wkEnd   = new Date(wkStart); wkEnd.setDate(wkEnd.getDate() + 7);
-  const hours = [];
-  for (const t of tasks) {
-    if (t.parent_id) continue;
-    if (t.category !== activeListId) continue;
-    if (!t.due_at) continue;
-    const d = new Date(t.due_at);
-    if (d < wkStart || d >= wkEnd) continue;
-    if (d.getHours() === 0 && d.getMinutes() === 0) continue; // tüm-gün
-    hours.push(d.getHours());
-  }
-  if (!hours.length) return { start: 9, end: 22 };
-  let lo = Math.min(...hours);
-  let hi = Math.max(...hours);
-  lo = Math.max(0, lo - 1);
-  hi = Math.min(23, hi + 1);
-  if (hi - lo < 6) {
-    // En az 6 saat genişliğinde bir aralık göster
-    const need = 6 - (hi - lo);
-    const before = Math.min(lo, Math.ceil(need/2));
-    const after  = Math.min(23 - hi, need - before);
-    lo -= before; hi += after;
-  }
-  return { start: lo, end: hi };
-}
-
-function lcExpand(direction) {
-  if (!lcVisibleHours) lcVisibleHours = { start: 9, end: 22 };
-  if (direction === 'before') lcVisibleHours.start = Math.max(0,  lcVisibleHours.start - 3);
-  if (direction === 'after')  lcVisibleHours.end   = Math.min(23, lcVisibleHours.end   + 3);
-  renderListCalendar();
+  if (!lcVisibleHours) lcVisibleHours = { start: 0, end: 23 };
 }
 
 function lcShiftWeek(delta) {
   lcInitState();
+  const wrap = document.getElementById('lcGridWrap');
+  const savedScroll = wrap ? wrap.scrollTop : 0;
   lcWeekStart.setDate(lcWeekStart.getDate() + delta * 7);
-  lcVisibleHours = computeSmartHours();
   lcEnsureDayMetaRange();
   renderListCalendar();
+  if (wrap) requestAnimationFrame(() => { wrap.scrollTop = savedScroll; });
 }
 
 function lcGoToday() {
   lcWeekStart = lcStartOfWeek(new Date());
-  lcVisibleHours = computeSmartHours();
+  lcPendingScrollToNow = true;
   lcEnsureDayMetaRange();
   renderListCalendar();
 }
@@ -5493,38 +5469,13 @@ function renderListCalendar() {
     grid.appendChild(cell);
   }
 
-  // 4b) Tüm gün şeridi (saati 00:00 olan görevler)
-  let hasAllDayTasks = false;
-  for (const d of days) if (lcTasksAllDay(d).length) { hasAllDayTasks = true; break; }
-  if (hasAllDayTasks) {
-    grid.appendChild(lcLabelCell('TÜM GÜN', 'row-allday'));
-    for (const d of days) {
-      const dKey = lcDateKey(d);
-      const cell = document.createElement('div');
-      cell.className = 'lc-cell-allday' + (dKey === todayKey ? ' is-today' : '');
-      cell.dataset.dateIso = dKey;
-      const list = lcTasksAllDay(d);
-      for (const t of list) cell.appendChild(lcMakeAllDayChip(t));
-      grid.appendChild(cell);
-    }
-  }
-
-  // 5) Saat blokları üstündeki "Öncesini göster"
-  if (lcVisibleHours.start > 0) {
-    const btn = document.createElement('button');
-    btn.className = 'lc-expand-btn';
-    btn.innerHTML = `<span class="mi s14">expand_less</span> Öncesini göster`;
-    btn.onclick = () => lcExpand('before');
-    grid.appendChild(btn);
-  }
-
   // 6) Saat satırları — önce her gün için lane layout hesapla
   const dayLayouts = new Map();
   let totalScheduled = 0;
   for (const d of days) {
     const timed = lcTimedTasksForDay(d);
     dayLayouts.set(lcDateKey(d), lcComputeDayLayout(timed));
-    totalScheduled += timed.length + lcTasksAllDay(d).length;
+    totalScheduled += timed.length;
   }
   if (totalScheduled === 0) {
     const hint = document.createElement('div');
@@ -5546,8 +5497,6 @@ function renderListCalendar() {
     `;
     grid.appendChild(hint);
   }
-  const visibleRows = lcVisibleHours.end - lcVisibleHours.start + 1;
-  grid.style.setProperty('--lc-visible-rows', visibleRows);
   for (let h = lcVisibleHours.start; h <= lcVisibleHours.end; h++) {
     const lbl = document.createElement('div');
     lbl.className = 'lc-hour-label';
@@ -5567,20 +5516,55 @@ function renderListCalendar() {
     }
   }
 
-  // 7) Saat bloklarının altında "Sonrasını göster"
-  if (lcVisibleHours.end < 23) {
-    const btn = document.createElement('button');
-    btn.className = 'lc-expand-btn';
-    btn.innerHTML = `<span class="mi s14">expand_more</span> Sonrasını göster`;
-    btn.onclick = () => lcExpand('after');
-    grid.appendChild(btn);
-  }
+  // 7) Şu an çizgisi (bugün bu haftanın içindeyse)
+  lcRenderNowLine(grid, days);
+
+  // 8) İlk renderda / Bugün'e dönüşte şu anki saate scroll et
+  lcMaybeScrollToNow();
+}
+
+function lcRenderNowLine(grid, days) {
+  const now = new Date();
+  if (!days.length) return;
+  const wkStart = days[0];
+  const wkEnd = new Date(wkStart); wkEnd.setDate(wkEnd.getDate() + 7);
+  if (now < wkStart || now >= wkEnd) return;
+  const todayKey = lcDateKey(now);
+  const hour = now.getHours();
+  const cell = grid.querySelector(`.lc-hour-cell[data-date-iso="${todayKey}"][data-hour="${hour}"]`);
+  if (!cell) return;
+  const line = document.createElement('div');
+  line.className = 'lc-now-line';
+  line.style.top = `${(now.getMinutes() / 60) * 100}%`;
+  line.title = `Şu an: ${String(hour).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  cell.appendChild(line);
+}
+
+function lcMaybeScrollToNow() {
+  if (!lcPendingScrollToNow || !lcWeekStart) return;
+  const now = new Date();
+  const wkEnd = new Date(lcWeekStart); wkEnd.setDate(wkEnd.getDate() + 7);
+  if (now < lcWeekStart || now >= wkEnd) return;
+  const hour = now.getHours();
+  const wrap = document.getElementById('lcGridWrap');
+  if (!wrap) return;
+  requestAnimationFrame(() => {
+    const cell = wrap.querySelector(`.lc-hour-cell[data-date-iso="${lcDateKey(now)}"][data-hour="${hour}"]`);
+    if (!cell) return;
+    const cellTop = cell.offsetTop;
+    wrap.scrollTop = Math.max(0, cellTop - wrap.clientHeight / 3);
+    lcPendingScrollToNow = false;
+  });
 }
 
 function lcLabelCell(text, extraCls) {
   const el = document.createElement('div');
   el.className = 'lc-cell-label ' + (extraCls || '');
-  el.textContent = text;
+  if (extraCls === 'row-balance') {
+    el.innerHTML = text.split(/\s+/).map(w => `<span>${escapeHtml(w)}</span>`).join('');
+  } else {
+    el.textContent = text;
+  }
   return el;
 }
 
@@ -5592,7 +5576,6 @@ function lcTasksForDayHour(dayDate, hour) {
     if (t.category !== activeListId) return false;
     if (!t.due_at) return false;
     const d = new Date(t.due_at);
-    if (d.getHours() === 0 && d.getMinutes() === 0) return false;
     return d >= hStart && d < hEnd;
   });
 }
@@ -5605,21 +5588,7 @@ function lcTimedTasksForDay(dayDate) {
     if (t.category !== activeListId) return false;
     if (!t.due_at) return false;
     const d = new Date(t.due_at);
-    if (d < dStart || d >= dEnd) return false;
-    if (d.getHours() === 0 && d.getMinutes() === 0) return false;
-    return true;
-  });
-}
-
-function lcTasksAllDay(dayDate) {
-  const dStart = new Date(dayDate); dStart.setHours(0,0,0,0);
-  const dEnd   = new Date(dStart); dEnd.setDate(dEnd.getDate() + 1);
-  return tasks.filter(t => {
-    if (t.parent_id) return false;
-    if (t.category !== activeListId) return false;
-    if (!t.due_at) return false;
-    const d = new Date(t.due_at);
-    return d >= dStart && d < dEnd && d.getHours() === 0 && d.getMinutes() === 0;
+    return d >= dStart && d < dEnd;
   });
 }
 
@@ -5779,20 +5748,6 @@ function positionPopover(pop, anchor) {
   pop.style.zIndex = 5000;
 }
 
-function lcMakeAllDayChip(t) {
-  const chip = document.createElement('div');
-  chip.className = 'lc-allday-chip';
-  if (t.balance_category) chip.dataset.cat = t.balance_category;
-  if (t.done) chip.classList.add('is-done');
-  chip.dataset.taskId = t.id;
-  const emoji = t.balance_category ? BALANCE_CATEGORIES[t.balance_category].emoji + ' ' : '';
-  chip.innerHTML = `<span>${emoji}${escapeHtml(t.text)}</span>`;
-  chip.title = t.text;
-  chip.onclick = (e) => { e.stopPropagation(); openMobTaskSheet(t); };
-  initLcDrag(chip, t);
-  return chip;
-}
-
 /* ── Drag-and-drop: liste/takvim → takvim ── */
 function initLcDrag(el, task) {
   el.addEventListener('pointerdown', e => {
@@ -5801,7 +5756,7 @@ function initLcDrag(el, task) {
     const isTouch = e.pointerType === 'touch';
     const startX = e.clientX, startY = e.clientY;
     let dragging = false, ghost = null, lastTarget = null, longPressTimer = null;
-    const startedFromBlock = el.classList.contains('lc-task-block') || el.classList.contains('lc-allday-chip');
+    const startedFromBlock = el.classList.contains('lc-task-block');
 
     function startDrag(ev) {
       dragging = true;
@@ -5888,7 +5843,7 @@ function initLcDrag(el, task) {
 
 function lcParseDropTarget(elAt, x, y) {
   if (!elAt) return null;
-  // Sıraya göre kontrol: hour cell > all-day cell > date header
+  // Sadece saat hücresi drop hedefi — gün başlığına bırakılamaz (saat zorunlu)
   const hourCell = elAt.closest('.lc-hour-cell');
   if (hourCell) {
     const date = hourCell.dataset.dateIso;
@@ -5900,14 +5855,6 @@ function lcParseDropTarget(elAt, x, y) {
     const hh = Math.floor(totalMin / 60);
     const mm = totalMin % 60;
     return { kind:'hour', cell: hourCell, date, hour: hh, minute: mm };
-  }
-  const allDayCell = elAt.closest('.lc-cell-allday');
-  if (allDayCell) {
-    return { kind:'allday', cell: allDayCell, date: allDayCell.dataset.dateIso };
-  }
-  const dateCell = elAt.closest('.lc-cell-date');
-  if (dateCell) {
-    return { kind:'allday', cell: dateCell, date: dateCell.dataset.dateIso };
   }
   return null;
 }
@@ -5922,12 +5869,7 @@ function lcBuildDueAt(date, hour, minute) {
 async function dropTaskOnCalendar(task, target) {
   const oldDueAt = task.due_at;
   const oldCategory = task.category;
-  let newDueAt;
-  if (target.kind === 'hour') {
-    newDueAt = lcBuildDueAt(target.date, target.hour, target.minute);
-  } else {
-    newDueAt = lcBuildDueAt(target.date, 0, 0);
-  }
+  const newDueAt = lcBuildDueAt(target.date, target.hour, target.minute);
   const updates = { due_at: newDueAt };
   // Eğer görev başka listedense bu listeye taşı
   if (task.category !== activeListId) updates.category = activeListId;
