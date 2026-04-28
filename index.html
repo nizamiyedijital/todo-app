@@ -674,7 +674,7 @@
       background:#eef1fd;
       border-left:3px solid #4f6ef7;
       border-radius:4px;
-      padding:3px 6px;
+      padding:3px 6px 3px 24px; /* sol: checkbox için yer */
       font-size:14px; line-height:1.2;
       color:#1f3b8c;
       cursor:pointer;
@@ -695,22 +695,23 @@
     .lc-task-block[data-cat="mental"]    { background:#dceaf6; border-left-color:#5B9BD5; color:#1f5b8c; }
     .lc-task-block[data-cat="physical"]  { background:#d4f4e0; border-left-color:#22c55e; color:#15803d; }
     .lc-task-block[data-cat="spiritual"] { background:#ede0fa; border-left-color:#a855f7; color:#7c3aed; }
-    .lc-task-block.is-conflict { box-shadow:0 1px 2px rgba(0,0,0,.1), -1px 0 0 rgba(255,255,255,.7); padding:3px 4px; }
+    .lc-task-block.is-conflict { box-shadow:0 1px 2px rgba(0,0,0,.1), -1px 0 0 rgba(255,255,255,.7); padding:3px 4px 3px 22px; }
     .lc-task-block.is-conflict .lc-task-text { font-size:14px; }
     .lc-task-block.is-done { opacity:.55; }
     .lc-task-block.is-done .lc-task-text { text-decoration:line-through; }
-    /* Block içi tamamla butonu (sol kenar) */
+    /* Block içi tamamla butonu (sol üst, absolute) */
     .lc-block-check {
-      width:14px; height:14px; flex-shrink:0;
+      position:absolute; left:5px; top:5px;
+      width:13px; height:13px;
       border:1.5px solid #c5cee0; border-radius:50%;
       display:inline-flex; align-items:center; justify-content:center;
-      background:rgba(255,255,255,.55); cursor:pointer;
-      transition:all .14s;
+      background:rgba(255,255,255,.6); cursor:pointer;
+      transition:all .14s; z-index:1;
     }
     .lc-block-check:hover { border-color:var(--accent); background:#fff; }
     .lc-block-check.checked { background:var(--accent); border-color:var(--accent); }
     .lc-block-check.checked::after {
-      content:'✓'; color:#fff; font-size:.6rem; font-weight:700; line-height:1;
+      content:'✓'; color:#fff; font-size:.55rem; font-weight:700; line-height:1;
     }
 
     /* Empty state — saat satırlarının üstünde ipucu */
@@ -6189,10 +6190,8 @@ function lcMakeTaskBlock(t, layout) {
   }
   block.dataset.taskId = t.id;
   const emoji = t.balance_category ? BALANCE_CATEGORIES[t.balance_category].emoji + ' ' : '';
-  block.innerHTML = `<div style="display:flex;align-items:flex-start;gap:5px;">
-    <span class="lc-block-check${t.done ? ' checked' : ''}" title="Tamamla"></span>
-    <span class="lc-task-text" style="flex:1;min-width:0;">${emoji}${escapeHtml(t.text)}</span>
-  </div>`;
+  block.innerHTML = `<span class="lc-block-check${t.done ? ' checked' : ''}" title="Tamamla"></span>` +
+                    `<span class="lc-task-text">${emoji}${escapeHtml(t.text)}</span>`;
   const conflictNote = total > 1 ? ` · ${total} görev çakışıyor` : '';
   // Checkbox: sadece toggle done; block click'ini durdur
   const checkEl = block.querySelector('.lc-block-check');
