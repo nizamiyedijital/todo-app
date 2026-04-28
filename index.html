@@ -1016,6 +1016,20 @@
     }
     .add-due-label-row.show { display:flex; }
     .add-due-label-row .mi { color:var(--accent); }
+    /* Liste seçici (yıldızlı/board/day modunda görünür) */
+    .add-list-row {
+      display:flex; align-items:center; gap:6px; padding:6px 0 0;
+      font-size:.78rem; color:var(--text2);
+    }
+    .add-list-row .mi { color:var(--accent); }
+    .add-list-row select {
+      flex:1; min-width:0; padding:5px 8px;
+      border:1.5px solid var(--border2); border-radius:8px;
+      background:var(--surface); color:var(--text);
+      font-size:.78rem; font-family:inherit;
+      cursor:pointer;
+    }
+    .add-list-row select:focus { border-color:var(--accent); outline:none; }
     /* Aktif Yaşam Dengesi: kategori + süre chip satırları */
     .add-balance-row, .add-mins-row {
       display:flex; flex-wrap:nowrap; gap:5px; padding-top:6px; align-items:center;
@@ -2419,6 +2433,12 @@
               <span class="mi s14">schedule</span>
               <span class="add-due-sel-label" id="addDueLabel" onclick="document.getElementById('addDueBtn').click()"></span>
             </div>
+            <!-- Liste seçici: aktif liste BOARD/STARRED/DAY ise görev hangi listeye düşer? -->
+            <div class="add-list-row" id="addListRow" style="display:none">
+              <span class="mi s14">folder</span>
+              <select id="addListSelect" onchange="addCategoryOverride = this.value || null">
+              </select>
+            </div>
             <!-- Aktif Yaşam Dengesi: kategori chip'leri -->
             <div class="add-balance-row">
               <span class="add-balance-chip" data-cat="mental"    onclick="toggleAddBalance('mental')">🧠 Zihin</span>
@@ -2909,6 +2929,7 @@ let addLinkValue = '';
 let addSubtasks  = [];
 let addBalanceCategory  = null;     // 'mental' | 'physical' | 'spiritual' | null
 let addEstimatedMinutes = null;     // dakika veya null
+let addCategoryOverride = null;     // BOARD/STARRED/DAY modunda fallback liste id'si
 let editTimers   = {};
 let isRegMode    = false;
 let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', dir:'asc'|'desc' } }
@@ -3776,6 +3797,20 @@ function setupLinkDisplay(inp, wrap) {
   if (inp.value.trim()) refresh();
 }
 
+function populateAddListSelect() {
+  const sel = document.getElementById('addListSelect');
+  if (!sel) return;
+  const cur = addCategoryOverride || sel.value;
+  sel.innerHTML = '';
+  for (const l of lists) {
+    const opt = document.createElement('option');
+    opt.value = l.id;
+    opt.textContent = `${l.icon || '📋'} ${l.name}`;
+    sel.appendChild(opt);
+  }
+  if (cur && lists.some(l => l.id === cur)) sel.value = cur;
+}
+
 function selectList(id) {
   // '__weekly__' artık geçerli değil — eski state'ten gelirse BOARD'a düş
   if (id === '__weekly__') id = BOARD_LIST_ID;
@@ -3805,6 +3840,18 @@ function selectList(id) {
     lcSingleDate = null;  // custom/yıldızlı'ya geçince hafta moduna dön
   }
   document.getElementById('listCalendar').style.display = showCalendar ? 'flex' : 'none';
+  // Liste seçici: kategori belirsiz olan modlarda (yıldızlı/board/day) göster
+  populateAddListSelect();
+  const showListPicker = !isCustomList && id !== BOARD_LIST_ID;  // BOARD'da addWrap zaten gizli
+  const listRowEl = document.getElementById('addListRow');
+  if (listRowEl) listRowEl.style.display = showListPicker ? 'flex' : 'none';
+  if (isCustomList) addCategoryOverride = null;
+  else if (showListPicker && !addCategoryOverride) {
+    // Default: ilk custom liste
+    addCategoryOverride = lists[0]?.id || null;
+    const sel = document.getElementById('addListSelect');
+    if (sel && addCategoryOverride) sel.value = addCategoryOverride;
+  }
   updateMobTabBar();
   renderSidebar();
   render();
@@ -3822,7 +3869,13 @@ async function addTask() {
   const input   = document.getElementById('taskInput');
   const text    = input.value.trim();
   if (!text || !activeListId) { input.focus(); return; }
-  const payload = { text, done:false, category:activeListId, sort_order: Date.now() };
+  // Kategori: aktif liste BOARD/STARRED/DAY ise gerçek bir custom liste'ye fallback
+  const isMetaList = activeListId === BOARD_LIST_ID || activeListId === STARRED_LIST_ID || activeListId === DAY_LIST_ID;
+  const targetCategory = isMetaList
+    ? (addCategoryOverride || lists[0]?.id || (DEFAULT_LISTS[0] && DEFAULT_LISTS[0].id))
+    : activeListId;
+  if (!targetCategory) { showToast('Görev için liste seç'); input.focus(); return; }
+  const payload = { text, done:false, category: targetCategory, sort_order: Date.now() };
   if (addDueValue) payload.due_at = addDueValue;
   if (addPriority) payload.priority = addPriority;
   else if (appSettings.defaultPriority) payload.priority = appSettings.defaultPriority;
@@ -5769,11 +5822,8 @@ function renderListCalendar() {
     `;
     grid.appendChild(hint);
   }
-  // Sadece custom liste modunda hücre click → quick-add popover (Yıldızlı/Day/Board kapalı)
-  const allowQuickAdd = activeListId
-    && activeListId !== STARRED_LIST_ID
-    && activeListId !== DAY_LIST_ID
-    && activeListId !== BOARD_LIST_ID;
+  // BOARD hariç tüm modlarda hücre click → quick-add popover
+  const allowQuickAdd = activeListId && activeListId !== BOARD_LIST_ID;
   for (let h = lcVisibleHours.start; h <= lcVisibleHours.end; h++) {
     const lbl = document.createElement('div');
     lbl.className = 'lc-hour-label';
@@ -5847,12 +5897,16 @@ function lcMaybeScrollToNow() {
 let lcAddPopoverState = null;  // { popover, ghost, target, prevParent, onDoc, onKey }
 
 function lcOpenAddPopover(target) {
-  // Sadece custom liste modunda açılır
+  // BOARD'da takvim yok — kalanlar (custom, yıldızlı, day) açılır
   const isStarred = activeListId === STARRED_LIST_ID;
-  const isDay     = activeListId === DAY_LIST_ID;
   const isBoard   = activeListId === BOARD_LIST_ID;
-  if (!activeListId || isBoard || isStarred || isDay) return;
+  if (!activeListId || isBoard) return;
   lcCloseAddPopover();
+  // Yıldızlı modunda otomatik yıldızla
+  if (isStarred) {
+    addStarred = true;
+    document.getElementById('addStarBtn')?.classList.add('active');
+  }
 
   const addWrap = document.getElementById('addWrap');
   const prevParent = addWrap.parentElement;
