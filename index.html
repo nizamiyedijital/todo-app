@@ -492,13 +492,20 @@
     }
     .main-body::-webkit-scrollbar { width:5px; }
     .main-body::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
-    /* Board modunda mainBody'i tam genişlik yap (sadece addWrap içerir, board kolonları altta görünür) */
-    body[data-view-mode="board"] .main-body { max-width:none; flex:0 0 auto; padding:12px 24px 0; }
-    body[data-view-mode="board"] .main-content { flex:0 0 auto; }
-    body[data-view-mode="board"] #taskList,
-    body[data-view-mode="board"] #empty,
-    body[data-view-mode="board"] #doneSection,
-    body[data-view-mode="board"] #balanceCard { display:none !important; }
+    /* Board kolonu inline ekleme butonu */
+    .board-col-add-btn {
+      display:flex; align-items:center; gap:6px;
+      padding:8px 12px; border:1.5px dashed var(--border2);
+      border-radius:8px; background:transparent;
+      color:var(--text3); font-size:.82rem; font-weight:500;
+      cursor:pointer; width:100%; font-family:inherit;
+      transition:all .14s;
+    }
+    .board-col-add-btn:hover { border-color:var(--accent); color:var(--accent); border-style:solid; }
+    .board-col-add-btn .mi { font-size:16px; }
+    /* Inline form host: kolonun içine yerleştirilen addWrap */
+    .board-col-inline-host { padding:0; }
+    .board-col-inline-host > .add-wrap { padding:8px 10px; background:var(--surface); border-radius:8px; border:1.5px solid var(--accent); }
 
     /* List calendar (sağ pano) */
     .list-cal {
@@ -2980,6 +2987,7 @@ let addSubtasks  = [];
 let addBalanceCategory  = null;     // 'mental' | 'physical' | 'spiritual' | null
 let addEstimatedMinutes = null;     // dakika veya null
 let addCategoryOverride = null;     // BOARD/STARRED/DAY modunda fallback liste id'si
+let boardInlineColId    = null;     // Sütun görünümünde inline form açık olan kolon id'si
 let editTimers   = {};
 let isRegMode    = false;
 let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', dir:'asc'|'desc' } }
@@ -3882,8 +3890,8 @@ function selectList(id) {
   document.getElementById('mainListTitle').textContent = titleMap[id] || (list?.name || '');
   // Ana panel düzeni
   document.getElementById('addWrap').style.display      = isRoutines ? 'none' : 'block';
-  document.getElementById('mainBody').style.display     = '';
-  document.getElementById('mainContent').style.display  = 'flex';
+  document.getElementById('mainBody').style.display     = isBoard ? 'none' : '';
+  document.getElementById('mainContent').style.display  = isBoard ? 'none' : 'flex';
   document.getElementById('boardArea').style.display    = isBoard ? 'flex' : 'none';
   document.getElementById('boardNav').style.display     = isBoard ? '' : 'none';
   document.body.dataset.viewMode = isBoard ? 'board' : (isRoutines ? 'routines' : '');
@@ -3961,9 +3969,12 @@ async function addTask() {
   finally {
     lastAddTaskTime = Date.now();
     addingTask = false;
-    // Quick-add popover açıksa kapat (form zaten popover içindeydi)
+    // Quick-add popover açıksa kapat
     if (typeof lcAddPopoverState !== 'undefined' && lcAddPopoverState) {
       lcCloseAddPopover();
+    } else if (boardInlineColId) {
+      // Board inline form açıksa kapat
+      closeBoardInlineAdd();
     } else {
       openAddDetail();
       document.getElementById('taskInput').focus();
@@ -4237,6 +4248,8 @@ function confirmDraftDiscard() {
 function forceCloseAddDetail() {
   document.getElementById('addDetail').classList.remove('open');
   document.getElementById('taskInput').blur();
+  // Board inline form açıksa onu da kapat
+  if (boardInlineColId) closeBoardInlineAdd();
 }
 
 async function addTaskKeepFocus() {
@@ -4281,6 +4294,8 @@ async function addTaskKeepFocus() {
     addingTask = false;
     if (typeof lcAddPopoverState !== 'undefined' && lcAddPopoverState) {
       lcCloseAddPopover();
+    } else if (boardInlineColId) {
+      closeBoardInlineAdd();
     } else {
       openAddDetail();
       input.focus();
@@ -6857,18 +6872,17 @@ function buildBoardCol(list) {
 
   const addDiv = document.createElement('div');
   addDiv.className = 'board-col-add';
-  const addInput = document.createElement('input');
-  addInput.type = 'text'; addInput.placeholder = '+ Görev ekle...';
-  addInput.addEventListener('keydown', async e => {
-    if (e.key==='Enter') {
-      const text = addInput.value.trim();
-      if (!text) return;
-      addInput.value = '';
-      await addTaskToList(list.id, text);
-    }
-    if (e.key==='Escape') { addInput.value=''; addInput.blur(); }
-  });
-  addDiv.appendChild(addInput);
+  // "+ Yeni Görev" butonu — tıklayınca tam form bu kolonda inline açılır
+  if (boardInlineColId === list.id) {
+    // Bu kolon aktif inline form host'u — addWrap buraya taşındı
+    addDiv.classList.add('board-col-inline-host');
+  } else {
+    const btn = document.createElement('button');
+    btn.className = 'board-col-add-btn';
+    btn.innerHTML = `<span class="mi">add</span><span>Yeni Görev</span>`;
+    btn.onclick = () => openBoardInlineAdd(list.id);
+    addDiv.appendChild(btn);
+  }
 
   const body = document.createElement('div');
   body.className = 'board-col-body';
@@ -6896,6 +6910,43 @@ function buildBoardCol(list) {
   col.appendChild(addDiv);
   col.appendChild(body);
   return col;
+}
+
+function openBoardInlineAdd(listId) {
+  // Önce açıksa kapat
+  if (boardInlineColId && boardInlineColId !== listId) closeBoardInlineAdd();
+  boardInlineColId = listId;
+  addCategoryOverride = listId;
+  renderBoard();
+  // Render sonrası addWrap'ı doğru host'a taşı
+  const host = document.querySelector(`.board-col[data-col-id="${listId}"] .board-col-inline-host`);
+  const addWrap = document.getElementById('addWrap');
+  if (host && addWrap) {
+    host.appendChild(addWrap);
+    addWrap.style.display = 'block';
+    if (typeof openAddDetail === 'function') openAddDetail();
+    populateAddListSelect();
+    const sel = document.getElementById('addListSelect');
+    if (sel) sel.value = listId;
+    // Tarih default'u temizle
+    addDueValue = '';
+    if (typeof renderAddDueLabel === 'function') renderAddDueLabel();
+    setTimeout(() => document.getElementById('taskInput')?.focus(), 50);
+  }
+}
+
+function closeBoardInlineAdd() {
+  if (!boardInlineColId) return;
+  boardInlineColId = null;
+  // addWrap'ı mainBody'ye geri taşı (board mode'da gizli ama state tutarlı kalsın)
+  const addWrap = document.getElementById('addWrap');
+  const mainBody = document.getElementById('mainBody');
+  const taskList = document.getElementById('taskList');
+  if (addWrap && mainBody && taskList) {
+    mainBody.insertBefore(addWrap, taskList);
+  }
+  if (typeof closeAddDetail === 'function') closeAddDetail();
+  renderBoard();
 }
 
 async function addTaskToList(listId, text) {
