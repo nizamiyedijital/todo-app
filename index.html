@@ -1146,13 +1146,13 @@
     .add-balance-chip.active[data-cat="spiritual"] { background:#ede0fa; color:#7c3aed; border-color:#a855f7; }
     .add-mins-chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
     /* Denge ana butonu (collapse trigger) */
-    .add-balance-row { gap:6px; }
+    .add-balance-row { gap:6px; align-items:center; flex-wrap:wrap; }
     .add-balance-main {
-      display:inline-flex; align-items:center; gap:5px;
-      padding:4px 9px;
-      border:1.5px dashed var(--border2); border-radius:14px;
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 12px;
+      border:1.5px dashed var(--border2); border-radius:18px;
       background:var(--surface2); color:var(--text3);
-      font-size:.7rem; font-weight:500; cursor:pointer;
+      font-size:.78rem; font-weight:500; cursor:pointer;
       font-family:inherit; line-height:1.2; user-select:none;
       transition:all .15s;
     }
@@ -1163,7 +1163,7 @@
     .add-balance-main.has-selection[data-cat="spiritual"] { background:#ede0fa; color:#7c3aed; border-color:#a855f7; }
     .add-balance-main .bi-arrow { font-size:14px; opacity:.7; }
     .add-balance-chips {
-      display:flex; gap:5px; flex-wrap:wrap;
+      display:flex; gap:6px; flex-wrap:wrap;
     }
     /* Inline SVG kategori ikonu container */
     .bi-icon {
@@ -1171,7 +1171,11 @@
       vertical-align:middle; flex-shrink:0;
     }
     .bi-icon svg { display:block; stroke:currentColor; }
-    .add-balance-chip { display:inline-flex; align-items:center; gap:4px; }
+    /* Denge alt chip'leri büyük ikonla */
+    .add-balance-row .add-balance-chip {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 12px; font-size:.78rem; border-radius:18px;
+    }
     .add-mins-input {
       width:60px; padding:3px 7px; font-size:.7rem; border:1.5px solid var(--accent);
       border-radius:10px; outline:none; font-family:inherit;
@@ -4210,7 +4214,7 @@ function renderAddBalanceChips() {
   document.querySelectorAll('.add-balance-chip').forEach(el => {
     const cat = BALANCE_CATEGORIES[el.dataset.cat];
     if (cat) {
-      el.innerHTML = `<span class="bi-icon">${balSvg(cat.iconKey, 14)}</span>${escapeHtml(cat.label)}`;
+      el.innerHTML = `<span class="bi-icon">${balSvg(cat.iconKey, 18)}</span>${escapeHtml(cat.label)}`;
     }
     el.classList.toggle('active', el.dataset.cat === addBalanceCategory);
   });
@@ -4221,12 +4225,12 @@ function renderAddBalanceChips() {
   if (mainIcon && mainLabel) {
     if (addBalanceCategory && BALANCE_CATEGORIES[addBalanceCategory]) {
       const c = BALANCE_CATEGORIES[addBalanceCategory];
-      mainIcon.innerHTML = balSvg(c.iconKey, 16);
+      mainIcon.innerHTML = balSvg(c.iconKey, 20);
       mainLabel.textContent = c.label;
       mainBtn?.classList.add('has-selection');
       if (mainBtn) mainBtn.dataset.cat = addBalanceCategory;
     } else {
-      mainIcon.innerHTML = balSvg('disipline', 16);
+      mainIcon.innerHTML = balSvg('disipline', 20);
       mainLabel.textContent = 'Denge';
       mainBtn?.classList.remove('has-selection');
       if (mainBtn) delete mainBtn.dataset.cat;
