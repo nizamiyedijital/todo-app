@@ -1634,16 +1634,6 @@
       display:none; flex-direction:column; width:250px; overflow:hidden;
     }
     .dtp-box.open { display:flex; }
-    .dtp-quick-row {
-      display:flex; gap:6px; padding:10px 14px 0;
-    }
-    .dtp-quick-btn {
-      flex:1; padding:6px 10px; font-size:.8rem; font-weight:500;
-      border:1.5px solid var(--border2); border-radius:14px;
-      background:var(--surface2); color:var(--text2);
-      cursor:pointer; font-family:inherit; transition:all .15s;
-    }
-    .dtp-quick-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-bg); }
     .dtp-cal { padding:14px 14px 10px; }
     .dtp-nav {
       display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
@@ -2697,10 +2687,6 @@
 <!-- Date picker -->
 <div class="dtp-overlay" id="dtpOverlay" onclick="dtpClose()"></div>
 <div class="dtp-box" id="dtpBox">
-  <div class="dtp-quick-row">
-    <button class="dtp-quick-btn" onclick="dtpQuickPick(0)">Bugün</button>
-    <button class="dtp-quick-btn" onclick="dtpQuickPick(1)">Yarın</button>
-  </div>
   <div class="dtp-cal">
     <div class="dtp-nav">
       <button class="dtp-nav-btn" onclick="dtpPrev()" title="Önceki ay">‹</button>
@@ -7342,13 +7328,6 @@ function dtpOpen(anchor,currentISO,cb) {
 function dtpClose() {
   document.getElementById('dtpBox').classList.remove('open');
   document.getElementById('dtpOverlay').classList.remove('open');
-}
-function dtpQuickPick(daysOffset) {
-  const d = new Date();
-  d.setDate(d.getDate() + daysOffset);
-  d.setHours(0, 0, 0, 0);
-  if (dtp.cb) dtp.cb(d.toISOString());
-  dtpClose();
 }
 function dtpClear()   { dtp.cb&&dtp.cb(''); dtpClose(); }
 function dtpConfirm() {
