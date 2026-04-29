@@ -1150,18 +1150,18 @@
     .add-list-chip.active { border-color:var(--accent); color:var(--accent); background:var(--accent-bg); border-style:solid; }
     /* Denge / Süre wrap (floating popup için relative parent) */
     .add-balance-wrap, .add-mins-wrap { position:relative; display:inline-flex; }
-    /* Floating chip popup'ları (priority picker pattern) */
+    /* Floating chip popup'ları (priority picker pattern) — tek satır, popover dışına taşmaz */
     .add-balance-chips, .add-mins-chips {
       position:absolute; bottom:calc(100% + 8px); right:0; z-index:200;
       background:var(--surface); border:1.5px solid var(--border2);
-      border-radius:12px; padding:8px;
-      display:flex; gap:6px; flex-wrap:wrap;
-      min-width:200px;
+      border-radius:12px; padding:6px;
+      display:flex; gap:4px; flex-wrap:nowrap;
+      max-width:316px;  /* popover 340 - 24 padding */
       box-shadow:0 4px 16px rgba(0,0,0,.12);
     }
     .add-balance-chip, .add-mins-chip {
-      font-size:.78rem; color:var(--text3); cursor:pointer; padding:6px 12px;
-      border:1.5px solid var(--border2); border-radius:18px; background:var(--surface2);
+      font-size:.7rem; color:var(--text3); cursor:pointer; padding:4px 8px;
+      border:1.5px solid var(--border2); border-radius:14px; background:var(--surface2);
       white-space:nowrap; transition:all .15s; user-select:none; line-height:1.2; flex-shrink:0;
     }
     .add-balance-chip:hover, .add-mins-chip:hover { border-color:var(--accent); color:var(--accent); }
@@ -1177,8 +1177,9 @@
     .bi-icon svg { display:block; stroke:currentColor; }
     /* Denge alt chip'leri ikon + label */
     .add-balance-chip {
-      display:inline-flex; align-items:center; gap:6px;
+      display:inline-flex; align-items:center; gap:4px;
     }
+    .add-balance-chip .bi-icon { width:14px; height:14px; }
     /* Denge / Süre ana ikon butonları seçili durumda accent renge düşer */
     #addBalanceMainBtn.has-selection,
     #addMinsMainBtn.has-selection {
@@ -4297,13 +4298,33 @@ function toggleBalancePicker(e) {
   } else {
     _closeOtherPickers('addBalanceChips');
     chips.style.display = 'flex';
+    clampChipPopupToPopover(chips, document.getElementById('addBalanceMainBtn'));
+  }
+}
+// Chip popup'ını görev popover'ı sınırlarına göre konumlar — taşma olmazsa default,
+// taşıyorsa popover sınırına yasla
+function clampChipPopupToPopover(popup, btn) {
+  const pop = document.getElementById('lcAddPopover');
+  if (!pop || !popup || !btn) return;
+  popup.style.right = '0px';  // default: butonun sağına yaslı
+  const popupRect = popup.getBoundingClientRect();
+  const popoverRect = pop.getBoundingClientRect();
+  const margin = 8;
+  if (popupRect.left < popoverRect.left + margin) {
+    // Sol kenardan taşıyor → sağa kaydır
+    const shift = (popoverRect.left + margin) - popupRect.left;
+    popup.style.right = `${-shift}px`;
+  } else if (popupRect.right > popoverRect.right - margin) {
+    // Sağ kenardan taşıyor → sola kaydır
+    const shift = popupRect.right - (popoverRect.right - margin);
+    popup.style.right = `${shift}px`;
   }
 }
 function renderAddBalanceChips() {
   document.querySelectorAll('.add-balance-chip').forEach(el => {
     const cat = BALANCE_CATEGORIES[el.dataset.cat];
     if (cat) {
-      el.innerHTML = `<span class="bi-icon">${balSvg(cat.iconKey, 18)}</span>${escapeHtml(cat.label)}`;
+      el.innerHTML = `<span class="bi-icon">${balSvg(cat.iconKey, 14)}</span>${escapeHtml(cat.label)}`;
     }
     el.classList.toggle('active', el.dataset.cat === addBalanceCategory);
   });
@@ -4344,6 +4365,7 @@ function toggleMinsPicker(e) {
   } else {
     _closeOtherPickers('addMinsChips');
     chips.style.display = 'flex';
+    clampChipPopupToPopover(chips, document.getElementById('addMinsMainBtn'));
   }
 }
 function renderAddMinsChips() {
