@@ -503,9 +503,21 @@
     }
     .board-col-add-btn:hover { border-color:var(--accent); color:var(--accent); border-style:solid; }
     .board-col-add-btn .mi { font-size:16px; }
-    /* Inline form host: kolonun içine yerleştirilen addWrap */
-    .board-col-inline-host { padding:0; }
-    .board-col-inline-host > .add-wrap { padding:8px 10px; background:var(--surface); border-radius:8px; border:1.5px solid var(--accent); }
+    /* mainBody üstündeki "+ Yeni görev" butonu (Custom/DAY/Yıldızlı/Tüm Listeler) */
+    .new-task-btn {
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      width:100%; padding:10px 12px; margin-bottom:10px;
+      border:1.5px dashed var(--border2); border-radius:10px;
+      background:transparent; color:var(--text3);
+      font-size:.86rem; font-weight:600; font-family:inherit;
+      cursor:pointer;
+      transition:border-color .14s, color .14s, background .14s, border-style .14s;
+    }
+    .new-task-btn:hover {
+      border-color:var(--accent); color:var(--accent);
+      background:var(--accent-bg); border-style:solid;
+    }
+    .new-task-btn .mi { font-size:18px; line-height:1; }
 
     /* List calendar (sağ pano) */
     .list-cal {
@@ -2477,6 +2489,9 @@
       <div class="main-content" id="mainContent">
       <div class="main-body" id="mainBody">
         <div id="balanceCard" style="display:none"></div>
+        <button id="newTaskBtn" class="new-task-btn" onclick="openNewTaskFromMain(this)" style="display:none">
+          <span class="mi s18">add</span><span>Yeni görev</span>
+        </button>
         <div class="add-wrap" id="addWrap" style="display:none">
           <input style="display:none" type="text" name="prevent-autofill-text">
           <input style="display:none" type="password" name="prevent-autofill-pass">
@@ -2932,7 +2947,6 @@ let addSubtasks  = [];
 let addBalanceCategory  = null;     // 'mental' | 'physical' | 'spiritual' | null
 let addEstimatedMinutes = null;     // dakika veya null
 let addCategoryOverride = null;     // BOARD/STARRED/DAY modunda fallback liste id'si
-let boardInlineColId    = null;     // Sütun görünümünde inline form açık olan kolon id'si
 let addEditingTaskId    = null;     // Düzenleme modu: addWrap mevcut bir görev için açıkken task.id
 let editTimers   = {};
 let isRegMode    = false;
@@ -3835,7 +3849,9 @@ function selectList(id) {
   };
   document.getElementById('mainListTitle').textContent = titleMap[id] || (list?.name || '');
   // Ana panel düzeni
-  document.getElementById('addWrap').style.display      = isRoutines ? 'none' : 'block';
+  document.getElementById('addWrap').style.display      = 'none';  // form artık popover'la açılır
+  const newBtn = document.getElementById('newTaskBtn');
+  if (newBtn) newBtn.style.display = (isRoutines || isBoard) ? 'none' : '';
   document.getElementById('mainBody').style.display     = isBoard ? 'none' : '';
   document.getElementById('mainContent').style.display  = isBoard ? 'none' : 'flex';
   document.getElementById('boardArea').style.display    = isBoard ? 'flex' : 'none';
@@ -3915,12 +3931,9 @@ async function addTask() {
   finally {
     lastAddTaskTime = Date.now();
     addingTask = false;
-    // Quick-add popover açıksa kapat
+    // Popover açıksa kapat (yeni-görev veya edit popover)
     if (typeof lcAddPopoverState !== 'undefined' && lcAddPopoverState) {
       lcCloseAddPopover();
-    } else if (boardInlineColId) {
-      // Board inline form açıksa kapat
-      closeBoardInlineAdd();
     } else {
       openAddDetail();
       document.getElementById('taskInput').focus();
@@ -4199,8 +4212,6 @@ function confirmDraftDiscard() {
 function forceCloseAddDetail() {
   document.getElementById('addDetail').classList.remove('open');
   document.getElementById('taskInput').blur();
-  // Board inline form açıksa onu da kapat
-  if (boardInlineColId) closeBoardInlineAdd();
 }
 
 async function addTaskKeepFocus() {
@@ -4245,8 +4256,6 @@ async function addTaskKeepFocus() {
     addingTask = false;
     if (typeof lcAddPopoverState !== 'undefined' && lcAddPopoverState) {
       lcCloseAddPopover();
-    } else if (boardInlineColId) {
-      closeBoardInlineAdd();
     } else {
       openAddDetail();
       input.focus();
@@ -4586,7 +4595,9 @@ function selectCalDay(iso) {
   lcPendingScrollToNow = true;
   doneOpen = false;
   document.getElementById('mainListTitle').textContent = `${fmtLongDate(iso)} Görevleri`;
-  document.getElementById('addWrap').style.display   = 'block';
+  document.getElementById('addWrap').style.display   = 'none';
+  const _nb = document.getElementById('newTaskBtn');
+  if (_nb) _nb.style.display = '';
   document.getElementById('mainBody').style.display  = '';
   document.getElementById('mainContent').style.display = 'flex';
   document.getElementById('boardArea').style.display = 'none';
@@ -5924,6 +5935,93 @@ function lcCloseAddPopover() {
   if (typeof closeAddDetail === 'function') closeAddDetail();
 }
 
+/* ── mainBody üstündeki "+ Yeni görev" butonundan popover aç ── */
+function openNewTaskFromMain(anchor) {
+  const opts = {};
+  if (activeListId === STARRED_LIST_ID) {
+    opts.defaultStarred = true;
+    opts.defaultCategory = lists[0]?.id || null;
+    opts.headerLabel = '⭐ Günün Odağı';
+  } else if (activeListId === DAY_LIST_ID && activeDayDate) {
+    const [y, m, d] = activeDayDate.split('-').map(Number);
+    const dt = new Date(y, m - 1, d, 9, 0, 0, 0);
+    opts.defaultDueAt = dt.toISOString();
+    opts.defaultCategory = lists[0]?.id || null;
+    opts.headerLabel = fmtLongDate(activeDayDate);
+  } else if (activeListId === ALL_LISTS_ID) {
+    opts.defaultCategory = lists[0]?.id || null;
+    opts.headerLabel = '☰ Tüm Listeler';
+  } else if (activeListId && activeListId !== BOARD_LIST_ID && activeListId !== ROUTINES_LIST_ID) {
+    // Custom liste
+    opts.defaultCategory = activeListId;
+  } else {
+    opts.defaultCategory = lists[0]?.id || null;
+  }
+  openNewTaskPopover(anchor, opts);
+}
+
+/* ── Genel "Yeni görev" popover (kanban kolon, mainBody butonu, vb.) ── */
+function openNewTaskPopover(anchor, opts = {}) {
+  // opts: { defaultCategory?, defaultDueAt?, defaultStarred?, headerLabel? }
+  if (lcAddPopoverState) lcCloseAddPopover();
+
+  const addWrap = document.getElementById('addWrap');
+  const prevParent = addWrap.parentElement;
+  const prevDisplay = addWrap.style.display;
+
+  const pop = document.createElement('div');
+  pop.className = 'lc-add-popover';
+  pop.id = 'lcAddPopover';
+
+  const head = document.createElement('div');
+  head.className = 'lc-add-popover-head';
+  let listLabel = opts.headerLabel;
+  if (!listLabel) {
+    const list = lists.find(l => l.id === opts.defaultCategory);
+    listLabel = list ? `${list.icon || '📋'} ${escapeHtml(list.name)}` : 'Yeni görev';
+  }
+  head.innerHTML = `<span><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Yeni görev</span>
+                    <button class="lc-ap-close" title="Kapat (Esc)"><span class="mi s18">close</span></button>`;
+  pop.appendChild(head);
+
+  addWrap.style.display = '';
+  pop.appendChild(addWrap);
+  document.body.appendChild(pop);
+
+  // Form'u temizle, default'ları uygula
+  resetAddForm();
+  addCategoryOverride = opts.defaultCategory || lists[0]?.id || null;
+  addDueValue         = opts.defaultDueAt || '';
+  addStarred          = !!opts.defaultStarred;
+  if (typeof populateAddListSelect === 'function') populateAddListSelect();
+  const listRow = document.getElementById('addListRow');
+  if (listRow) listRow.style.display = 'flex';
+  const sel = document.getElementById('addListSelect');
+  if (sel && addCategoryOverride) sel.value = addCategoryOverride;
+  const starBtn = document.getElementById('addStarBtn');
+  if (starBtn) starBtn.classList.toggle('active', addStarred);
+  if (typeof renderAddDueLabel === 'function') renderAddDueLabel();
+  if (typeof openAddDetail === 'function') openAddDetail();
+
+  lcAddPopoverState = {
+    popover: pop, ghost: null, target: null, prevParent, prevDisplay,
+    onDoc: (e) => {
+      if (pop.contains(e.target)) return;
+      if (e.target.closest('.dtp-overlay, .dtp-box, .add-prio-picker, .add-link-popup, .add-subtasks-popup')) return;
+      lcCloseAddPopover();
+    },
+    onKey: (e) => { if (e.key === 'Escape') lcCloseAddPopover(); },
+  };
+  setTimeout(() => {
+    document.addEventListener('mousedown', lcAddPopoverState.onDoc);
+    document.addEventListener('keydown',   lcAddPopoverState.onKey);
+  }, 0);
+
+  head.querySelector('.lc-ap-close').onclick = () => lcCloseAddPopover();
+  lcPositionAddPopover(anchor);
+  setTimeout(() => document.getElementById('taskInput')?.focus(), 50);
+}
+
 /* ── Görev düzenleme modu (addWrap'i edit moda al) ── */
 function openTaskEditor(task, anchor) {
   if (!task) return;
@@ -6911,17 +7009,15 @@ function buildBoardCol(list) {
 
   const addDiv = document.createElement('div');
   addDiv.className = 'board-col-add';
-  // "+ Yeni Görev" butonu — tıklayınca tam form bu kolonda inline açılır
-  if (boardInlineColId === list.id) {
-    // Bu kolon aktif inline form host'u — addWrap buraya taşındı
-    addDiv.classList.add('board-col-inline-host');
-  } else {
-    const btn = document.createElement('button');
-    btn.className = 'board-col-add-btn';
-    btn.innerHTML = `<span class="mi">add</span><span>Yeni Görev</span>`;
-    btn.onclick = () => openBoardInlineAdd(list.id);
-    addDiv.appendChild(btn);
-  }
+  // "+ Yeni Görev" butonu — popover olarak açılır (sütun yanında)
+  const btn = document.createElement('button');
+  btn.className = 'board-col-add-btn';
+  btn.innerHTML = `<span class="mi">add</span><span>Yeni Görev</span>`;
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    openNewTaskPopover(btn, { defaultCategory: list.id });
+  };
+  addDiv.appendChild(btn);
 
   const body = document.createElement('div');
   body.className = 'board-col-body';
@@ -6949,43 +7045,6 @@ function buildBoardCol(list) {
   col.appendChild(addDiv);
   col.appendChild(body);
   return col;
-}
-
-function openBoardInlineAdd(listId) {
-  // Önce açıksa kapat
-  if (boardInlineColId && boardInlineColId !== listId) closeBoardInlineAdd();
-  boardInlineColId = listId;
-  addCategoryOverride = listId;
-  renderBoard();
-  // Render sonrası addWrap'ı doğru host'a taşı
-  const host = document.querySelector(`.board-col[data-col-id="${listId}"] .board-col-inline-host`);
-  const addWrap = document.getElementById('addWrap');
-  if (host && addWrap) {
-    host.appendChild(addWrap);
-    addWrap.style.display = 'block';
-    if (typeof openAddDetail === 'function') openAddDetail();
-    populateAddListSelect();
-    const sel = document.getElementById('addListSelect');
-    if (sel) sel.value = listId;
-    // Tarih default'u temizle
-    addDueValue = '';
-    if (typeof renderAddDueLabel === 'function') renderAddDueLabel();
-    setTimeout(() => document.getElementById('taskInput')?.focus(), 50);
-  }
-}
-
-function closeBoardInlineAdd() {
-  if (!boardInlineColId) return;
-  boardInlineColId = null;
-  // addWrap'ı mainBody'ye geri taşı (board mode'da gizli ama state tutarlı kalsın)
-  const addWrap = document.getElementById('addWrap');
-  const mainBody = document.getElementById('mainBody');
-  const taskList = document.getElementById('taskList');
-  if (addWrap && mainBody && taskList) {
-    mainBody.insertBefore(addWrap, taskList);
-  }
-  if (typeof closeAddDetail === 'function') closeAddDetail();
-  renderBoard();
 }
 
 async function addTaskToList(listId, text) {
