@@ -7143,7 +7143,9 @@ function renderPomoScheduleControls(ready) {
       const remSec = Math.ceil(remMs / 1000);
       const mm = String(Math.floor(remSec / 60)).padStart(2,'0');
       const ss = String(remSec % 60).padStart(2,'0');
-      const phaseLabel = pomoPhase === 'work' ? 'Çalışma' : 'Mola';
+      const phaseLabel = pomoPhase === 'work' ? 'Çalışma'
+                       : pomoPhase === 'long_break' ? 'Uzun Mola'
+                       : 'Kısa Mola';
       armedText.textContent = `${phaseLabel} — Görev ${pomoActiveIndex + 1}/${pomoQueue.length} — ${mm}:${ss}`;
       if (startBtn) startBtn.textContent = 'Çalışıyor';
     }
@@ -7336,12 +7338,45 @@ function pomoTick() {
   }
   if (pomoSchedule.status === 'running' && !pomoCountdownActive) {
     if (now >= pomoEndMs) {
-      // Faz 5 kapsamı: ilk work fazı bittiğinde idle'a dön. Faz 6/7'de mola + cycle eklenecek.
-      pomoReset();
+      // Faz 6: mevcut faz bitti → bir sonraki faza geç (work→break ya da break→sonraki work).
+      pomoNextPhase();
       return;
     }
     renderPomoScheduleControls(pomoQueue.length >= 4);
     renderPomoOverlayTime();
+  }
+}
+
+// Faz 6: pomo bitince otomatik mola, mola bitince sonraki görev. 3-2-1 sayım yok.
+// Faz 7'de uzun mola (4 pomo sonrası) ve auto-done eklenecek.
+function pomoNextPhase() {
+  if (pomoPhase === 'work') {
+    // Çalışma bitti → kısa mola (5dk)
+    pomoPhase = 'break';
+    pomoEndMs = Date.now() + 5 * 60 * 1000;
+    pomoTickAudioStop();
+    pomoPlayTrink();
+    showPomoOverlay();
+    renderPomoOverlayTime();
+    renderPomoPanel();
+    return;
+  }
+  if (pomoPhase === 'break' || pomoPhase === 'long_break') {
+    // Mola bitti → sonraki görev için 25dk work
+    pomoActiveIndex++;
+    if (pomoActiveIndex >= pomoQueue.length) {
+      // Tüm görevler tamamlandı → idle
+      pomoReset();
+      return;
+    }
+    pomoPhase = 'work';
+    pomoEndMs = Date.now() + 25 * 60 * 1000;
+    pomoTickAudioStart();
+    pomoPlayTrink();
+    showPomoOverlay();
+    renderPomoOverlayTime();
+    renderPomoPanel();
+    return;
   }
 }
 function pomoFire() {
@@ -7419,7 +7454,7 @@ function pomoStartCountdown(onDone) {
       pomoCountdownActive = false;
       ov?.classList.remove('is-countdown');
       pomoPlayTrink();
-      if (phaseEl) phaseEl.textContent = pomoPhase === 'work' ? 'Çalışma' : 'Mola';
+      if (phaseEl) phaseEl.textContent = pomoPhaseLabel(pomoPhase);
       onDone && onDone();
       return;
     }
@@ -7458,7 +7493,12 @@ function renderPomoOverlayTime() {
   const timeEl = document.getElementById('pomoOvTime');
   const phaseEl = document.getElementById('pomoOvPhase');
   if (timeEl) timeEl.textContent = `${mm}:${ss}`;
-  if (phaseEl) phaseEl.textContent = pomoPhase === 'work' ? 'Çalışma' : 'Mola';
+  if (phaseEl) phaseEl.textContent = pomoPhaseLabel(pomoPhase);
+}
+function pomoPhaseLabel(phase) {
+  return phase === 'work' ? 'Çalışma'
+       : phase === 'long_break' ? 'Uzun Mola'
+       : 'Kısa Mola';
 }
 
 function lcMakeBalanceContent(r) {
