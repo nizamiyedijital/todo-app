@@ -4234,8 +4234,21 @@ function renderAddLinkUI() {
     const chip = document.createElement('div');
     chip.className = 'add-link-chip';
     chip.title = addLinkValue;
-    chip.innerHTML = `<span class="mi" style="font-size:14px">link</span><span>${domain}</span><span class="add-link-rm">×</span>`;
-    chip.onclick = () => { addLinkValue = ''; renderAddLinkUI(); };
+    chip.innerHTML = `<span class="mi" style="font-size:14px">link</span><span class="add-link-domain">${escapeHtml(domain)}</span><span class="add-link-rm" title="Bağlantıyı kaldır">×</span>`;
+    // Chip body → düzenle (popup aç, mevcut değeri input'a yükle)
+    chip.onclick = (e) => {
+      if (e.target.classList.contains('add-link-rm')) {
+        addLinkValue = ''; renderAddLinkUI(); return;
+      }
+      // Düzenleme popup'ı aç
+      const popupEl = document.getElementById('addLinkPopup');
+      const inpEl = document.getElementById('addLinkInput');
+      if (popupEl && inpEl) {
+        inpEl.value = addLinkValue;
+        popupEl.style.display = 'flex';
+        setTimeout(() => { inpEl.focus(); inpEl.select(); }, 0);
+      }
+    };
     wrap.appendChild(chip);
     wrap.style.display = '';
     popup.style.display = 'none';
