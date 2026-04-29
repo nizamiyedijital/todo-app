@@ -686,6 +686,49 @@
       .lc-grid-row { flex-direction:column; }
       .pomo-panel { width:100%; border-left:none; border-top:1px solid #f0f2f8; }
     }
+    /* Pomodoro tam ekran overlay (Faz 5) */
+    .pomo-overlay {
+      position:fixed; inset:0; z-index:9999;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      background:rgba(10,15,25,0.96);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      color:#fff; gap:18px; padding:24px;
+      animation: pomoOvFadeIn .25s ease-out;
+    }
+    @keyframes pomoOvFadeIn { from { opacity:0 } to { opacity:1 } }
+    .pomo-overlay-task {
+      font-size:1.1rem; opacity:.85; max-width:80vw;
+      text-align:center; font-weight:500;
+    }
+    .pomo-overlay-time {
+      font-size:clamp(96px, 18vw, 220px);
+      font-weight:200; letter-spacing:-3px;
+      font-variant-numeric: tabular-nums;
+      line-height:1;
+    }
+    .pomo-overlay-phase {
+      font-size:.95rem; opacity:.65;
+      letter-spacing:3px; text-transform:uppercase;
+    }
+    .pomo-overlay-close {
+      margin-top:24px; padding:9px 26px;
+      background:transparent; border:1px solid rgba(255,255,255,0.28);
+      color:#fff; border-radius:10px; cursor:pointer;
+      font-size:.9rem; font-family:inherit;
+      transition:background .2s, border-color .2s;
+    }
+    .pomo-overlay-close:hover {
+      background:rgba(255,255,255,0.08);
+      border-color:rgba(255,255,255,0.5);
+    }
+    .pomo-overlay.is-countdown .pomo-overlay-time {
+      animation: pomoCountdownPulse .8s ease-in-out;
+    }
+    @keyframes pomoCountdownPulse {
+      0% { transform:scale(.7); opacity:0; }
+      40% { transform:scale(1.1); opacity:1; }
+      100% { transform:scale(1); opacity:.95; }
+    }
     .lc-grid::-webkit-scrollbar { width:6px; }
     .lc-grid::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
 
@@ -3204,6 +3247,9 @@ let pomoActiveIndex  = 0;    // running'deyken çalışan görevin queue içi in
 let pomoPhase        = 'work';  // 'work' | 'break' | 'long_break' (Faz 6/7)
 let pomoEndMs        = 0;    // mevcut fazın bitiş zamanı (ms)
 let pomoTickHandle   = null; // setInterval handle
+let pomoCountdownActive = false;  // 3-2-1 countdown sırasında true
+let pomoAudioCtx     = null; // Web Audio context (lazy init)
+let pomoTickAudioId  = null; // tik tak loop interval handle
 let recentlyAddedId  = null;
 
 const SORT_OPTIONS = [
@@ -7265,14 +7311,22 @@ function pomoReset() {
   pomoActiveIndex = 0;
   pomoPhase = 'work';
   pomoEndMs = 0;
+  pomoCountdownActive = false;
+  pomoTickAudioStop();
+  hidePomoOverlay();
   renderPomoPanel();
 }
 
 // Faz 4: kurulu mod tetik. 1sn'lik tick'te armed schedule'ın saati gelmişse pomoFire.
-// Faz 5'te 3-2-1 countdown + tam ekran overlay buradan tetiklenecek.
 function pomoTickerStart() {
   if (pomoTickHandle) return;
   pomoTickHandle = setInterval(pomoTick, 1000);
+  // Esc → overlay açıkken pomodoro'yu sıfırlar/atlar
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const ov = document.getElementById('pomoOverlay');
+    if (ov && ov.style.display !== 'none') { e.preventDefault(); pomoReset(); }
+  });
 }
 function pomoTick() {
   const now = Date.now();
@@ -7280,14 +7334,14 @@ function pomoTick() {
     pomoFire();
     return;
   }
-  if (pomoSchedule.status === 'running') {
+  if (pomoSchedule.status === 'running' && !pomoCountdownActive) {
     if (now >= pomoEndMs) {
-      // Faz 4 kapsamı: ilk fazı bitirince idle'a dön. Faz 6/7'de mola + cycle eklenecek.
+      // Faz 5 kapsamı: ilk work fazı bittiğinde idle'a dön. Faz 6/7'de mola + cycle eklenecek.
       pomoReset();
       return;
     }
-    // running rozetini her saniye güncelle (kalan süre)
     renderPomoScheduleControls(pomoQueue.length >= 4);
+    renderPomoOverlayTime();
   }
 }
 function pomoFire() {
@@ -7295,10 +7349,116 @@ function pomoFire() {
   pomoSchedule.status = 'running';
   pomoActiveIndex = 0;
   pomoPhase = 'work';
-  // İlk görevin 25dk work fazı; başlangıç planlanmış zamandan
-  const startMs = pomoSchedule.startMs || Date.now();
-  pomoEndMs = startMs + 25 * 60 * 1000;
+  // 3-2-1 countdown → trink → 25dk work fazı + tik tak loop
+  pomoStartCountdown(() => {
+    pomoEndMs = Date.now() + 25 * 60 * 1000;
+    pomoTickAudioStart();
+    renderPomoPanel();
+    renderPomoOverlayTime();
+  });
   renderPomoPanel();
+}
+
+/* ──── Faz 5: tam ekran overlay + Web Audio ──── */
+function pomoEnsureAudio() {
+  if (pomoAudioCtx) {
+    if (pomoAudioCtx.state === 'suspended') { try { pomoAudioCtx.resume(); } catch(_){} }
+    return pomoAudioCtx;
+  }
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) pomoAudioCtx = new Ctx();
+  } catch(_){}
+  return pomoAudioCtx;
+}
+function pomoBeep({ freq=880, dur=0.3, type='sine', gain=0.18 }) {
+  const ctx = pomoEnsureAudio(); if (!ctx) return;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = type;
+  o.frequency.value = freq;
+  const t0 = ctx.currentTime;
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(gain, t0 + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0008, t0 + dur);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(t0); o.stop(t0 + dur + 0.05);
+}
+function pomoPlayTrink() {
+  // Aşamalı 2 tonluk "trink" (pozitif onay)
+  pomoBeep({ freq: 880, dur: 0.18, type: 'triangle', gain: 0.22 });
+  setTimeout(() => pomoBeep({ freq: 1320, dur: 0.32, type: 'triangle', gain: 0.22 }), 140);
+}
+function pomoPlayTick() {
+  // Saatin tik tak'ı: kısa, düşük sesli click
+  pomoBeep({ freq: 1500, dur: 0.04, type: 'sine', gain: 0.05 });
+}
+function pomoPlayCountdownBeep() {
+  // 3-2-1 sayım sırasında her sayı için belirgin beep
+  pomoBeep({ freq: 660, dur: 0.18, type: 'square', gain: 0.18 });
+}
+function pomoTickAudioStart() {
+  pomoTickAudioStop();
+  pomoTickAudioId = setInterval(pomoPlayTick, 1000);
+}
+function pomoTickAudioStop() {
+  if (pomoTickAudioId) clearInterval(pomoTickAudioId);
+  pomoTickAudioId = null;
+}
+
+function pomoStartCountdown(onDone) {
+  pomoCountdownActive = true;
+  showPomoOverlay();
+  const ov = document.getElementById('pomoOverlay');
+  const timeEl = document.getElementById('pomoOvTime');
+  const phaseEl = document.getElementById('pomoOvPhase');
+  if (phaseEl) phaseEl.textContent = 'Hazırlan';
+  let n = 3;
+  const step = () => {
+    if (n <= 0) {
+      pomoCountdownActive = false;
+      ov?.classList.remove('is-countdown');
+      pomoPlayTrink();
+      if (phaseEl) phaseEl.textContent = pomoPhase === 'work' ? 'Çalışma' : 'Mola';
+      onDone && onDone();
+      return;
+    }
+    if (timeEl) timeEl.textContent = n;
+    ov?.classList.remove('is-countdown');
+    // bir sonraki frame'de tekrar ekle ki animation yeniden tetiklensin
+    requestAnimationFrame(() => ov?.classList.add('is-countdown'));
+    pomoPlayCountdownBeep();
+    n--;
+    setTimeout(step, 1000);
+  };
+  step();
+}
+
+function showPomoOverlay() {
+  const ov = document.getElementById('pomoOverlay');
+  if (!ov) return;
+  const taskEl = document.getElementById('pomoOvTask');
+  const task = tasks.find(t => t.id === pomoQueue[pomoActiveIndex]);
+  if (taskEl) taskEl.textContent = task?.text || '';
+  ov.style.display = 'flex';
+}
+function hidePomoOverlay() {
+  const ov = document.getElementById('pomoOverlay');
+  if (!ov) return;
+  ov.style.display = 'none';
+  ov.classList.remove('is-countdown');
+}
+function renderPomoOverlayTime() {
+  const ov = document.getElementById('pomoOverlay');
+  if (!ov || ov.style.display === 'none' || pomoCountdownActive) return;
+  const remMs = Math.max(0, pomoEndMs - Date.now());
+  const remSec = Math.ceil(remMs / 1000);
+  const mm = String(Math.floor(remSec/60)).padStart(2,'0');
+  const ss = String(remSec%60).padStart(2,'0');
+  const timeEl = document.getElementById('pomoOvTime');
+  const phaseEl = document.getElementById('pomoOvPhase');
+  if (timeEl) timeEl.textContent = `${mm}:${ss}`;
+  if (phaseEl) phaseEl.textContent = pomoPhase === 'work' ? 'Çalışma' : 'Mola';
 }
 
 function lcMakeBalanceContent(r) {
@@ -8838,6 +8998,12 @@ if ('serviceWorker' in navigator) {
   <button onclick="logout()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px 14px;border:none;border-radius:10px;background:#e53e3e;color:#fff;font-size:.88rem;font-weight:600;font-family:inherit;cursor:pointer">
     <span class="mi" style="font-size:18px;color:#fff">logout</span>Çıkış Yap
   </button>
+</div>
+<div class="pomo-overlay" id="pomoOverlay" style="display:none">
+  <div class="pomo-overlay-task" id="pomoOvTask"></div>
+  <div class="pomo-overlay-time" id="pomoOvTime">25:00</div>
+  <div class="pomo-overlay-phase" id="pomoOvPhase">Çalışma</div>
+  <button class="pomo-overlay-close" id="pomoOvClose" onclick="pomoReset()">Atla</button>
 </div>
 </body>
 </html>
