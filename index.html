@@ -4339,7 +4339,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Notlar autogrow
   const notesEl = document.getElementById('addNotesInput');
   if (notesEl) {
-    const notesGrow = () => { notesEl.style.height='auto'; notesEl.style.height = Math.min(notesEl.scrollHeight, 180) + 'px'; };
+    const notesGrow = () => { notesEl.style.height='auto'; notesEl.style.height = notesEl.scrollHeight + 'px'; };
     notesEl.addEventListener('input', notesGrow);
     notesEl.addEventListener('focus', notesGrow);
   }
@@ -5967,6 +5967,14 @@ function openTaskEditor(task, anchor) {
 
   attachEditListeners();
   lcPositionAddPopover(anchor);
+  // Popover render olduktan sonra title + notes auto-grow uygula (görünür DOM'da ölçüm)
+  requestAnimationFrame(() => {
+    const ti = document.getElementById('taskInput');
+    if (ti && typeof taskInputAutoGrow === 'function') taskInputAutoGrow();
+    const ne = document.getElementById('addNotesInput');
+    if (ne) { ne.style.height = 'auto'; ne.style.height = ne.scrollHeight + 'px'; }
+    lcPositionAddPopover(anchor);  // notes uzadıktan sonra konumu yenile
+  });
   setTimeout(() => document.getElementById('taskInput')?.focus(), 50);
 }
 
@@ -5975,14 +5983,11 @@ function populateAddWrapFromTask(task) {
   const taskInput = document.getElementById('taskInput');
   if (taskInput) {
     taskInput.value = task.text || '';
-    if (typeof taskInputAutoGrow === 'function') taskInputAutoGrow();
   }
-  // Notes
+  // Notes (height popover render olduktan sonra adjustEditNotesHeight'ta ayarlanır)
   const notesEl = document.getElementById('addNotesInput');
   if (notesEl) {
     notesEl.value = task.notes || '';
-    notesEl.style.height = 'auto';
-    notesEl.style.height = Math.min(notesEl.scrollHeight, 180) + 'px';
   }
   addDueValue         = task.due_at || '';
   addStarred          = !!task.starred;
