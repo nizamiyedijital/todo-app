@@ -1027,10 +1027,17 @@
       font-size:.84rem; color:var(--text2); border-radius:5px;
     }
     .add-subtask-row:hover { background:var(--surface2); }
-    .add-subtask-row .add-subtask-bullet { color:var(--text4); flex-shrink:0; font-size:.9rem; line-height:1; }
-    .add-subtask-row .add-subtask-text { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .add-subtask-row .add-subtask-bullet { color:var(--text4); flex-shrink:0; font-size:.9rem; line-height:1; cursor:pointer; user-select:none; transition:color .15s; }
+    .add-subtask-row .add-subtask-bullet:hover { color:var(--accent); }
+    .add-subtask-row .add-subtask-bullet.done { color:#22c55e; }
+    .add-subtask-row .add-subtask-text { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:text; padding:1px 2px; border-radius:3px; }
+    .add-subtask-row .add-subtask-text.done { text-decoration:line-through; color:var(--text3); }
+    .add-subtask-row .add-subtask-text.editing {
+      white-space:normal; outline:none; background:var(--surface);
+      border:1px solid var(--accent); cursor:text;
+    }
     .add-subtask-row .add-subtask-rm {
-      cursor:pointer; opacity:.4; padding:0 4px; flex-shrink:0;
+      cursor:pointer; opacity:.4; padding:0 4px; flex-shrink:0; user-select:none;
     }
     .add-subtask-row:hover .add-subtask-rm { opacity:.9; }
     .add-subtask-input-row { display:flex; gap:6px; padding:3px 0; }
@@ -4355,14 +4362,28 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Alt görev input
   const subInpEl = document.getElementById('addSubtaskInput');
   if (subInpEl) {
-    subInpEl.addEventListener('keydown', e => {
+    subInpEl.addEventListener('keydown', async e => {
       if (e.key === 'Enter') {
         e.preventDefault(); e.stopPropagation();
         const v = subInpEl.value.trim();
-        if (v) { addSubtasks.push(v); renderAddSubtasksList(); renderAddSubtaskBadge(); subInpEl.value=''; subInpEl.focus(); }
+        if (!v) return;
+        if (addEditingTaskId) {
+          // Edit modu: alt görev DB'ye direkt yazılır
+          await addSubtask(addEditingTaskId, v);
+          subInpEl.value = '';
+          renderEditSubtasksList(addEditingTaskId);
+          subInpEl.focus();
+        } else {
+          // Yeni görev modu: parent henüz yok, local array'e ekle
+          addSubtasks.push(v);
+          renderAddSubtasksList(); renderAddSubtaskBadge();
+          subInpEl.value=''; subInpEl.focus();
+        }
       } else if (e.key === 'Escape') {
         e.preventDefault();
-        document.getElementById('addSubtasksPopup').style.display='none';
+        if (!addEditingTaskId) {
+          document.getElementById('addSubtasksPopup').style.display='none';
+        }
         taskInputEl.focus();
       }
     });
@@ -6033,16 +6054,58 @@ function renderEditSubtasksList(taskId) {
     row.className = 'add-subtask-row';
     row.dataset.subId = s.id;
     row.innerHTML = `
-      <span class="add-subtask-bullet${s.done?' done':''}">${s.done?'●':'○'}</span>
+      <span class="add-subtask-bullet${s.done?' done':''}" title="Tamamla">${s.done?'●':'○'}</span>
       <span class="add-subtask-text${s.done?' done':''}"></span>
-      <span class="add-subtask-rm">×</span>`;
+      <span class="add-subtask-rm" title="Sil">×</span>`;
     const txtEl = row.querySelector('.add-subtask-text');
     txtEl.textContent = s.text;
-    row.querySelector('.add-subtask-bullet').onclick = async () => { await toggleTask(s); renderEditSubtasksList(taskId); };
-    row.querySelector('.add-subtask-rm').onclick = async () => {
+    row.querySelector('.add-subtask-bullet').onclick = async (e) => {
+      e.stopPropagation();
+      await toggleTask(s);
+      renderEditSubtasksList(taskId);
+    };
+    row.querySelector('.add-subtask-rm').onclick = async (e) => {
+      e.stopPropagation();
       await deleteTask(s.id);
       renderEditSubtasksList(taskId);
     };
+    if (!s.done) {
+      txtEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (txtEl.isContentEditable) return;
+        const original = s.text;
+        txtEl.contentEditable = 'true';
+        txtEl.classList.add('editing');
+        txtEl.focus();
+        // Tüm metni seç
+        const r = document.createRange(); r.selectNodeContents(txtEl);
+        const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        let finished = false;
+        const finish = async (commit) => {
+          if (finished) return; finished = true;
+          txtEl.contentEditable = 'false';
+          txtEl.classList.remove('editing');
+          if (!commit) { txtEl.textContent = original; return; }
+          const v = (txtEl.innerText || '').trim();
+          if (!v) {
+            await deleteTask(s.id);
+            renderEditSubtasksList(taskId);
+            return;
+          }
+          if (v !== original) {
+            s.text = v;
+            scheduleUpdate(s, { text: v });
+          }
+          txtEl.textContent = v;
+        };
+        txtEl.addEventListener('blur', () => finish(true), { once: true });
+        txtEl.addEventListener('keydown', function onKey(ev) {
+          ev.stopPropagation();
+          if (ev.key === 'Enter') { ev.preventDefault(); txtEl.blur(); }
+          if (ev.key === 'Escape') { ev.preventDefault(); finished = false; finish(false); txtEl.removeEventListener('keydown', onKey); txtEl.blur(); }
+        });
+      });
+    }
     list.appendChild(row);
   });
   if (badge && subBtn) {
