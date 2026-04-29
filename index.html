@@ -849,23 +849,16 @@
       max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     }
     .lc-head-list-wrap { position:relative; display:inline-flex; }
-    /* Liste picker — header'ın altında floating-down */
+    /* Liste picker — header'ın altında floating-down (chip stili eski inline ile aynı pill) */
     .lc-head-list-wrap .add-list-chips {
       position:absolute; top:calc(100% + 8px); right:0; z-index:210;
       background:var(--surface); border:1.5px solid var(--border2);
-      border-radius:12px; padding:6px;
-      display:flex; flex-direction:column; gap:2px; flex-wrap:nowrap;
-      min-width:160px; max-width:260px;
-      max-height:280px; overflow:auto;
+      border-radius:12px; padding:8px;
+      display:flex; flex-direction:column; gap:6px; flex-wrap:nowrap;
+      align-items:flex-start;
+      max-width:260px; max-height:280px; overflow:auto;
       box-shadow:0 4px 16px rgba(0,0,0,.15);
     }
-    .lc-head-list-wrap .add-list-chip {
-      border:none; background:transparent; border-radius:6px;
-      padding:6px 10px; font-size:.78rem;
-      justify-content:flex-start;
-    }
-    .lc-head-list-wrap .add-list-chip:hover { background:var(--surface2); border-color:transparent; }
-    .lc-head-list-wrap .add-list-chip.active { background:var(--accent-bg); color:var(--accent); }
     .lc-add-popover-head .lc-ap-time {
       color:var(--accent); font-variant-numeric:tabular-nums;
     }
