@@ -2572,7 +2572,7 @@
             <!-- Action row -->
             <div class="add-action-row">
               <span class="add-hint">↵ Ekle  •  Shift+↵ Alt satır</span>
-              <button class="btn-add-cancel" onclick="closeAddDetailWithConfirm()">İptal</button>
+              <button class="btn-add-cancel" onclick="lcCloseAddPopover()">İptal</button>
               <button class="btn-add" onclick="addTask()" title="Görevi ekle">Ekle</button>
             </div>
           </div>
@@ -2655,18 +2655,6 @@
 </div>
 
 <div class="toast" id="toast"></div>
-
-<!-- Taslak silme dialog -->
-<div class="del-confirm-overlay" id="draftDiscardOverlay">
-  <div class="del-confirm-box">
-    <p style="font-weight:600;margin-bottom:6px">Geçerli görev silinsin mi?</p>
-    <p style="font-size:.86rem;color:var(--text3);margin-bottom:0">Taslağı silmek istiyor musunuz?</p>
-    <div class="del-confirm-row">
-      <button class="btn-dc-cancel" onclick="closeDraftDiscard()">İptal</button>
-      <button class="btn-dc-ok" onclick="confirmDraftDiscard()">Sil</button>
-    </div>
-  </div>
-</div>
 
 <!-- Mobile: task edit bottom sheet -->
 <!-- Settings Modal -->
@@ -3968,7 +3956,7 @@ function resetAddForm() {
 function toggleAddStar() {
   addStarred = !addStarred;
   document.getElementById('addStarBtn').classList.toggle('active', addStarred);
-  if (addEditingTaskId) scheduleUpdateFromAddWrap();
+  if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation(); pushUndoSnapshot("chip");
 }
 
 let addPrioPickerOpen = false;
@@ -4019,7 +4007,7 @@ function renderAddPrioBtn() {
     btn.classList.remove('has-prio');
     btn.style.color = '';
   }
-  if (addEditingTaskId) scheduleUpdateFromAddWrap();
+  if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation(); pushUndoSnapshot("chip");
 }
 
 function setAddDueQuick(days) {
@@ -4097,7 +4085,7 @@ function renderAddLinkUI() {
     wrap.style.display = 'none';
     btn.classList.remove('active');
   }
-  if (addEditingTaskId) scheduleUpdateFromAddWrap();
+  if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation(); pushUndoSnapshot("chip");
 }
 
 function toggleAddSubtaskInput() {
@@ -4154,7 +4142,7 @@ function renderAddBalanceChips() {
   document.querySelectorAll('.add-balance-chip').forEach(el => {
     el.classList.toggle('active', el.dataset.cat === addBalanceCategory);
   });
-  if (addEditingTaskId) scheduleUpdateFromAddWrap();
+  if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation(); pushUndoSnapshot("chip");
 }
 function toggleAddMins(mins) {
   addEstimatedMinutes = (addEstimatedMinutes === mins) ? null : mins;
@@ -4174,7 +4162,7 @@ function renderAddMinsChips() {
   });
   const inp = document.getElementById('addMinsCustomInp');
   if (inp) inp.style.display = 'none';
-  if (addEditingTaskId) scheduleUpdateFromAddWrap();
+  if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation(); pushUndoSnapshot("chip");
 }
 function openAddMinsCustom() {
   const inp = document.getElementById('addMinsCustomInp');
@@ -4188,25 +4176,6 @@ function isAddFormDirty() {
   const title = document.getElementById('taskInput')?.value.trim();
   const notes = document.getElementById('addNotesInput')?.value.trim();
   return !!(title || notes || addDueValue || addStarred || addPriority || addLinkValue || addSubtasks.length || addBalanceCategory || addEstimatedMinutes);
-}
-
-function closeAddDetailWithConfirm() {
-  if (isAddFormDirty()) {
-    document.getElementById('draftDiscardOverlay').classList.add('open');
-  } else {
-    forceCloseAddDetail();
-  }
-}
-
-function closeDraftDiscard() {
-  document.getElementById('draftDiscardOverlay').classList.remove('open');
-}
-
-function confirmDraftDiscard() {
-  closeDraftDiscard();
-  document.getElementById('taskInput').value = '';
-  forceCloseAddDetail();
-  resetAddForm();
 }
 
 function forceCloseAddDetail() {
@@ -4336,7 +4305,7 @@ let keepInputFocused = false;
 function openAddDetail()  { document.getElementById('addDetail').classList.add('open'); }
 function closeAddDetail() {
   if (Date.now() - lastAddTaskTime < 800) return;
-  closeAddDetailWithConfirm();
+  forceCloseAddDetail();
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
@@ -4344,20 +4313,40 @@ document.addEventListener('DOMContentLoaded',()=>{
   taskInputEl.addEventListener('focus', openAddDetail);
   taskInputEl.addEventListener('input', taskInputAutoGrow);
   taskInputEl.addEventListener('input', () => { if (typeof lcUpdateGhostBlock === 'function') lcUpdateGhostBlock(); });
+  taskInputEl.addEventListener('input', () => {
+    if (lcAddPopoverState) {
+      pushUndoSnapshot('text');
+      if (!addEditingTaskId) scheduleDraftCreation();
+    }
+  });
   taskInputEl.addEventListener('keydown', e=>{
     if (e.key==='Enter' && !e.shiftKey) {
       e.preventDefault(); e.stopPropagation();
+      // Yeni mod: debounce'u atla, hemen draft oluştur (eğer alan dolu ise)
+      if (!addEditingTaskId && lcAddPopoverState) {
+        clearTimeout(_draftTimer);
+        if (!isAddWrapEmpty()) createDraftAndSwitchToEdit();
+        return;
+      }
+      // Edit modu: zaten otomatik kayıt — Enter sadece blur eder
+      if (addEditingTaskId) { e.target.blur(); return; }
+      // Popover yoksa eski akış
       addTaskKeepFocus();
-    } else if (e.key==='Escape') {
-      keepInputFocused=false; closeAddDetailWithConfirm(); e.target.blur();
     }
+    // Escape popover open ise handlePopoverKeydown halledecek; burada bir şey yapma
   });
-  // Notlar autogrow
+  // Notlar autogrow + draft tetik
   const notesEl = document.getElementById('addNotesInput');
   if (notesEl) {
     const notesGrow = () => { notesEl.style.height='auto'; notesEl.style.height = notesEl.scrollHeight + 'px'; };
     notesEl.addEventListener('input', notesGrow);
     notesEl.addEventListener('focus', notesGrow);
+    notesEl.addEventListener('input', () => {
+      if (lcAddPopoverState) {
+        pushUndoSnapshot('text');
+        if (!addEditingTaskId) scheduleDraftCreation();
+      }
+    });
   }
   // Bağlantı input commit
   const linkInpEl = document.getElementById('addLinkInput');
@@ -4434,15 +4423,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   });
 
-  // Görev listesine tıklanınca kapat (görev kartı dışı tıklama)
-  document.getElementById('mainBody').addEventListener('pointerdown', e=>{
-    if (addingTask || keepInputFocused) return;
-    if (!e.target.closest('#addWrap') && !e.target.closest('#draftDiscardOverlay')) {
-      if (!isAddFormDirty()) forceCloseAddDetail();
-      else closeAddDetailWithConfirm();
-    }
-  });
-
 });
 
 function renderAddDueLabel() {
@@ -4467,7 +4447,7 @@ function renderAddDueLabel() {
   }
   if (row) row.classList.toggle('show', !!addDueValue && !isQuick);
   renderAddDueQuickButtons();
-  if (addEditingTaskId) scheduleUpdateFromAddWrap();
+  if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation(); pushUndoSnapshot("chip");
 }
 
 
@@ -5836,7 +5816,114 @@ function lcMaybeScrollToNow() {
 }
 
 /* ── Calendar quick-add popover ── */
-let lcAddPopoverState = null;  // { popover, ghost, target, prevParent, onDoc, onKey }
+let lcAddPopoverState = null;  // { popover, ghost, target, prevParent, onDoc, onKey, isEdit }
+
+/* ── Form-level Undo / Redo (popover içi) ── */
+let _undoStack = [];
+let _redoStack = [];
+let _suppressSnapshot = false;
+let _snapshotDebounce = null;
+
+function snapshotForm() {
+  return {
+    text:     document.getElementById('taskInput')?.value || '',
+    notes:    document.getElementById('addNotesInput')?.value || '',
+    priority: addPriority,
+    starred:  addStarred,
+    balance:  addBalanceCategory,
+    mins:     addEstimatedMinutes,
+    due:      addDueValue,
+    link:     addLinkValue,
+    subtasks: [...(addSubtasks || [])],
+    editingTaskId: addEditingTaskId,
+    category: addCategoryOverride,
+  };
+}
+
+function pushUndoSnapshot(reason) {
+  if (_suppressSnapshot) return;
+  // Debounce: text input değişimleri için 300ms (her karakterde push etme)
+  if (reason === 'text') {
+    clearTimeout(_snapshotDebounce);
+    _snapshotDebounce = setTimeout(() => {
+      _undoStack.push(snapshotForm());
+      if (_undoStack.length > 50) _undoStack.shift();
+      _redoStack.length = 0;
+    }, 300);
+    return;
+  }
+  _undoStack.push(snapshotForm());
+  if (_undoStack.length > 50) _undoStack.shift();
+  _redoStack.length = 0;
+}
+
+function resetUndoStack() {
+  _undoStack = [];
+  _redoStack = [];
+  clearTimeout(_snapshotDebounce);
+}
+
+function applySnapshot(s) {
+  _suppressSnapshot = true;
+  try {
+    const ti = document.getElementById('taskInput');
+    if (ti) { ti.value = s.text; }
+    const ne = document.getElementById('addNotesInput');
+    if (ne) { ne.value = s.notes; ne.style.height = 'auto'; ne.style.height = ne.scrollHeight + 'px'; }
+    addPriority         = s.priority;
+    addStarred          = s.starred;
+    addBalanceCategory  = s.balance;
+    addEstimatedMinutes = s.mins;
+    addDueValue         = s.due;
+    addLinkValue        = s.link;
+    addSubtasks         = [...(s.subtasks || [])];
+    addCategoryOverride = s.category;
+    if (typeof renderAddPrioBtn      === 'function') renderAddPrioBtn();
+    if (typeof renderAddBalanceChips === 'function') renderAddBalanceChips();
+    if (typeof renderAddMinsChips    === 'function') renderAddMinsChips();
+    if (typeof renderAddDueLabel     === 'function') renderAddDueLabel();
+    if (typeof renderAddLinkUI       === 'function') renderAddLinkUI();
+    if (typeof renderAddSubtasksList === 'function') renderAddSubtasksList();
+    if (typeof renderAddSubtaskBadge === 'function') renderAddSubtaskBadge();
+    document.getElementById('addStarBtn')?.classList.toggle('active', !!addStarred);
+    const sel = document.getElementById('addListSelect');
+    if (sel && addCategoryOverride) sel.value = addCategoryOverride;
+    if (addEditingTaskId && typeof scheduleUpdateFromAddWrap === 'function') {
+      scheduleUpdateFromAddWrap();
+    }
+  } finally {
+    _suppressSnapshot = false;
+  }
+}
+
+function popUndo() {
+  if (_undoStack.length < 2) return;
+  const cur = _undoStack.pop();
+  _redoStack.push(cur);
+  applySnapshot(_undoStack[_undoStack.length - 1]);
+}
+
+function popRedo() {
+  if (!_redoStack.length) return;
+  const next = _redoStack.pop();
+  _undoStack.push(next);
+  applySnapshot(next);
+}
+
+function handlePopoverKeydown(e) {
+  if (e.key === 'Escape') return lcCloseAddPopover();
+  const isMac = navigator.platform.toLowerCase().includes('mac');
+  const cmd = isMac ? e.metaKey : e.ctrlKey;
+  if (!cmd) return;
+  // Native text undo'yu koru: focus text input/textarea/contenteditable iken bırak
+  const ae = document.activeElement;
+  const isText = ae && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT' || ae.isContentEditable);
+  if (isText) return;
+  if (e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); popUndo(); }
+  else if ((e.key.toLowerCase() === 'z' && e.shiftKey) || e.key.toLowerCase() === 'y') {
+    e.preventDefault(); popRedo();
+  }
+}
 
 function lcOpenAddPopover(target) {
   // BOARD'da takvim yok — kalanlar (custom, yıldızlı, day) açılır
@@ -5863,8 +5950,7 @@ function lcOpenAddPopover(target) {
   dt.setHours(target.hour, target.minute, 0, 0);
   const tStr = `${String(target.hour).padStart(2,'0')}:${String(target.minute).padStart(2,'0')}`;
   const dStr = dt.toLocaleDateString('tr-TR', { weekday:'short', day:'numeric', month:'short' });
-  head.innerHTML = `<span><span style="color:var(--text3);font-weight:500">${dStr} · </span><span class="lc-ap-time">${tStr}</span><span style="color:var(--text3);font-weight:500"> için yeni görev</span></span>
-                    <button class="lc-ap-close" title="Kapat (Esc)"><span class="mi s18">close</span></button>`;
+  head.innerHTML = `<span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${dStr} · </span><span class="lc-ap-time">${tStr}</span><span style="color:var(--text3);font-weight:500"> için yeni görev</span></span>`;
   pop.appendChild(head);
   addWrap.style.display = '';
   pop.appendChild(addWrap);
@@ -5877,6 +5963,9 @@ function lcOpenAddPopover(target) {
   // Süre default 30 (önizleme yardımcısı)
   if (addEstimatedMinutes == null) addEstimatedMinutes = DEFAULT_TASK_MINUTES;
   if (typeof renderAddMinsChips === 'function') renderAddMinsChips();
+  // Action-row gizle (otomatik kayıt; Ekle butonu yok)
+  const _actionRow0 = document.querySelector('#addWrap .add-action-row');
+  if (_actionRow0) _actionRow0.style.display = 'none';
 
   // Ghost blok
   const ghost = document.createElement('div');
@@ -5885,20 +5974,23 @@ function lcOpenAddPopover(target) {
 
   lcAddPopoverState = {
     popover: pop, ghost, target, prevParent, prevDisplay,
+    isEdit: false,
     onDoc: (e) => {
       if (pop.contains(e.target)) return;
       // dtp/picker overlay'leri için: bu element'ler popover dışında ama UI parçası
       if (e.target.closest('.dtp-overlay, .dtp-box, .add-prio-picker, .add-link-popup, .add-subtasks-popup')) return;
       lcCloseAddPopover();
     },
-    onKey: (e) => { if (e.key === 'Escape') lcCloseAddPopover(); },
+    onKey: (e) => handlePopoverKeydown(e),
   };
   setTimeout(() => {
     document.addEventListener('mousedown', lcAddPopoverState.onDoc);
     document.addEventListener('keydown',   lcAddPopoverState.onKey);
   }, 0);
-  // Kapatma butonu
-  head.querySelector('.lc-ap-close').onclick = () => lcCloseAddPopover();
+
+  // Undo/Redo stack init
+  resetUndoStack();
+  pushUndoSnapshot('open-cal');
 
   lcUpdateGhostBlock();
   lcPositionAddPopover(target.cell);
@@ -5910,11 +6002,40 @@ function lcCloseAddPopover() {
   const { popover, ghost, prevParent, prevDisplay, onDoc, onKey, isEdit } = lcAddPopoverState;
   document.removeEventListener('mousedown', onDoc);
   document.removeEventListener('keydown',   onKey);
+  // Bekleyen draft timer'ını iptal et — popover kapanıyorsa draft yaratma
+  clearTimeout(_draftTimer);
+  // Edit modu: form state'ten task'a flush et (debounce'u atla),
+  // sonra silme kuralını uygula
+  let _shouldDelete = null;
+  if (isEdit && addEditingTaskId) {
+    const task = tasks.find(t => t.id === addEditingTaskId);
+    if (task) {
+      clearTimeout(editTimers[task.id]);
+      const patch = {
+        text:               (document.getElementById('taskInput')?.value || '').trim(),
+        notes:             ((document.getElementById('addNotesInput')?.value || '').trim()) || null,
+        priority:           addPriority || null,
+        starred:            !!addStarred,
+        balance_category:   addBalanceCategory || null,
+        estimated_minutes:  addEstimatedMinutes || null,
+        due_at:             addDueValue || null,
+        link:               addLinkValue || null,
+        category:           addCategoryOverride || task.category,
+      };
+      Object.assign(task, patch);  // lokal sync
+      if (isTaskFullyEmpty(task)) {
+        _shouldDelete = task.id;
+      } else {
+        // Arka planda PATCH (popover kapanırken kayıp olmasın)
+        db(`/todos?id=eq.${task.id}`, { method:'PATCH', body: JSON.stringify(patch) })
+          .catch(e => console.warn('Close-flush PATCH error:', e.message));
+      }
+    }
+  }
   ghost?.remove();
   if (isEdit) detachEditListeners();
   const addWrap = document.getElementById('addWrap');
   if (addWrap && prevParent) {
-    // Orijinal konuma yerleştir: balanceCard'dan sonra, taskList'ten önce
     const taskList = document.getElementById('taskList');
     if (taskList && prevParent.contains(taskList)) {
       prevParent.insertBefore(addWrap, taskList);
@@ -5925,14 +6046,17 @@ function lcCloseAddPopover() {
   }
   popover?.remove();
   lcAddPopoverState = null;
-  // Edit modu kapatıldıysa state'i temizle, action-row geri görünür yap
+  // State temizle (action-row her durumda popover'da gizliydi; reset sonrası DOM'da hidden kalır)
   if (isEdit) {
     addEditingTaskId = null;
     resetAddForm();
-    const actionRow = document.querySelector('#addWrap .add-action-row');
-    if (actionRow) actionRow.style.display = '';
   }
+  resetUndoStack();
   if (typeof closeAddDetail === 'function') closeAddDetail();
+  // Boş görev otomatik silme — popover kapatıldıktan sonra arka planda
+  if (_shouldDelete) {
+    deleteTask(_shouldDelete);
+  }
 }
 
 /* ── mainBody üstündeki "+ Yeni görev" butonundan popover aç ── */
@@ -5980,8 +6104,7 @@ function openNewTaskPopover(anchor, opts = {}) {
     const list = lists.find(l => l.id === opts.defaultCategory);
     listLabel = list ? `${list.icon || '📋'} ${escapeHtml(list.name)}` : 'Yeni görev';
   }
-  head.innerHTML = `<span><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Yeni görev</span>
-                    <button class="lc-ap-close" title="Kapat (Esc)"><span class="mi s18">close</span></button>`;
+  head.innerHTML = `<span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Yeni görev</span>`;
   pop.appendChild(head);
 
   addWrap.style.display = '';
@@ -6002,24 +6125,119 @@ function openNewTaskPopover(anchor, opts = {}) {
   if (starBtn) starBtn.classList.toggle('active', addStarred);
   if (typeof renderAddDueLabel === 'function') renderAddDueLabel();
   if (typeof openAddDetail === 'function') openAddDetail();
+  // Action-row gizle (otomatik kayıt, Ekle butonu yok)
+  const _actionRow = document.querySelector('#addWrap .add-action-row');
+  if (_actionRow) _actionRow.style.display = 'none';
 
   lcAddPopoverState = {
     popover: pop, ghost: null, target: null, prevParent, prevDisplay,
+    isEdit: false,
     onDoc: (e) => {
       if (pop.contains(e.target)) return;
       if (e.target.closest('.dtp-overlay, .dtp-box, .add-prio-picker, .add-link-popup, .add-subtasks-popup')) return;
       lcCloseAddPopover();
     },
-    onKey: (e) => { if (e.key === 'Escape') lcCloseAddPopover(); },
+    onKey: (e) => handlePopoverKeydown(e),
   };
   setTimeout(() => {
     document.addEventListener('mousedown', lcAddPopoverState.onDoc);
     document.addEventListener('keydown',   lcAddPopoverState.onKey);
   }, 0);
 
-  head.querySelector('.lc-ap-close').onclick = () => lcCloseAddPopover();
+  // Undo/Redo stack init
+  resetUndoStack();
+  pushUndoSnapshot('open-new');
+
   lcPositionAddPopover(anchor);
   setTimeout(() => document.getElementById('taskInput')?.focus(), 50);
+}
+
+/* ── Boş görev kontrolü (silme kuralı + draft tetik) ── */
+function isTaskFullyEmpty(task) {
+  if (!task) return true;
+  return !((task.text || '').trim())
+      && !((task.notes || '').trim())
+      && !task.priority
+      && !task.balance_category
+      && !task.estimated_minutes
+      && !task.due_at
+      && !((task.link || '').trim())
+      && !task.starred
+      && tasks.filter(t => t.parent_id === task.id).length === 0;
+}
+
+function isAddWrapEmpty() {
+  return !((document.getElementById('taskInput')?.value || '').trim())
+      && !((document.getElementById('addNotesInput')?.value || '').trim())
+      && !addPriority && !addBalanceCategory && !addEstimatedMinutes
+      && !addDueValue && !addLinkValue && !addStarred
+      && (!addSubtasks || addSubtasks.length === 0);
+}
+
+/* ── Otomatik draft: yeni mod → edit mod geçişi ── */
+let _draftTimer = null;
+function scheduleDraftCreation() {
+  if (addEditingTaskId) return;
+  if (!lcAddPopoverState) return;  // popover açık değilse anlamsız
+  clearTimeout(_draftTimer);
+  _draftTimer = setTimeout(createDraftAndSwitchToEdit, 400);
+}
+
+async function createDraftAndSwitchToEdit() {
+  if (addEditingTaskId) return;
+  if (!lcAddPopoverState) return;
+  if (isAddWrapEmpty()) return;
+  const text = (document.getElementById('taskInput')?.value || '').trim();
+  const notes = (document.getElementById('addNotesInput')?.value || '').trim();
+  const targetCategory = addCategoryOverride || lists[0]?.id || (DEFAULT_LISTS[0] && DEFAULT_LISTS[0].id);
+  if (!targetCategory) return;
+  const payload = {
+    text: text || '',
+    notes: notes || null,
+    priority: addPriority || null,
+    starred: !!addStarred,
+    balance_category: addBalanceCategory || null,
+    estimated_minutes: addEstimatedMinutes || null,
+    due_at: addDueValue || null,
+    link: addLinkValue || null,
+    category: targetCategory,
+    sort_order: Date.now(),
+    done: false,
+  };
+  try {
+    const [t] = await db('/todos', { method:'POST', body: JSON.stringify(payload) });
+    tasks.unshift(t);
+    // Local subtasks → DB
+    const subs = [...(addSubtasks || [])];
+    for (const subText of subs) {
+      try {
+        const [s] = await db('/todos', { method:'POST', body: JSON.stringify({
+          text: subText, done:false, category: t.category, parent_id: t.id, sort_order: Date.now(),
+        })});
+        if (s) tasks.push(s);
+      } catch(_) {}
+    }
+    addSubtasks = [];
+    addEditingTaskId = t.id;
+    refreshPopoverHeaderToEditMode(t);
+    if (lcAddPopoverState) lcAddPopoverState.isEdit = true;
+    attachEditListeners();
+    if (typeof renderEditSubtasksList === 'function') renderEditSubtasksList(t.id);
+    render(); renderSidebar();
+  } catch(e) {
+    console.warn('Draft create error:', e.message);
+  }
+}
+
+function refreshPopoverHeaderToEditMode(task) {
+  const pop = document.getElementById('lcAddPopover');
+  if (!pop) return;
+  const head = pop.querySelector('.lc-add-popover-head');
+  if (!head) return;
+  const list = lists.find(l => l.id === task.category);
+  const listLabel = list ? `${list.icon || '📋'} ${escapeHtml(list.name)}` : 'Görev';
+  head.innerHTML = `<span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Görev düzenle</span>`;
+  pop.dataset.mode = 'edit';
 }
 
 /* ── Görev düzenleme modu (addWrap'i edit moda al) ── */
@@ -6044,10 +6262,7 @@ function openTaskEditor(task, anchor) {
   head.className = 'lc-add-popover-head';
   const list = lists.find(l => l.id === task.category);
   const listLabel = list ? `${list.icon || '📋'} ${escapeHtml(list.name)}` : 'Görev';
-  head.innerHTML = `
-    <button class="lc-ap-close lc-edit-close" title="Kapat (Esc)"><span class="mi s18">close</span></button>
-    <span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Görev düzenle</span>
-    <button class="lc-edit-delete" title="Görevi sil"><span class="mi s18">delete</span></button>`;
+  head.innerHTML = `<span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Görev düzenle</span>`;
   pop.appendChild(head);
 
   addWrap.style.display = '';
@@ -6069,20 +6284,16 @@ function openTaskEditor(task, anchor) {
       if (e.target.closest('.dtp-overlay, .dtp-box, .add-prio-picker, .add-link-popup, .add-subtasks-popup')) return;
       lcCloseAddPopover();
     },
-    onKey: (e) => { if (e.key === 'Escape') lcCloseAddPopover(); },
+    onKey: (e) => handlePopoverKeydown(e),
   };
   setTimeout(() => {
     document.addEventListener('mousedown', lcAddPopoverState.onDoc);
     document.addEventListener('keydown',   lcAddPopoverState.onKey);
   }, 0);
 
-  head.querySelector('.lc-ap-close').onclick = () => lcCloseAddPopover();
-  head.querySelector('.lc-edit-delete').onclick = () => {
-    if (!confirm('Bu görevi silmek istediğinden emin misin?')) return;
-    const id = addEditingTaskId;
-    lcCloseAddPopover();
-    if (id) deleteTask(id);
-  };
+  // Undo/Redo stack init
+  resetUndoStack();
+  pushUndoSnapshot('open-edit');
 
   attachEditListeners();
   lcPositionAddPopover(anchor);
@@ -6244,8 +6455,8 @@ function scheduleUpdateFromAddWrap() {
   const task = tasks.find(t => t.id === addEditingTaskId);
   if (!task) return;
   const titleVal = (document.getElementById('taskInput')?.value || '').trim();
-  if (!titleVal) return;  // boş başlıkla kayıt yapma
   const notesVal = (document.getElementById('addNotesInput')?.value || '').trim();
+  // Tüm alanlar otomatik kaydedilir; başlık boş olsa bile (silme kuralı için gereklidir)
   const patch = {
     text: titleVal,
     notes: notesVal || null,
