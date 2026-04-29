@@ -5896,7 +5896,7 @@ function renderListCalendar() {
     if (meta.theme_list_id) {
       const list = lists.find(l => l.id === meta.theme_list_id);
       if (list) {
-        cell.innerHTML = `<span class="lc-theme-chip"><span>${list.icon || '📋'}</span><span class="lc-theme-name">${escapeHtml(list.name)}</span><span class="lc-meta-rm">×</span></span>`;
+        cell.innerHTML = `<span class="lc-theme-chip"><span class="lc-theme-name">${escapeHtml(list.name)}</span><span class="lc-meta-rm">×</span></span>`;
         cell.querySelector('.lc-meta-rm').onclick = (e) => {
           e.stopPropagation();
           saveDayMeta(dateKey, { theme_list_id: null });
@@ -6981,7 +6981,7 @@ function lcOpenThemePicker(anchor, dateKey) {
   for (const l of lists) {
     const opt = document.createElement('button');
     opt.className = 'lc-pop-opt';
-    opt.innerHTML = `<span>${l.icon || '📋'}</span><span>${escapeHtml(l.name)}</span>`;
+    opt.innerHTML = `<span>${escapeHtml(l.name)}</span>`;
     opt.onclick = async (e) => {
       e.stopPropagation();
       await saveDayMeta(dateKey, { theme_list_id: l.id });
