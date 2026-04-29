@@ -646,6 +646,39 @@
       user-select:none; font-size:.95rem; flex-shrink:0;
     }
     .pomo-queue-rm:hover { opacity:1; background:var(--surface2); color:#dc2626; }
+    .pomo-schedule-row {
+      display:flex; align-items:center; gap:6px;
+      padding-top:4px;
+    }
+    .pomo-time-label { font-size:.78rem; color:var(--text2); }
+    .pomo-time-input {
+      flex:1; padding:5px 8px; border:1.5px solid var(--border2);
+      border-radius:8px; font-size:.85rem; font-family:inherit;
+      outline:none; background:var(--surface);
+    }
+    .pomo-time-input:focus { border-color:var(--accent); }
+    .pomo-arm-btn, .pomo-now-btn {
+      padding:6px 12px; border:none; border-radius:8px;
+      cursor:pointer; font-family:inherit; font-weight:600;
+      font-size:.82rem; transition:opacity .15s, background .15s;
+    }
+    .pomo-arm-btn { background:var(--surface2); color:var(--text2); }
+    .pomo-arm-btn:not(:disabled):hover { background:var(--accent-bg); color:var(--accent); }
+    .pomo-now-btn { background:var(--accent); color:#fff; width:100%; padding:9px; }
+    .pomo-now-btn:not(:disabled):hover { opacity:.9; }
+    .pomo-arm-btn:disabled, .pomo-now-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .pomo-armed-info {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:8px 10px; background:var(--accent-bg);
+      border-radius:8px; font-size:.82rem; color:var(--accent);
+      font-weight:600;
+    }
+    .pomo-reset-btn {
+      background:transparent; border:none; cursor:pointer;
+      color:var(--accent); font-size:1rem; line-height:1;
+      padding:0 4px; opacity:.7;
+    }
+    .pomo-reset-btn:hover { opacity:1; color:#dc2626; }
     @media (max-width: 900px) {
       .pomo-panel { width:240px; padding:12px; }
     }
@@ -2816,6 +2849,16 @@
               <div class="pomo-plan-section">
                 <div class="pomo-plan-head">📋 Planlama</div>
                 <div class="pomo-queue" id="pomoQueue"></div>
+                <div class="pomo-schedule-row">
+                  <label class="pomo-time-label">Saat:</label>
+                  <input type="time" id="pomoStartTime" class="pomo-time-input" step="300">
+                  <button id="pomoArmBtn" class="pomo-arm-btn" disabled>Kur</button>
+                </div>
+                <button id="pomoNowBtn" class="pomo-now-btn" disabled>Şimdi Başla</button>
+                <div class="pomo-armed-info" id="pomoArmedInfo" style="display:none">
+                  <span id="pomoArmedText">Kurulu</span>
+                  <button class="pomo-reset-btn" id="pomoResetBtn" title="Sıfırla">×</button>
+                </div>
               </div>
             </div>
           </aside>
@@ -3156,6 +3199,7 @@ let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', d
 let boardDoneStates  = {};
 let dragState        = null;
 let pomoQueue        = [];   // Pomodoro planlama: sırayla 4 görev ID
+let pomoSchedule     = { startMs:null, status:'idle' };  // 'idle' | 'armed' | 'running'
 let recentlyAddedId  = null;
 
 const SORT_OPTIONS = [
@@ -7013,6 +7057,44 @@ function renderPomoPanel() {
   }
   if (mode) mode.textContent = ready ? 'Hazır' : 'Hazır değil';
   renderPomoQueue();
+  renderPomoScheduleControls(ready);
+}
+
+function renderPomoScheduleControls(ready) {
+  const armBtn = document.getElementById('pomoArmBtn');
+  const nowBtn = document.getElementById('pomoNowBtn');
+  const armedInfo = document.getElementById('pomoArmedInfo');
+  const armedText = document.getElementById('pomoArmedText');
+  const timeInp = document.getElementById('pomoStartTime');
+  const startBtn = document.getElementById('pomoStartBtn');
+  if (!armBtn || !nowBtn || !armedInfo) return;
+  // Listener'ları bir kez bağla
+  if (!armBtn._bound) {
+    armBtn.onclick = pomoArm;
+    nowBtn.onclick = pomoStartNow;
+    document.getElementById('pomoResetBtn')?.addEventListener('click', pomoReset);
+    armBtn._bound = true;
+  }
+  if (pomoSchedule.status === 'armed') {
+    // Kurulu durum: planlama kontrolleri gizli, "Kurulu" bilgi rozeti görünür
+    armBtn.style.display = 'none';
+    nowBtn.style.display = 'none';
+    if (timeInp?.parentElement) timeInp.parentElement.style.display = 'none';
+    armedInfo.style.display = 'flex';
+    const t = new Date(pomoSchedule.startMs);
+    const hh = String(t.getHours()).padStart(2,'0');
+    const mm = String(t.getMinutes()).padStart(2,'0');
+    armedText.textContent = `Kurulu — ${hh}:${mm}'da başlayacak`;
+    if (startBtn) startBtn.textContent = 'Bekleniyor';
+  } else {
+    armBtn.style.display = '';
+    nowBtn.style.display = '';
+    if (timeInp?.parentElement) timeInp.parentElement.style.display = 'flex';
+    armedInfo.style.display = 'none';
+    armBtn.disabled = !ready;
+    nowBtn.disabled = !ready;
+    if (startBtn) startBtn.textContent = 'Başlat';
+  }
 }
 
 function renderPomoQueue() {
@@ -7097,6 +7179,74 @@ async function addToPomoQueue(taskId) {
 
 function removeFromPomoQueue(taskId) {
   pomoQueue = pomoQueue.filter(id => id !== taskId);
+  renderPomoPanel();
+}
+
+/* ── Pomodoro takvime yerleştirme + kur/şimdi başlat ── */
+async function placePomoTasksOnCalendar(startMs) {
+  // pomoQueue içindeki 4 görev için due_at'ler peş peşe (her biri 30dk
+  // arayla — 25dk çalışma + 5dk mola). DB PATCH atılır, takvim re-render.
+  const slotMs = 30 * 60 * 1000;  // 30dk = 25 work + 5 break
+  for (let i = 0; i < pomoQueue.length; i++) {
+    const taskId = pomoQueue[i];
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) continue;
+    const newDue = new Date(startMs + i * slotMs).toISOString();
+    task.due_at = newDue;
+    task.estimated_minutes = 25;
+    try {
+      await db(`/todos?id=eq.${task.id}`, {
+        method:'PATCH',
+        body: JSON.stringify({ due_at: newDue, estimated_minutes: 25 })
+      });
+    } catch(e) { console.warn('Pomo place PATCH:', e.message); }
+  }
+  if (typeof renderListCalendar === 'function') renderListCalendar();
+  if (typeof render === 'function') render();
+}
+
+function getPomoStartFromInput() {
+  const inp = document.getElementById('pomoStartTime');
+  if (!inp || !inp.value) return null;
+  const [h, m] = inp.value.split(':').map(Number);
+  if (isNaN(h) || isNaN(m)) return null;
+  const d = new Date(); d.setHours(h, m, 0, 0);
+  return d.getTime();
+}
+
+async function pomoArm() {
+  if (pomoQueue.length < 4) {
+    if (typeof showToast === 'function') showToast('Önce 4 görev planla');
+    return;
+  }
+  const startMs = getPomoStartFromInput();
+  if (startMs === null) {
+    if (typeof showToast === 'function') showToast('Geçerli bir başlangıç saati gir');
+    return;
+  }
+  if (startMs < Date.now() - 60 * 1000) {
+    if (typeof showToast === 'function') showToast('Başlangıç saati geçmiş');
+    return;
+  }
+  await placePomoTasksOnCalendar(startMs);
+  pomoSchedule = { startMs, status:'armed' };
+  renderPomoPanel();
+}
+
+async function pomoStartNow() {
+  if (pomoQueue.length < 4) {
+    if (typeof showToast === 'function') showToast('Önce 4 görev planla');
+    return;
+  }
+  const startMs = Date.now();
+  await placePomoTasksOnCalendar(startMs);
+  pomoSchedule = { startMs, status:'armed' };
+  // Faz 4: hemen tetik (Faz 5'te tam ekran sayım); şimdilik armed durumu görüntülenir.
+  renderPomoPanel();
+}
+
+function pomoReset() {
+  pomoSchedule = { startMs:null, status:'idle' };
   renderPomoPanel();
 }
 
