@@ -639,7 +639,9 @@
       display:flex; align-items:center; gap:5px;
       font-size:.62rem; line-height:1.1;
     }
-    .lc-bal-bar-row .lc-bal-emoji { width:14px; flex-shrink:0; text-align:center; }
+    .lc-bal-bar-row .lc-bal-emoji,
+    .lc-bal-bar-row .lc-bal-icon { width:14px; flex-shrink:0; text-align:center; display:inline-flex; align-items:center; justify-content:center; }
+    .lc-bal-bar-row .lc-bal-icon svg { display:block; }
     .lc-bal-bar {
       flex:1; min-width:0; height:6px; border-radius:3px;
       background:var(--surface2); position:relative; overflow:hidden;
@@ -1143,6 +1145,33 @@
     .add-balance-chip.active[data-cat="physical"]  { background:#d4f4e0; color:#15803d; border-color:#22c55e; }
     .add-balance-chip.active[data-cat="spiritual"] { background:#ede0fa; color:#7c3aed; border-color:#a855f7; }
     .add-mins-chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+    /* Denge ana butonu (collapse trigger) */
+    .add-balance-row { gap:6px; }
+    .add-balance-main {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:4px 9px;
+      border:1.5px dashed var(--border2); border-radius:14px;
+      background:var(--surface2); color:var(--text3);
+      font-size:.7rem; font-weight:500; cursor:pointer;
+      font-family:inherit; line-height:1.2; user-select:none;
+      transition:all .15s;
+    }
+    .add-balance-main:hover { border-color:var(--accent); color:var(--accent); border-style:solid; }
+    .add-balance-main.has-selection { border-style:solid; }
+    .add-balance-main.has-selection[data-cat="mental"]    { background:#dceaf6; color:#1f5b8c; border-color:#5B9BD5; }
+    .add-balance-main.has-selection[data-cat="physical"]  { background:#d4f4e0; color:#15803d; border-color:#22c55e; }
+    .add-balance-main.has-selection[data-cat="spiritual"] { background:#ede0fa; color:#7c3aed; border-color:#a855f7; }
+    .add-balance-main .bi-arrow { font-size:14px; opacity:.7; }
+    .add-balance-chips {
+      display:flex; gap:5px; flex-wrap:wrap;
+    }
+    /* Inline SVG kategori ikonu container */
+    .bi-icon {
+      display:inline-flex; align-items:center; justify-content:center;
+      vertical-align:middle; flex-shrink:0;
+    }
+    .bi-icon svg { display:block; stroke:currentColor; }
+    .add-balance-chip { display:inline-flex; align-items:center; gap:4px; }
     .add-mins-input {
       width:60px; padding:3px 7px; font-size:.7rem; border:1.5px solid var(--accent);
       border-radius:10px; outline:none; font-family:inherit;
@@ -1261,11 +1290,21 @@
     .tib-due.today .mi, .tib-due.today .tib-lbl   { color:#c2410c; }
     .tib-due.overdue .mi, .tib-due.overdue .tib-lbl { color:#dc2626; }
     .tib-balance .tib-bal-emoji { font-size:11px; line-height:1; flex-shrink:0; }
+    .tib-balance .tib-bal-icon { width:12px; height:12px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; }
+    .tib-balance .tib-bal-icon svg { display:block; }
     .tib-balance .tib-lbl { max-width:0; transition:max-width .2s ease; }
     .task-card:hover .tib-balance .tib-lbl { max-width:50px; }
+    .tib-balance[data-cat="mental"]    { color:#1f5b8c; }
+    .tib-balance[data-cat="physical"]  { color:#15803d; }
+    .tib-balance[data-cat="spiritual"] { color:#7c3aed; }
     .tib-balance[data-cat="mental"]    .tib-lbl { color:#1f5b8c; }
     .tib-balance[data-cat="physical"]  .tib-lbl { color:#15803d; }
     .tib-balance[data-cat="spiritual"] .tib-lbl { color:#7c3aed; }
+    .bc-pct-row .bc-pct-icon {
+      display:inline-flex; align-items:center; vertical-align:middle;
+      width:12px; height:12px;
+    }
+    .bc-pct-row .bc-pct-icon svg { display:block; }
 
     /* Bugünkü Aktif Yaşam Dengesi kartı */
     #balanceCard {
@@ -2541,11 +2580,18 @@
               <select id="addListSelect" onchange="addCategoryOverride = this.value || null">
               </select>
             </div>
-            <!-- Aktif Yaşam Dengesi: kategori chip'leri -->
+            <!-- Aktif Yaşam Dengesi: ana "Denge" butonu + collapse alt kategoriler -->
             <div class="add-balance-row">
-              <span class="add-balance-chip" data-cat="mental"    onclick="toggleAddBalance('mental')">🧠 Zihin</span>
-              <span class="add-balance-chip" data-cat="physical"  onclick="toggleAddBalance('physical')">🚶 Beden</span>
-              <span class="add-balance-chip" data-cat="spiritual" onclick="toggleAddBalance('spiritual')">🤲 Ruh</span>
+              <button id="addBalanceMainBtn" class="add-balance-main" type="button" onclick="toggleBalancePicker(event)">
+                <span class="bi-icon" id="addBalanceMainIcon"></span>
+                <span class="bi-label" id="addBalanceMainLabel">Denge</span>
+                <span class="mi s14 bi-arrow" id="addBalanceMainArrow">expand_more</span>
+              </button>
+              <div class="add-balance-chips" id="addBalanceChips" style="display:none">
+                <span class="add-balance-chip" data-cat="spiritual" onclick="toggleAddBalance('spiritual')"></span>
+                <span class="add-balance-chip" data-cat="physical"  onclick="toggleAddBalance('physical')"></span>
+                <span class="add-balance-chip" data-cat="mental"    onclick="toggleAddBalance('mental')"></span>
+              </div>
             </div>
             <!-- Tahmini süre chip'leri -->
             <div class="add-mins-row">
@@ -4137,11 +4183,55 @@ function taskInputAutoGrow() {
 function toggleAddBalance(cat) {
   addBalanceCategory = (addBalanceCategory === cat) ? null : cat;
   renderAddBalanceChips();
+  // Seçim yapıldıysa picker'ı otomatik kapat (akıcı UX)
+  if (addBalanceCategory) {
+    const chips = document.getElementById('addBalanceChips');
+    if (chips) chips.style.display = 'none';
+    const arrow = document.getElementById('addBalanceMainArrow');
+    if (arrow) arrow.textContent = 'expand_more';
+  }
+}
+function toggleBalancePicker(e) {
+  if (e) e.stopPropagation();
+  const chips = document.getElementById('addBalanceChips');
+  const arrow = document.getElementById('addBalanceMainArrow');
+  if (!chips) return;
+  const open = chips.style.display !== 'none' && chips.style.display !== '';
+  if (open) {
+    chips.style.display = 'none';
+    if (arrow) arrow.textContent = 'expand_more';
+  } else {
+    chips.style.display = 'flex';
+    if (arrow) arrow.textContent = 'expand_less';
+  }
 }
 function renderAddBalanceChips() {
+  // Alt chip'lerin içeriği (SVG + label)
   document.querySelectorAll('.add-balance-chip').forEach(el => {
+    const cat = BALANCE_CATEGORIES[el.dataset.cat];
+    if (cat) {
+      el.innerHTML = `<span class="bi-icon">${balSvg(cat.iconKey, 14)}</span>${escapeHtml(cat.label)}`;
+    }
     el.classList.toggle('active', el.dataset.cat === addBalanceCategory);
   });
+  // Ana butonun görünümü
+  const mainIcon  = document.getElementById('addBalanceMainIcon');
+  const mainLabel = document.getElementById('addBalanceMainLabel');
+  const mainBtn   = document.getElementById('addBalanceMainBtn');
+  if (mainIcon && mainLabel) {
+    if (addBalanceCategory && BALANCE_CATEGORIES[addBalanceCategory]) {
+      const c = BALANCE_CATEGORIES[addBalanceCategory];
+      mainIcon.innerHTML = balSvg(c.iconKey, 16);
+      mainLabel.textContent = c.label;
+      mainBtn?.classList.add('has-selection');
+      if (mainBtn) mainBtn.dataset.cat = addBalanceCategory;
+    } else {
+      mainIcon.innerHTML = balSvg('disipline', 16);
+      mainLabel.textContent = 'Denge';
+      mainBtn?.classList.remove('has-selection');
+      if (mainBtn) delete mainBtn.dataset.cat;
+    }
+  }
   if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation(); pushUndoSnapshot("chip");
 }
 function toggleAddMins(mins) {
@@ -4910,7 +5000,7 @@ function buildTaskCard(task, isDone) {
     const chip = document.createElement('span');
     chip.className = 'tib-chip tib-balance';
     chip.dataset.cat = task.balance_category;
-    chip.innerHTML = `<span class="tib-bal-emoji">${cat.emoji}</span><span class="tib-lbl">${cat.label}</span>`;
+    chip.innerHTML = `<span class="tib-bal-icon">${balSvg(cat.iconKey, 12)}</span><span class="tib-lbl">${cat.label}</span>`;
     chip.title = `${cat.label}${task.estimated_minutes ? ' · ' + fmtBalanceMinutes(task.estimated_minutes) : ''}`;
     infoBar.appendChild(chip);
   } else if (task.estimated_minutes) {
@@ -5132,10 +5222,24 @@ async function updatePriority(task, val) {
 }
 
 /* ── Aktif Yaşam Dengesi ── */
+// Outline SVG ikon seti (currentColor stroke). Ana ikon "disipline" (trefoil),
+// alt kategoriler: heart=Kalp (eski 'spiritual' key), body=Beden, mind=Zihin.
+const BAL_SVG = {
+  disipline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6.6" r="3.4"/><circle cx="6.5" cy="15.5" r="3.4"/><circle cx="17.5" cy="15.5" r="3.4"/><circle cx="12" cy="12.7" r="0.9" fill="currentColor"/></svg>',
+  heart:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5c-3-1.6-7.5-4.7-7.5-9.4 0-2.5 2-4.6 4.5-4.6 1.6 0 2.6.6 3 1.4.4-.8 1.4-1.4 3-1.4 2.5 0 4.5 2.1 4.5 4.6 0 4.7-4.5 7.8-7.5 9.4z"/><path d="M9.2 11.5l1.8 1.6c.3.3.8.3 1.1 0l1.7-1.6"/></svg>',
+  body:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="4.5" r="1.8"/><path d="M9 8.5l3-1.5 3 2 2.5 2.5-1.8 1.5-2.7-2"/><path d="M11.5 11.5l-1 4 3 2.5L11 21.5"/><path d="M9 14.5l-3 .8M5.5 18.5l2.5.6"/></svg>',
+  mind:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5c-2.4 0-4 1.4-4.4 3-1.6.3-2.6 1.7-2.6 3.2 0 1 .4 1.9 1.1 2.5-.3.5-.5 1.1-.5 1.7 0 1.7 1.4 3 3.1 3 .4 0 .8-.1 1.2-.2.4 1 1.4 1.7 2.6 1.7s2.2-.7 2.6-1.7c.4.1.8.2 1.2.2 1.7 0 3.1-1.3 3.1-3 0-.6-.2-1.2-.5-1.7.7-.6 1.1-1.5 1.1-2.5 0-1.5-1-2.9-2.6-3.2-.4-1.6-2-3-4.4-3z"/><path d="M12 4.5v14"/><path d="M9 9.5c.5-.4 1-.7 1.5-.8M9 13c.6.1 1.1.4 1.5.8M15 9.5c-.5-.4-1-.7-1.5-.8M15 13c-.6.1-1.1.4-1.5.8"/></svg>',
+};
+
+function balSvg(key, size = 14) {
+  const raw = BAL_SVG[key] || '';
+  return raw.replace('<svg ', `<svg width="${size}" height="${size}" `);
+}
+
 const BALANCE_CATEGORIES = {
-  mental:    { emoji:'🧠', label:'Zihin', color:'#5B9BD5', soft:'#dceaf6' },
-  physical:  { emoji:'🚶', label:'Beden', color:'#22c55e', soft:'#d4f4e0' },
-  spiritual: { emoji:'🤲', label:'Ruh',   color:'#a855f7', soft:'#ede0fa' },
+  spiritual: { iconKey:'heart', label:'Kalp',  color:'#a855f7', soft:'#ede0fa' },
+  physical:  { iconKey:'body',  label:'Beden', color:'#22c55e', soft:'#d4f4e0' },
+  mental:    { iconKey:'mind',  label:'Zihin', color:'#5B9BD5', soft:'#dceaf6' },
 };
 const DEFAULT_TASK_MINUTES          = 30;
 const dailyActiveLifeBalanceTargets = { mental:480, physical:120, spiritual:40 };
@@ -5398,9 +5502,9 @@ function renderBalanceCard(forDate) {
   };
   const pctRow = s.balTotal > 0
     ? `<div class="bc-pct-row">
-        <span>🧠 %${Math.round(s.mentalRatio)}</span>
-        <span>🚶 %${Math.round(s.physicalRatio)}</span>
-        <span>🤲 %${Math.round(s.spiritualRatio)}</span>
+        <span><span class="bc-pct-icon" style="color:${BALANCE_CATEGORIES.spiritual.color}">${balSvg('heart', 12)}</span> %${Math.round(s.spiritualRatio)}</span>
+        <span><span class="bc-pct-icon" style="color:${BALANCE_CATEGORIES.physical.color}">${balSvg('body', 12)}</span> %${Math.round(s.physicalRatio)}</span>
+        <span><span class="bc-pct-icon" style="color:${BALANCE_CATEGORIES.mental.color}">${balSvg('mind', 12)}</span> %${Math.round(s.mentalRatio)}</span>
        </div>`
     : `<div class="bc-pct-row" style="opacity:.6">
         <span>Kategori atanmış görev yok</span>
@@ -5693,8 +5797,10 @@ function renderListCalendar() {
         new Date(t.due_at) >= dayStart && new Date(t.due_at) < dayEnd);
     }
     if (focusTask) {
-      const emoji = focusTask.balance_category ? BALANCE_CATEGORIES[focusTask.balance_category].emoji : '⭐';
-      cell.innerHTML = `<span class="lc-focus-chip"><span>${emoji}</span><span class="lc-focus-name">${escapeHtml(focusTask.text)}</span>${meta.focus_task_id ? '<span class="lc-meta-rm">×</span>' : ''}</span>`;
+      const iconHtml = focusTask.balance_category && BALANCE_CATEGORIES[focusTask.balance_category]
+        ? balSvg(BALANCE_CATEGORIES[focusTask.balance_category].iconKey, 12)
+        : mi('star', 12);
+      cell.innerHTML = `<span class="lc-focus-chip"><span class="bi-icon">${iconHtml}</span><span class="lc-focus-name">${escapeHtml(focusTask.text)}</span>${meta.focus_task_id ? '<span class="lc-meta-rm">×</span>' : ''}</span>`;
       const rm = cell.querySelector('.lc-meta-rm');
       if (rm) rm.onclick = (e) => {
         e.stopPropagation();
@@ -6516,17 +6622,18 @@ function lcMakeBalanceContent(r) {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'display:flex;flex-direction:column;gap:3px;width:100%;';
   const cats = [
-    { key:'mental',    emoji:'🧠', minutes:r.mentalMinutes,    ratio:r.mentalRatio    },
-    { key:'physical',  emoji:'🚶', minutes:r.physicalMinutes,  ratio:r.physicalRatio  },
-    { key:'spiritual', emoji:'🤲', minutes:r.spiritualMinutes, ratio:r.spiritualRatio },
+    { key:'spiritual', iconKey:'heart', minutes:r.spiritualMinutes, ratio:r.spiritualRatio },
+    { key:'physical',  iconKey:'body',  minutes:r.physicalMinutes,  ratio:r.physicalRatio  },
+    { key:'mental',    iconKey:'mind',  minutes:r.mentalMinutes,    ratio:r.mentalRatio    },
   ];
   for (const c of cats) {
     const row = document.createElement('div');
     row.className = 'lc-bal-bar-row';
     const pct = Math.round(c.ratio || 0);
     const minsLabel = c.minutes > 0 ? fmtBalanceMinutes(c.minutes) : '0 dk';
+    const catColor = BALANCE_CATEGORIES[c.key]?.color || 'currentColor';
     row.innerHTML = `
-      <span class="lc-bal-emoji">${c.emoji}</span>
+      <span class="lc-bal-icon" style="color:${catColor}">${balSvg(c.iconKey, 12)}</span>
       <span class="lc-bal-bar"><span class="lc-bal-bar-fill" data-cat="${c.key}" style="width:${pct}%"></span></span>
       <span class="lc-bal-pct">${minsLabel} %${pct}</span>
     `;
@@ -6694,13 +6801,15 @@ function lcShowBlockPopover(block, t) {
   const minutes = (t.estimated_minutes != null && t.estimated_minutes > 0) ? t.estimated_minutes : DEFAULT_TASK_MINUTES;
   const end = new Date(start.getTime() + minutes * 60000);
   const fmt = d => `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  const emoji = t.balance_category ? BALANCE_CATEGORIES[t.balance_category].emoji + ' ' : '';
+  const balIconHtml = t.balance_category && BALANCE_CATEGORIES[t.balance_category]
+    ? `<span class="bi-icon" style="vertical-align:middle;margin-right:4px;color:${BALANCE_CATEGORIES[t.balance_category].color}">${balSvg(BALANCE_CATEGORIES[t.balance_category].iconKey, 12)}</span>`
+    : '';
   const list = lists.find(l => l.id === t.category);
   const pop = document.createElement('div');
   pop.id = 'lcBlockPopover';
   pop.className = 'lc-block-popover';
   pop.innerHTML = `
-    <div class="lc-bp-title">${emoji}${escapeHtml(t.text)}</div>
+    <div class="lc-bp-title">${balIconHtml}${escapeHtml(t.text)}</div>
     <div class="lc-bp-meta">
       <span>${fmt(start)} – ${fmt(end)}</span>
       <span>${fmtBalanceMinutes(minutes)}</span>
@@ -6769,8 +6878,10 @@ function lcOpenFocusPicker(anchor, dateKey) {
   for (const t of candidates) {
     const opt = document.createElement('button');
     opt.className = 'lc-pop-opt';
-    const emoji = t.balance_category ? BALANCE_CATEGORIES[t.balance_category].emoji : '⭐';
-    opt.innerHTML = `<span>${emoji}</span><span>${escapeHtml(t.text)}</span>`;
+    const iconHtml = t.balance_category && BALANCE_CATEGORIES[t.balance_category]
+      ? balSvg(BALANCE_CATEGORIES[t.balance_category].iconKey, 12)
+      : mi('star', 12);
+    opt.innerHTML = `<span class="bi-icon">${iconHtml}</span><span>${escapeHtml(t.text)}</span>`;
     opt.onclick = async (e) => {
       e.stopPropagation();
       await saveDayMeta(dateKey, { focus_task_id: t.id });
@@ -6824,9 +6935,11 @@ function initLcDrag(el, task) {
       ghost.style.width  = Math.max(120, Math.min(rect.width, 240)) + 'px';
       ghost.style.left   = (ev.clientX - rect.width/2) + 'px';
       ghost.style.top    = (ev.clientY - 16) + 'px';
-      const emoji = task.balance_category ? BALANCE_CATEGORIES[task.balance_category].emoji + ' ' : '';
+      const balIconHtml = task.balance_category && BALANCE_CATEGORIES[task.balance_category]
+        ? `<span class="bi-icon" style="vertical-align:middle;margin-right:4px">${balSvg(BALANCE_CATEGORIES[task.balance_category].iconKey, 12)}</span>`
+        : '';
       const minutes = task.estimated_minutes || DEFAULT_TASK_MINUTES;
-      ghost.innerHTML = `<div class="lc-drag-ghost-text">${emoji}${escapeHtml(task.text)}</div><div class="lc-drag-ghost-meta">${fmtBalanceMinutes(minutes)}</div>`;
+      ghost.innerHTML = `<div class="lc-drag-ghost-text">${balIconHtml}${escapeHtml(task.text)}</div><div class="lc-drag-ghost-meta">${fmtBalanceMinutes(minutes)}</div>`;
       document.body.appendChild(ghost);
       el.classList.add('is-dragging');
     }
