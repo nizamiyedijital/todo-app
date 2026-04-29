@@ -5111,7 +5111,8 @@ function render() {
   const isCustomList = !isStarred && !isDayFilter && activeListId !== BOARD_LIST_ID;
   active.forEach(t => {
     const card = buildTaskCard(t, false);
-    if (isCustomList) initLcDrag(card, t);
+    // Sürükleme: custom liste, DAY, yıldızlı modlarda aktif (takvim + pomodoro queue hedefi)
+    if (isCustomList || isDayFilter || isStarred) initLcDrag(card, t);
     taskList.appendChild(card);
   });
 
