@@ -3200,6 +3200,10 @@ let boardDoneStates  = {};
 let dragState        = null;
 let pomoQueue        = [];   // Pomodoro planlama: sırayla 4 görev ID
 let pomoSchedule     = { startMs:null, status:'idle' };  // 'idle' | 'armed' | 'running'
+let pomoActiveIndex  = 0;    // running'deyken çalışan görevin queue içi indexi (0..3)
+let pomoPhase        = 'work';  // 'work' | 'break' | 'long_break' (Faz 6/7)
+let pomoEndMs        = 0;    // mevcut fazın bitiş zamanı (ms)
+let pomoTickHandle   = null; // setInterval handle
 let recentlyAddedId  = null;
 
 const SORT_OPTIONS = [
@@ -3380,6 +3384,7 @@ async function initApp() {
   document.getElementById('appBox').style.display='block';
   if (appSettings.notifEnabled) setTimeout(scheduleReminders, 2000);
   connectRealtime();
+  pomoTickerStart();
 }
 
 /* ══════════════════════════════════════
@@ -7075,17 +7080,27 @@ function renderPomoScheduleControls(ready) {
     document.getElementById('pomoResetBtn')?.addEventListener('click', pomoReset);
     armBtn._bound = true;
   }
-  if (pomoSchedule.status === 'armed') {
-    // Kurulu durum: planlama kontrolleri gizli, "Kurulu" bilgi rozeti görünür
+  if (pomoSchedule.status === 'armed' || pomoSchedule.status === 'running') {
+    // Kurulu/çalışıyor durum: planlama kontrolleri gizli, bilgi rozeti görünür
     armBtn.style.display = 'none';
     nowBtn.style.display = 'none';
     if (timeInp?.parentElement) timeInp.parentElement.style.display = 'none';
     armedInfo.style.display = 'flex';
-    const t = new Date(pomoSchedule.startMs);
-    const hh = String(t.getHours()).padStart(2,'0');
-    const mm = String(t.getMinutes()).padStart(2,'0');
-    armedText.textContent = `Kurulu — ${hh}:${mm}'da başlayacak`;
-    if (startBtn) startBtn.textContent = 'Bekleniyor';
+    if (pomoSchedule.status === 'armed') {
+      const t = new Date(pomoSchedule.startMs);
+      const hh = String(t.getHours()).padStart(2,'0');
+      const mm = String(t.getMinutes()).padStart(2,'0');
+      armedText.textContent = `Kurulu — ${hh}:${mm}'da başlayacak`;
+      if (startBtn) startBtn.textContent = 'Bekleniyor';
+    } else {
+      const remMs  = Math.max(0, pomoEndMs - Date.now());
+      const remSec = Math.ceil(remMs / 1000);
+      const mm = String(Math.floor(remSec / 60)).padStart(2,'0');
+      const ss = String(remSec % 60).padStart(2,'0');
+      const phaseLabel = pomoPhase === 'work' ? 'Çalışma' : 'Mola';
+      armedText.textContent = `${phaseLabel} — Görev ${pomoActiveIndex + 1}/${pomoQueue.length} — ${mm}:${ss}`;
+      if (startBtn) startBtn.textContent = 'Çalışıyor';
+    }
   } else {
     armBtn.style.display = '';
     nowBtn.style.display = '';
@@ -7247,6 +7262,42 @@ async function pomoStartNow() {
 
 function pomoReset() {
   pomoSchedule = { startMs:null, status:'idle' };
+  pomoActiveIndex = 0;
+  pomoPhase = 'work';
+  pomoEndMs = 0;
+  renderPomoPanel();
+}
+
+// Faz 4: kurulu mod tetik. 1sn'lik tick'te armed schedule'ın saati gelmişse pomoFire.
+// Faz 5'te 3-2-1 countdown + tam ekran overlay buradan tetiklenecek.
+function pomoTickerStart() {
+  if (pomoTickHandle) return;
+  pomoTickHandle = setInterval(pomoTick, 1000);
+}
+function pomoTick() {
+  const now = Date.now();
+  if (pomoSchedule.status === 'armed' && pomoSchedule.startMs && now >= pomoSchedule.startMs) {
+    pomoFire();
+    return;
+  }
+  if (pomoSchedule.status === 'running') {
+    if (now >= pomoEndMs) {
+      // Faz 4 kapsamı: ilk fazı bitirince idle'a dön. Faz 6/7'de mola + cycle eklenecek.
+      pomoReset();
+      return;
+    }
+    // running rozetini her saniye güncelle (kalan süre)
+    renderPomoScheduleControls(pomoQueue.length >= 4);
+  }
+}
+function pomoFire() {
+  if (pomoQueue.length === 0) { pomoReset(); return; }
+  pomoSchedule.status = 'running';
+  pomoActiveIndex = 0;
+  pomoPhase = 'work';
+  // İlk görevin 25dk work fazı; başlangıç planlanmış zamandan
+  const startMs = pomoSchedule.startMs || Date.now();
+  pomoEndMs = startMs + 25 * 60 * 1000;
   renderPomoPanel();
 }
 
