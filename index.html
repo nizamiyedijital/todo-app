@@ -3873,7 +3873,7 @@ function populateAddListSelect() {
     for (const l of lists) {
       const opt = document.createElement('option');
       opt.value = l.id;
-      opt.textContent = `${l.icon || '📋'} ${l.name}`;
+      opt.textContent = l.name;
       sel.appendChild(opt);
     }
     if (cur && lists.some(l => l.id === cur)) sel.value = cur;
@@ -3891,7 +3891,7 @@ function renderAddListChips() {
     const chip = document.createElement('span');
     chip.className = 'add-list-chip' + (l.id === addCategoryOverride ? ' active' : '');
     chip.dataset.id = l.id;
-    chip.innerHTML = `<span class="bi-icon">${escapeHtml(l.icon || '📋')}</span><span>${escapeHtml(l.name)}</span>`;
+    chip.innerHTML = `<span>${escapeHtml(l.name)}</span>`;
     chip.onclick = () => {
       addCategoryOverride = l.id;
       const sel = document.getElementById('addListSelect');
