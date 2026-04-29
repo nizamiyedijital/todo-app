@@ -1080,13 +1080,16 @@
     #addNotesInput:focus { border-bottom-color:var(--accent); }
     /* Icon row */
     .add-icon-row {
-      display:flex; align-items:center; gap:5px; flex-wrap:nowrap;
+      display:flex; align-items:center; gap:5px; flex-wrap:wrap;
     }
     .add-icon-btn {
-      position:relative; width:24px; height:24px; border-radius:6px; border:none;
+      position:relative; width:28px; height:28px; border-radius:7px; border:none;
       background:var(--surface2); cursor:pointer; display:flex; align-items:center;
       justify-content:center; transition:background .15s, color .15s, border-color .15s; color:var(--text3); flex-shrink:0;
     }
+    .add-icon-btn .bi-icon { width:16px; height:16px; }
+    /* Süre ana butonu seçili durumda ikon yerine değer yazısı (genişleyebilir) */
+    #addMinsMainBtn.has-selection { width:auto; min-width:32px; padding:0 8px; background:var(--accent-bg); color:var(--accent); }
     .add-icon-btn:hover { background:var(--accent-bg); color:var(--accent); }
     .add-icon-btn.active { background:var(--accent-bg); color:var(--accent); }
     .add-icon-btn.active .mi { color:var(--accent); }
@@ -1117,64 +1120,71 @@
     }
     .add-due-label-row.show { display:flex; }
     .add-due-label-row .mi { color:var(--accent); }
-    /* Liste seçici (yıldızlı/board/day modunda görünür) */
+    /* Genel etiket satırı (tarih/liste seçim sonrası altta gözüken) */
+    .add-label-row {
+      align-items:center; gap:6px;
+      padding:4px 4px 0; font-size:.78rem; color:var(--accent);
+    }
+    .add-label-row .mi { color:var(--accent); }
+    .add-label-row .add-label-name { cursor:pointer; font-weight:500; }
+    .add-label-row .add-label-rm { cursor:pointer; opacity:.55; padding:0 4px; user-select:none; }
+    .add-label-row .add-label-rm:hover { opacity:1; color:#dc2626; }
+    /* Liste collapse host */
     .add-list-row {
-      display:flex; align-items:center; gap:6px; padding:6px 0 0;
-      font-size:.78rem; color:var(--text2);
+      display:flex; align-items:center; gap:6px; padding:4px 0 0;
+      font-size:.78rem; color:var(--text2); flex-wrap:wrap;
     }
-    .add-list-row .mi { color:var(--accent); }
-    .add-list-row select {
-      flex:1; min-width:0; padding:5px 8px;
-      border:1.5px solid var(--border2); border-radius:8px;
-      background:var(--surface); color:var(--text);
-      font-size:.78rem; font-family:inherit;
-      cursor:pointer;
+    .add-list-chips {
+      display:flex; gap:6px; flex-wrap:wrap;
     }
-    .add-list-row select:focus { border-color:var(--accent); outline:none; }
-    /* Aktif Yaşam Dengesi: kategori + süre chip satırları */
+    .add-list-chip {
+      display:inline-flex; align-items:center; gap:5px;
+      font-size:.78rem; color:var(--text2); cursor:pointer;
+      padding:6px 10px; border:1.5px solid var(--border2);
+      border-radius:18px; background:var(--surface2);
+      white-space:nowrap; user-select:none; line-height:1.2;
+      transition:all .15s;
+    }
+    .add-list-chip:hover { border-color:var(--accent); color:var(--accent); }
+    .add-list-chip.active { border-color:var(--accent); color:var(--accent); background:var(--accent-bg); border-style:solid; }
+    /* Collapse satırları (Denge / Süre / Liste — picker açıkken görünür) */
     .add-balance-row, .add-mins-row {
-      display:flex; flex-wrap:nowrap; gap:5px; padding-top:6px; align-items:center;
+      display:flex; flex-wrap:wrap; gap:5px; padding:4px 0 0; align-items:center;
     }
     .add-balance-chip, .add-mins-chip {
-      font-size:.66rem; color:var(--text3); cursor:pointer; padding:3px 8px;
-      border:1.5px solid var(--border2); border-radius:14px; background:var(--surface2);
-      white-space:nowrap; transition:all .15s; user-select:none; line-height:1.3; flex-shrink:0;
+      font-size:.78rem; color:var(--text3); cursor:pointer; padding:6px 12px;
+      border:1.5px solid var(--border2); border-radius:18px; background:var(--surface2);
+      white-space:nowrap; transition:all .15s; user-select:none; line-height:1.2; flex-shrink:0;
     }
     .add-balance-chip:hover, .add-mins-chip:hover { border-color:var(--accent); color:var(--accent); }
     .add-balance-chip.active[data-cat="mental"]    { background:#dceaf6; color:#1f5b8c; border-color:#5B9BD5; }
     .add-balance-chip.active[data-cat="physical"]  { background:#d4f4e0; color:#15803d; border-color:#22c55e; }
     .add-balance-chip.active[data-cat="spiritual"] { background:#ede0fa; color:#7c3aed; border-color:#a855f7; }
     .add-mins-chip.active { background:var(--accent); color:#fff; border-color:var(--accent); }
-    /* Denge ana butonu (collapse trigger) */
-    .add-balance-row { gap:6px; align-items:center; flex-wrap:wrap; }
-    .add-balance-main {
-      display:inline-flex; align-items:center; gap:6px;
-      padding:6px 12px;
-      border:1.5px dashed var(--border2); border-radius:18px;
-      background:var(--surface2); color:var(--text3);
-      font-size:.78rem; font-weight:500; cursor:pointer;
-      font-family:inherit; line-height:1.2; user-select:none;
-      transition:all .15s;
-    }
-    .add-balance-main:hover { border-color:var(--accent); color:var(--accent); border-style:solid; }
-    .add-balance-main.has-selection { border-style:solid; }
-    .add-balance-main.has-selection[data-cat="mental"]    { background:#dceaf6; color:#1f5b8c; border-color:#5B9BD5; }
-    .add-balance-main.has-selection[data-cat="physical"]  { background:#d4f4e0; color:#15803d; border-color:#22c55e; }
-    .add-balance-main.has-selection[data-cat="spiritual"] { background:#ede0fa; color:#7c3aed; border-color:#a855f7; }
-    .add-balance-main .bi-arrow { font-size:14px; opacity:.7; }
-    .add-balance-chips {
-      display:flex; gap:6px; flex-wrap:wrap;
-    }
     /* Inline SVG kategori ikonu container */
     .bi-icon {
       display:inline-flex; align-items:center; justify-content:center;
       vertical-align:middle; flex-shrink:0;
     }
     .bi-icon svg { display:block; stroke:currentColor; }
-    /* Denge alt chip'leri büyük ikonla */
+    /* Denge alt chip'leri ikon + label */
     .add-balance-row .add-balance-chip {
       display:inline-flex; align-items:center; gap:6px;
-      padding:6px 12px; font-size:.78rem; border-radius:18px;
+    }
+    /* Denge / Süre ana ikon butonları seçili durumda accent renge düşer */
+    #addBalanceMainBtn.has-selection,
+    #addMinsMainBtn.has-selection {
+      color:var(--accent);
+    }
+    #addBalanceMainBtn.has-selection[data-cat="mental"]    { color:#1f5b8c; }
+    #addBalanceMainBtn.has-selection[data-cat="physical"]  { color:#15803d; }
+    #addBalanceMainBtn.has-selection[data-cat="spiritual"] { color:#7c3aed; }
+    /* Süre ana butonu seçili durumda ikon yerine değer yazısı */
+    .add-mins-value {
+      font-size:.7rem; font-weight:600; line-height:1; padding:0 1px;
+    }
+    .add-balance-chips, .add-mins-chips {
+      display:flex; gap:6px; flex-wrap:wrap;
     }
     .add-mins-input {
       width:60px; padding:3px 7px; font-size:.7rem; border:1.5px solid var(--accent);
@@ -1624,6 +1634,16 @@
       display:none; flex-direction:column; width:250px; overflow:hidden;
     }
     .dtp-box.open { display:flex; }
+    .dtp-quick-row {
+      display:flex; gap:6px; padding:10px 14px 0;
+    }
+    .dtp-quick-btn {
+      flex:1; padding:6px 10px; font-size:.8rem; font-weight:500;
+      border:1.5px solid var(--border2); border-radius:14px;
+      background:var(--surface2); color:var(--text2);
+      cursor:pointer; font-family:inherit; transition:all .15s;
+    }
+    .dtp-quick-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-bg); }
     .dtp-cal { padding:14px 14px 10px; }
     .dtp-nav {
       display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
@@ -2548,7 +2568,7 @@
               <span class="mi s16 add-notes-icon">notes</span>
               <textarea id="addNotesInput" placeholder="Notlar..." rows="2" autocomplete="off" data-form-type="other"></textarea>
             </div>
-            <!-- İkon satırı: ★, !, Bugün, Yarın, Takvim, 🔗, Alt görev -->
+            <!-- Tek satır: ★ ! 📅 ⊕ ⏱ 📁 🔗 ☑ -->
             <div class="add-icon-row">
               <button class="add-icon-btn" id="addStarBtn" onclick="toggleAddStar()" title="Günde tek yıldız. Bu, o günün odağı.">
                 <span class="mi s14">star</span>
@@ -2560,11 +2580,18 @@
                 </button>
                 <div class="add-prio-picker" id="addPrioPicker" style="display:none"></div>
               </div>
-              <span class="add-due-quick-btn" id="addDueQuickToday" onclick="setAddDueQuick(0)">Bugün</span>
-              <span class="add-due-quick-btn" id="addDueQuickTomorrow" onclick="setAddDueQuick(1)">Yarın</span>
               <button class="add-icon-btn" id="addDueBtn"
                 onclick="dtpOpen(this, addDueValue||null, v=>{addDueValue=v; renderAddDueLabel();})"
                 title="Tarih ekle"><span class="mi s14">calendar_month</span></button>
+              <button class="add-icon-btn" id="addBalanceMainBtn" type="button" onclick="toggleBalancePicker(event)" title="Denge">
+                <span class="bi-icon" id="addBalanceMainIcon"></span>
+              </button>
+              <button class="add-icon-btn" id="addMinsMainBtn" type="button" onclick="toggleMinsPicker(event)" title="Süre">
+                <span id="addMinsMainContent"><span class="mi s14">timer</span></span>
+              </button>
+              <button class="add-icon-btn" id="addListMainBtn" type="button" onclick="toggleListPicker(event)" title="Liste" style="display:none">
+                <span class="mi s14">folder</span>
+              </button>
               <button class="add-icon-btn" id="addLinkBtn" onclick="toggleAddLinkInput()" title="Bağlantı ekle">
                 <span class="mi s14">link</span>
               </button>
@@ -2573,37 +2600,38 @@
                 <span class="add-icon-badge" id="addSubtaskBadge" style="display:none">0</span>
               </button>
             </div>
-            <!-- Özel tarih etiketi (Bugün/Yarın dışı seçimlerde) -->
-            <div class="add-due-label-row" id="addDueLabelRow">
+            <!-- Tarih etiketi (seçim sonrası) -->
+            <div class="add-label-row" id="addDueLabelRow">
               <span class="mi s14">schedule</span>
-              <span class="add-due-sel-label" id="addDueLabel" onclick="document.getElementById('addDueBtn').click()"></span>
+              <span class="add-label-name" id="addDueLabel" onclick="document.getElementById('addDueBtn').click()"></span>
+              <span class="add-label-rm" onclick="addDueValue=''; renderAddDueLabel();" title="Tarihi kaldır">×</span>
             </div>
-            <!-- Liste seçici: aktif liste BOARD/STARRED/DAY ise görev hangi listeye düşer? -->
-            <div class="add-list-row" id="addListRow" style="display:none">
+            <!-- Liste etiketi (seçim sonrası) -->
+            <div class="add-label-row" id="addListLabelRow" style="display:none">
               <span class="mi s14">folder</span>
-              <select id="addListSelect" onchange="addCategoryOverride = this.value || null">
-              </select>
+              <span class="add-label-name" id="addListLabelName" onclick="toggleListPicker(event)"></span>
             </div>
-            <!-- Aktif Yaşam Dengesi: ana "Denge" butonu + collapse alt kategoriler -->
+            <!-- Liste collapse seçenekleri -->
+            <div class="add-list-row" id="addListRow" style="display:none">
+              <div class="add-list-chips" id="addListChips" style="display:none"></div>
+              <select id="addListSelect" style="display:none" onchange="addCategoryOverride = this.value || null"></select>
+            </div>
+            <!-- Aktif Yaşam Dengesi: collapse alt kategoriler -->
             <div class="add-balance-row">
-              <button id="addBalanceMainBtn" class="add-balance-main" type="button" onclick="toggleBalancePicker(event)">
-                <span class="bi-icon" id="addBalanceMainIcon"></span>
-                <span class="bi-label" id="addBalanceMainLabel">Denge</span>
-                <span class="mi s14 bi-arrow" id="addBalanceMainArrow">expand_more</span>
-              </button>
               <div class="add-balance-chips" id="addBalanceChips" style="display:none">
                 <span class="add-balance-chip" data-cat="spiritual" onclick="toggleAddBalance('spiritual')"></span>
                 <span class="add-balance-chip" data-cat="physical"  onclick="toggleAddBalance('physical')"></span>
                 <span class="add-balance-chip" data-cat="mental"    onclick="toggleAddBalance('mental')"></span>
               </div>
             </div>
-            <!-- Tahmini süre chip'leri -->
+            <!-- Tahmini süre collapse chip'leri -->
             <div class="add-mins-row">
-              <span class="add-mins-chip" data-mins="15"  onclick="toggleAddMins(15)">15dk</span>
-              <span class="add-mins-chip" data-mins="30"  onclick="toggleAddMins(30)">30dk</span>
-              <span class="add-mins-chip" data-mins="60"  onclick="toggleAddMins(60)">1sa</span>
-              <span class="add-mins-chip" data-mins="120" onclick="toggleAddMins(120)">2sa</span>
-              <span class="add-mins-chip add-mins-custom" onclick="openAddMinsCustom()">⋯</span>
+              <div class="add-mins-chips" id="addMinsChips" style="display:none">
+                <span class="add-mins-chip" data-mins="5"  onclick="toggleAddMins(5)">5dk</span>
+                <span class="add-mins-chip" data-mins="25" onclick="toggleAddMins(25)">25dk</span>
+                <span class="add-mins-chip" data-mins="60" onclick="toggleAddMins(60)">60dk</span>
+                <span class="add-mins-chip" data-mins="90" onclick="toggleAddMins(90)">90dk</span>
+              </div>
               <input class="add-mins-input" id="addMinsCustomInp" type="number" min="1" max="600" placeholder="dk" style="display:none">
             </div>
             <!-- Bağlantı popup -->
@@ -2669,6 +2697,10 @@
 <!-- Date picker -->
 <div class="dtp-overlay" id="dtpOverlay" onclick="dtpClose()"></div>
 <div class="dtp-box" id="dtpBox">
+  <div class="dtp-quick-row">
+    <button class="dtp-quick-btn" onclick="dtpQuickPick(0)">Bugün</button>
+    <button class="dtp-quick-btn" onclick="dtpQuickPick(1)">Yarın</button>
+  </div>
   <div class="dtp-cal">
     <div class="dtp-nav">
       <button class="dtp-nav-btn" onclick="dtpPrev()" title="Önceki ay">‹</button>
@@ -3848,16 +3880,77 @@ function setupLinkDisplay(inp, wrap) {
 
 function populateAddListSelect() {
   const sel = document.getElementById('addListSelect');
-  if (!sel) return;
-  const cur = addCategoryOverride || sel.value;
-  sel.innerHTML = '';
-  for (const l of lists) {
-    const opt = document.createElement('option');
-    opt.value = l.id;
-    opt.textContent = `${l.icon || '📋'} ${l.name}`;
-    sel.appendChild(opt);
+  if (sel) {
+    const cur = addCategoryOverride || sel.value;
+    sel.innerHTML = '';
+    for (const l of lists) {
+      const opt = document.createElement('option');
+      opt.value = l.id;
+      opt.textContent = `${l.icon || '📋'} ${l.name}`;
+      sel.appendChild(opt);
+    }
+    if (cur && lists.some(l => l.id === cur)) sel.value = cur;
   }
-  if (cur && lists.some(l => l.id === cur)) sel.value = cur;
+  // Yeni collapse chips + label
+  renderAddListChips();
+  renderAddListLabel();
+}
+
+function renderAddListChips() {
+  const wrap = document.getElementById('addListChips');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  for (const l of lists) {
+    const chip = document.createElement('span');
+    chip.className = 'add-list-chip' + (l.id === addCategoryOverride ? ' active' : '');
+    chip.dataset.id = l.id;
+    chip.innerHTML = `<span class="bi-icon">${escapeHtml(l.icon || '📋')}</span><span>${escapeHtml(l.name)}</span>`;
+    chip.onclick = () => {
+      addCategoryOverride = l.id;
+      const sel = document.getElementById('addListSelect');
+      if (sel) sel.value = l.id;
+      const chips = document.getElementById('addListChips');
+      if (chips) chips.style.display = 'none';
+      renderAddListChips();
+      renderAddListLabel();
+      if (addEditingTaskId) scheduleUpdateFromAddWrap();
+      else                   scheduleDraftCreation();
+      pushUndoSnapshot('list');
+    };
+    wrap.appendChild(chip);
+  }
+}
+
+function renderAddListLabel() {
+  const row  = document.getElementById('addListLabelRow');
+  const name = document.getElementById('addListLabelName');
+  const mainBtn = document.getElementById('addListMainBtn');
+  if (!row || !name) return;
+  // Liste etiketi sadece ana buton görünürse + bir liste seçiliyse görünür
+  const showLabel = mainBtn && mainBtn.style.display !== 'none' && addCategoryOverride;
+  if (showLabel) {
+    const list = lists.find(l => l.id === addCategoryOverride);
+    if (list) {
+      name.textContent = list.name;
+      row.style.display = 'flex';
+      return;
+    }
+  }
+  row.style.display = 'none';
+}
+
+function toggleListPicker(e) {
+  if (e) e.stopPropagation();
+  const chips = document.getElementById('addListChips');
+  if (!chips) return;
+  const open = chips.style.display !== 'none' && chips.style.display !== '';
+  if (open) {
+    chips.style.display = 'none';
+  } else {
+    _closeOtherPickers('addListChips');
+    chips.style.display = 'flex';
+    renderAddListChips();
+  }
 }
 
 function selectList(id) {
@@ -3902,18 +3995,22 @@ function selectList(id) {
     lcSingleDate = null;
   }
   document.getElementById('listCalendar').style.display = showCalendar ? 'flex' : 'none';
-  // Liste seçici: tüm modlarda görünür; default aktif liste (custom) veya ilk liste (meta)
+  // Liste seçici: meta-listelerde (BOARD/STARRED/DAY/ALL_LISTS) ana buton + alt etiket görünür;
+  // custom listede zaten aktif liste seçili olduğu için ana buton gizli
   populateAddListSelect();
   const listRowEl = document.getElementById('addListRow');
-  if (listRowEl) listRowEl.style.display = 'flex';
+  if (listRowEl) listRowEl.style.display = 'flex';  // collapse host
   if (isCustomList) {
-    // Custom modda override aktif listeye eşitle (kullanıcı dropdown'dan değiştirebilir)
     addCategoryOverride = id;
   } else if (!addCategoryOverride) {
     addCategoryOverride = lists[0]?.id || null;
   }
   const sel = document.getElementById('addListSelect');
   if (sel && addCategoryOverride) sel.value = addCategoryOverride;
+  // Ana buton (klasör ikonu): popover akışında her zaman görünür (kullanıcı değiştirebilsin)
+  const listMainBtn = document.getElementById('addListMainBtn');
+  if (listMainBtn) listMainBtn.style.display = '';
+  renderAddListLabel();
   updateMobTabBar();
   renderSidebar();
   render();
@@ -4184,33 +4281,35 @@ function taskInputAutoGrow() {
   ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
 }
 
+// Yardımcı: tek seferde sadece bir picker açık olsun (Denge / Süre / Liste)
+function _closeOtherPickers(except) {
+  ['addBalanceChips', 'addMinsChips', 'addListChips'].forEach(id => {
+    if (id === except) return;
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
 function toggleAddBalance(cat) {
   addBalanceCategory = (addBalanceCategory === cat) ? null : cat;
   renderAddBalanceChips();
-  // Seçim yapıldıysa picker'ı otomatik kapat (akıcı UX)
   if (addBalanceCategory) {
     const chips = document.getElementById('addBalanceChips');
     if (chips) chips.style.display = 'none';
-    const arrow = document.getElementById('addBalanceMainArrow');
-    if (arrow) arrow.textContent = 'expand_more';
   }
 }
 function toggleBalancePicker(e) {
   if (e) e.stopPropagation();
   const chips = document.getElementById('addBalanceChips');
-  const arrow = document.getElementById('addBalanceMainArrow');
   if (!chips) return;
   const open = chips.style.display !== 'none' && chips.style.display !== '';
   if (open) {
     chips.style.display = 'none';
-    if (arrow) arrow.textContent = 'expand_more';
   } else {
+    _closeOtherPickers('addBalanceChips');
     chips.style.display = 'flex';
-    if (arrow) arrow.textContent = 'expand_less';
   }
 }
 function renderAddBalanceChips() {
-  // Alt chip'lerin içeriği (SVG + label)
   document.querySelectorAll('.add-balance-chip').forEach(el => {
     const cat = BALANCE_CATEGORIES[el.dataset.cat];
     if (cat) {
@@ -4218,20 +4317,17 @@ function renderAddBalanceChips() {
     }
     el.classList.toggle('active', el.dataset.cat === addBalanceCategory);
   });
-  // Ana butonun görünümü
-  const mainIcon  = document.getElementById('addBalanceMainIcon');
-  const mainLabel = document.getElementById('addBalanceMainLabel');
-  const mainBtn   = document.getElementById('addBalanceMainBtn');
-  if (mainIcon && mainLabel) {
+  // Ana ikon: seçili kategori ikonuna döner; yoksa trefoil. Yazı yok (sadece ikon).
+  const mainIcon = document.getElementById('addBalanceMainIcon');
+  const mainBtn  = document.getElementById('addBalanceMainBtn');
+  if (mainIcon) {
     if (addBalanceCategory && BALANCE_CATEGORIES[addBalanceCategory]) {
       const c = BALANCE_CATEGORIES[addBalanceCategory];
-      mainIcon.innerHTML = balSvg(c.iconKey, 20);
-      mainLabel.textContent = c.label;
+      mainIcon.innerHTML = balSvg(c.iconKey, 16);
       mainBtn?.classList.add('has-selection');
       if (mainBtn) mainBtn.dataset.cat = addBalanceCategory;
     } else {
-      mainIcon.innerHTML = balSvg('disipline', 20);
-      mainLabel.textContent = 'Denge';
+      mainIcon.innerHTML = balSvg('disipline', 16);
       mainBtn?.classList.remove('has-selection');
       if (mainBtn) delete mainBtn.dataset.cat;
     }
@@ -4241,19 +4337,42 @@ function renderAddBalanceChips() {
 function toggleAddMins(mins) {
   addEstimatedMinutes = (addEstimatedMinutes === mins) ? null : mins;
   renderAddMinsChips();
+  // Seçim sonrası picker'ı otomatik kapat
+  if (addEstimatedMinutes != null) {
+    const chips = document.getElementById('addMinsChips');
+    if (chips) chips.style.display = 'none';
+  }
   if (typeof lcUpdateGhostBlock === 'function') lcUpdateGhostBlock();
 }
+function toggleMinsPicker(e) {
+  if (e) e.stopPropagation();
+  const chips = document.getElementById('addMinsChips');
+  if (!chips) return;
+  const open = chips.style.display !== 'none' && chips.style.display !== '';
+  if (open) {
+    chips.style.display = 'none';
+  } else {
+    _closeOtherPickers('addMinsChips');
+    chips.style.display = 'flex';
+  }
+}
 function renderAddMinsChips() {
-  document.querySelectorAll('.add-mins-chip').forEach(el => {
-    if (el.classList.contains('add-mins-custom')) {
-      const isCustom = addEstimatedMinutes != null && ![15,30,60,120].includes(addEstimatedMinutes);
-      el.textContent = isCustom ? `${addEstimatedMinutes}dk` : '⋯';
-      el.classList.toggle('active', isCustom);
-    } else {
-      const m = parseInt(el.dataset.mins, 10);
-      el.classList.toggle('active', addEstimatedMinutes === m);
-    }
+  document.querySelectorAll('#addMinsChips .add-mins-chip').forEach(el => {
+    const m = parseInt(el.dataset.mins, 10);
+    el.classList.toggle('active', addEstimatedMinutes === m);
   });
+  // Ana butonun içeriği: seçili ise "Xdk" yazısı, değilse kronometre ikonu
+  const mainContent = document.getElementById('addMinsMainContent');
+  const mainBtn     = document.getElementById('addMinsMainBtn');
+  if (mainContent) {
+    if (addEstimatedMinutes != null && addEstimatedMinutes > 0) {
+      mainContent.innerHTML = `<span class="add-mins-value">${addEstimatedMinutes}dk</span>`;
+      mainBtn?.classList.add('has-selection');
+    } else {
+      mainContent.innerHTML = '<span class="mi s14">timer</span>';
+      mainBtn?.classList.remove('has-selection');
+    }
+  }
   const inp = document.getElementById('addMinsCustomInp');
   if (inp) inp.style.display = 'none';
   if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation(); pushUndoSnapshot("chip");
@@ -4262,7 +4381,7 @@ function openAddMinsCustom() {
   const inp = document.getElementById('addMinsCustomInp');
   if (!inp) return;
   inp.style.display = '';
-  inp.value = (addEstimatedMinutes != null && ![15,30,60,120].includes(addEstimatedMinutes)) ? addEstimatedMinutes : '';
+  inp.value = (addEstimatedMinutes != null && ![5,25,60,90].includes(addEstimatedMinutes)) ? addEstimatedMinutes : '';
   inp.focus();
 }
 
@@ -4539,7 +4658,8 @@ function renderAddDueLabel() {
     el.textContent='';
     btn.classList.remove('has-date');
   }
-  if (row) row.classList.toggle('show', !!addDueValue && !isQuick);
+  // Form'da Bugün/Yarın hızlı butonları yok artık → her tarih seçimi etiket olarak görünür
+  if (row) row.classList.toggle('show', !!addDueValue);
   renderAddDueQuickButtons();
   if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation(); pushUndoSnapshot("chip");
 }
@@ -6231,9 +6351,14 @@ function openNewTaskPopover(anchor, opts = {}) {
   if (listRow) listRow.style.display = 'flex';
   const sel = document.getElementById('addListSelect');
   if (sel && addCategoryOverride) sel.value = addCategoryOverride;
+  const listMainBtnNew = document.getElementById('addListMainBtn');
+  if (listMainBtnNew) listMainBtnNew.style.display = '';
+  if (typeof renderAddListLabel === 'function') renderAddListLabel();
   const starBtn = document.getElementById('addStarBtn');
   if (starBtn) starBtn.classList.toggle('active', addStarred);
   if (typeof renderAddDueLabel === 'function') renderAddDueLabel();
+  if (typeof renderAddMinsChips === 'function') renderAddMinsChips();
+  if (typeof renderAddBalanceChips === 'function') renderAddBalanceChips();
   if (typeof openAddDetail === 'function') openAddDetail();
   // Action-row gizle (otomatik kayıt, Ekle butonu yok)
   const _actionRow = document.querySelector('#addWrap .add-action-row');
@@ -6445,6 +6570,9 @@ function populateAddWrapFromTask(task) {
   if (listRow) listRow.style.display = 'flex';
   const listSel = document.getElementById('addListSelect');
   if (listSel && addCategoryOverride) listSel.value = addCategoryOverride;
+  const listMainBtnEdit = document.getElementById('addListMainBtn');
+  if (listMainBtnEdit) listMainBtnEdit.style.display = '';
+  if (typeof renderAddListLabel === 'function') renderAddListLabel();
 
   // Yıldız butonu
   const starBtn = document.getElementById('addStarBtn');
@@ -7214,6 +7342,13 @@ function dtpOpen(anchor,currentISO,cb) {
 function dtpClose() {
   document.getElementById('dtpBox').classList.remove('open');
   document.getElementById('dtpOverlay').classList.remove('open');
+}
+function dtpQuickPick(daysOffset) {
+  const d = new Date();
+  d.setDate(d.getDate() + daysOffset);
+  d.setHours(0, 0, 0, 0);
+  if (dtp.cb) dtp.cb(d.toISOString());
+  dtpClose();
 }
 function dtpClear()   { dtp.cb&&dtp.cb(''); dtpClose(); }
 function dtpConfirm() {
