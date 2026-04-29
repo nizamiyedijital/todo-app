@@ -7314,6 +7314,7 @@ async function pomoArm() {
     if (typeof showToast === 'function') showToast('Önce 4 görev planla');
     return;
   }
+  pomoEnsureNotificationPermission();
   const startMs = getPomoStartFromInput();
   if (startMs === null) {
     if (typeof showToast === 'function') showToast('Geçerli bir başlangıç saati gir');
@@ -7333,6 +7334,7 @@ async function pomoStartNow() {
     if (typeof showToast === 'function') showToast('Önce 4 görev planla');
     return;
   }
+  pomoEnsureNotificationPermission();
   const startMs = Date.now();
   await placePomoTasksOnCalendar(startMs);
   pomoSchedule = { startMs, status:'armed' };
@@ -7385,6 +7387,7 @@ function pomoNextPhase() {
   if (pomoPhase === 'work') {
     // Aktif görev tamamlandı sayılır (auto-done + geri al toast).
     const finishedTaskId = pomoQueue[pomoActiveIndex];
+    const finishedTask = tasks.find(t => t.id === finishedTaskId);
     pomoAutoDoneTask(finishedTaskId);
     // Son work mu? (queue'nun son görevi) → uzun mola, değilse kısa mola.
     const isLastWork = pomoActiveIndex === pomoQueue.length - 1;
@@ -7393,6 +7396,10 @@ function pomoNextPhase() {
     pomoEndMs = Date.now() + breakMin * 60 * 1000;
     pomoTickAudioStop();
     pomoPlayTrink();
+    pomoNotify(
+      isLastWork ? 'Pomodoro seti tamamlandı' : 'Mola zamanı',
+      `${finishedTask?.text || 'Görev'} tamamlandı — ${breakMin}dk ${isLastWork ? 'uzun ' : ''}mola başladı.`
+    );
     showPomoOverlay();
     renderPomoOverlayTime();
     renderPomoPanel();
@@ -7403,6 +7410,7 @@ function pomoNextPhase() {
     pomoActiveIndex++;
     if (pomoActiveIndex >= pomoQueue.length) {
       // Tüm görevler tamamlandı → idle
+      pomoNotify('Pomodoro seti bitti', 'Tüm görevler tamamlandı.');
       pomoReset();
       return;
     }
@@ -7410,11 +7418,28 @@ function pomoNextPhase() {
     pomoEndMs = Date.now() + 25 * 60 * 1000;
     pomoTickAudioStart();
     pomoPlayTrink();
+    const nextTask = tasks.find(t => t.id === pomoQueue[pomoActiveIndex]);
+    pomoNotify('Çalışma zamanı', `${nextTask?.text || 'Görev'} — 25dk pomo başladı.`);
     showPomoOverlay();
     renderPomoOverlayTime();
     renderPomoPanel();
     return;
   }
+}
+
+/* ──── Faz 8: tarayıcı bildirimi ──── */
+async function pomoEnsureNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    try { await Notification.requestPermission(); } catch(_){}
+  }
+}
+function pomoNotify(title, body) {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  // Sayfa görünürse bildirim atma — overlay zaten gösteriliyor
+  if (document.visibilityState === 'visible' && document.hasFocus()) return;
+  try { new Notification(title, { body, tag: 'pomo' }); } catch(_){}
 }
 
 /* ──── Faz 7: auto-done + 5sn geri al toast ──── */
@@ -7468,6 +7493,8 @@ function pomoFire() {
   pomoSchedule.status = 'running';
   pomoActiveIndex = 0;
   pomoPhase = 'work';
+  const firstTask = tasks.find(t => t.id === pomoQueue[0]);
+  pomoNotify('Pomodoro başlıyor', `${firstTask?.text || 'İlk görev'} — 25dk.`);
   // 3-2-1 countdown → trink → 25dk work fazı + tik tak loop
   pomoStartCountdown(() => {
     pomoEndMs = Date.now() + 25 * 60 * 1000;
