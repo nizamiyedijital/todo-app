@@ -6958,7 +6958,7 @@ function lcShowBlockPopover(block, t) {
       <span>${fmt(start)} – ${fmt(end)}</span>
       <span>${fmtBalanceMinutes(minutes)}</span>
     </div>
-    ${list ? `<div class="lc-bp-list">${list.icon || '📋'} ${escapeHtml(list.name)}</div>` : ''}
+    ${list ? `<div class="lc-bp-list">${escapeHtml(list.name)}</div>` : ''}
   `;
   document.body.appendChild(pop);
   // Konumla: önce blok altı; ekrana sığmazsa üst
