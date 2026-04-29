@@ -4200,15 +4200,17 @@ function renderAddDueQuickButtons() {
 }
 
 function toggleAddLinkInput() {
-  if (addLinkValue) {
-    addLinkValue = '';
-    renderAddLinkUI();
+  const popup = document.getElementById('addLinkPopup');
+  const inp = document.getElementById('addLinkInput');
+  if (!popup || !inp) return;
+  const isOpen = popup.style.display !== 'none' && popup.style.display !== '';
+  if (isOpen) {
+    popup.style.display = 'none';
     return;
   }
-  const popup = document.getElementById('addLinkPopup');
-  const isOpen = popup.style.display !== 'none';
-  popup.style.display = isOpen ? 'none' : 'flex';
-  if (!isOpen) document.getElementById('addLinkInput').focus();
+  popup.style.display = 'flex';
+  inp.value = addLinkValue || '';   // mevcut değeri yükle (düzenleme)
+  setTimeout(() => { inp.focus(); inp.select(); }, 0);
 }
 
 function commitAddLink() {
@@ -6291,9 +6293,15 @@ function lcOpenAddPopover(target) {
 function lcCloseAddPopover() {
   if (!lcAddPopoverState) return;
   const { popover, ghost, prevParent, prevDisplay, onDoc, onKey, isEdit } = lcAddPopoverState;
+  // Yeni mod + form'da en az bir alan dolu ise: kapatmadan önce draft'ı flush et
+  // (debounced timer iptal edilmeden önce). Aksi halde kullanıcının yapıştırdığı
+  // link/notlar gibi değişiklikler kayboluyordu.
+  if (!isEdit && !addEditingTaskId && typeof isAddWrapEmpty === 'function' && !isAddWrapEmpty()) {
+    clearTimeout(_draftTimer);
+    try { createDraftAndSwitchToEdit(); } catch(e) { console.warn('Pre-close draft flush:', e); }
+  }
   document.removeEventListener('mousedown', onDoc);
   document.removeEventListener('keydown',   onKey);
-  // Bekleyen draft timer'ını iptal et — popover kapanıyorsa draft yaratma
   clearTimeout(_draftTimer);
   // Edit modu: form state'ten task'a flush et (debounce'u atla),
   // sonra silme kuralını uygula
