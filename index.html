@@ -821,8 +821,31 @@
     @keyframes lcApFade { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
     .lc-add-popover-head {
       display:flex; align-items:center; justify-content:space-between;
+      gap:8px;
       padding:10px 14px; border-bottom:1px solid var(--border2);
       font-size:.78rem; font-weight:700; color:var(--text);
+    }
+    .lc-add-popover-head .lc-edit-title {
+      flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .lc-add-popover-head .lc-head-actions {
+      display:inline-flex; gap:4px; align-items:center; flex-shrink:0;
+    }
+    .lc-add-popover-head .lc-head-btn {
+      display:inline-flex; align-items:center; gap:4px;
+      background:transparent; border:none; cursor:pointer;
+      padding:4px 8px; border-radius:8px; color:var(--text2);
+      font-family:inherit; font-size:.78rem; font-weight:500;
+      transition:background .15s, color .15s;
+    }
+    .lc-add-popover-head .lc-head-btn:hover { background:var(--surface2); color:var(--accent); }
+    .lc-add-popover-head .lc-head-btn.active { color:var(--accent); }
+    .lc-add-popover-head #addStarBtn.active .mi {
+      font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;
+      color:#f59e0b;
+    }
+    .lc-head-list-name {
+      max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     }
     .lc-add-popover-head .lc-ap-time {
       color:var(--accent); font-variant-numeric:tabular-nums;
@@ -2566,11 +2589,8 @@
               <span class="mi s16 add-notes-icon">notes</span>
               <textarea id="addNotesInput" placeholder="Notlar..." rows="2" autocomplete="off" data-form-type="other"></textarea>
             </div>
-            <!-- Tek satır: ★ ! 📅 ⊕ ⏱ 📁 🔗 ☑ -->
+            <!-- Tek satır: ! 📅 ⊕ ⏱ 🔗 ☑ (yıldız ve liste header'a taşındı) -->
             <div class="add-icon-row">
-              <button class="add-icon-btn" id="addStarBtn" onclick="toggleAddStar()" title="Günde tek yıldız. Bu, o günün odağı.">
-                <span class="mi s14">star</span>
-              </button>
               <div class="add-prio-wrap">
                 <button class="add-icon-btn" id="addPrioBtn" onclick="toggleAddPrioPicker(event)" title="Öncelik">
                   <span class="add-prio-default mi s14">priority_high</span>
@@ -2602,9 +2622,6 @@
                   <span class="add-mins-chip" data-mins="90" onclick="toggleAddMins(90)">90dk</span>
                 </div>
               </div>
-              <button class="add-icon-btn" id="addListMainBtn" type="button" onclick="toggleListPicker(event)" title="Liste" style="display:none">
-                <span class="mi s14">folder</span>
-              </button>
               <button class="add-icon-btn" id="addLinkBtn" onclick="toggleAddLinkInput()" title="Bağlantı ekle">
                 <span class="mi s14">link</span>
               </button>
@@ -2618,11 +2635,6 @@
               <span class="mi s14">schedule</span>
               <span class="add-label-name" id="addDueLabel" onclick="document.getElementById('addDueBtn').click()"></span>
               <span class="add-label-rm" onclick="addDueValue=''; renderAddDueLabel();" title="Tarihi kaldır">×</span>
-            </div>
-            <!-- Liste etiketi (seçim sonrası) -->
-            <div class="add-label-row" id="addListLabelRow" style="display:none">
-              <span class="mi s14">folder</span>
-              <span class="add-label-name" id="addListLabelName" onclick="toggleListPicker(event)"></span>
             </div>
             <!-- Liste collapse seçenekleri -->
             <div class="add-list-row" id="addListRow" style="display:none">
@@ -3915,21 +3927,8 @@ function renderAddListChips() {
 }
 
 function renderAddListLabel() {
-  const row  = document.getElementById('addListLabelRow');
-  const name = document.getElementById('addListLabelName');
-  const mainBtn = document.getElementById('addListMainBtn');
-  if (!row || !name) return;
-  // Liste etiketi sadece ana buton görünürse + bir liste seçiliyse görünür
-  const showLabel = mainBtn && mainBtn.style.display !== 'none' && addCategoryOverride;
-  if (showLabel) {
-    const list = lists.find(l => l.id === addCategoryOverride);
-    if (list) {
-      name.textContent = list.name;
-      row.style.display = 'flex';
-      return;
-    }
-  }
-  row.style.display = 'none';
+  // Liste adı artık popover header'ında — addListMainName güncelle
+  if (typeof renderHeaderListName === 'function') renderHeaderListName();
 }
 
 function toggleListPicker(e) {
@@ -6199,7 +6198,10 @@ function lcOpenAddPopover(target) {
   dt.setHours(target.hour, target.minute, 0, 0);
   const tStr = `${String(target.hour).padStart(2,'0')}:${String(target.minute).padStart(2,'0')}`;
   const dStr = dt.toLocaleDateString('tr-TR', { weekday:'short', day:'numeric', month:'short' });
-  head.innerHTML = `<span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${dStr} · </span><span class="lc-ap-time">${tStr}</span><span style="color:var(--text3);font-weight:500"> için yeni görev</span></span>`;
+  {
+    const list = lists.find(l => l.id === (addCategoryOverride || lists[0]?.id));
+    head.innerHTML = buildPopoverHeadHTML('Yeni görev', list?.name);
+  }
   pop.appendChild(head);
   addWrap.style.display = '';
   pop.appendChild(addWrap);
@@ -6348,12 +6350,10 @@ function openNewTaskPopover(anchor, opts = {}) {
 
   const head = document.createElement('div');
   head.className = 'lc-add-popover-head';
-  let listLabel = opts.headerLabel;
-  if (!listLabel) {
+  {
     const list = lists.find(l => l.id === opts.defaultCategory);
-    listLabel = list ? escapeHtml(list.name) : 'Yeni görev';
+    head.innerHTML = buildPopoverHeadHTML('Yeni görev', list?.name);
   }
-  head.innerHTML = `<span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Yeni görev</span>`;
   pop.appendChild(head);
 
   addWrap.style.display = '';
@@ -6483,15 +6483,40 @@ async function createDraftAndSwitchToEdit() {
   }
 }
 
+// Görev popover'ı header HTML üretici (sol başlık + sağ aksiyonlar: yıldız, liste)
+function buildPopoverHeadHTML(titleText, listName) {
+  const safeName = escapeHtml(listName || 'Liste');
+  return `
+    <span class="lc-edit-title">${escapeHtml(titleText)}</span>
+    <div class="lc-head-actions">
+      <button class="lc-head-btn" id="addStarBtn" onclick="toggleAddStar()" title="Günün Odağı">
+        <span class="mi s14">star</span>
+      </button>
+      <button class="lc-head-btn lc-head-list" id="addListMainBtn" type="button" onclick="toggleListPicker(event)" title="Liste">
+        <span class="mi s14">folder</span>
+        <span class="lc-head-list-name" id="addListMainName">${safeName}</span>
+      </button>
+    </div>
+  `;
+}
+
+function renderHeaderListName() {
+  const el = document.getElementById('addListMainName');
+  if (!el) return;
+  const list = lists.find(l => l.id === addCategoryOverride);
+  el.textContent = list ? list.name : 'Liste';
+}
+
 function refreshPopoverHeaderToEditMode(task) {
   const pop = document.getElementById('lcAddPopover');
   if (!pop) return;
   const head = pop.querySelector('.lc-add-popover-head');
   if (!head) return;
   const list = lists.find(l => l.id === task.category);
-  const listLabel = list ? escapeHtml(list.name) : 'Görev';
-  head.innerHTML = `<span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Görev düzenle</span>`;
+  head.innerHTML = buildPopoverHeadHTML('Görev düzenle', list?.name);
   pop.dataset.mode = 'edit';
+  // Yıldız active durumunu yansıt
+  if (task.starred) document.getElementById('addStarBtn')?.classList.add('active');
 }
 
 /* ── Görev düzenleme modu (addWrap'i edit moda al) ── */
@@ -6515,8 +6540,7 @@ function openTaskEditor(task, anchor) {
   const head = document.createElement('div');
   head.className = 'lc-add-popover-head';
   const list = lists.find(l => l.id === task.category);
-  const listLabel = list ? escapeHtml(list.name) : 'Görev';
-  head.innerHTML = `<span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Görev düzenle</span>`;
+  head.innerHTML = buildPopoverHeadHTML('Görev düzenle', list?.name);
   pop.appendChild(head);
 
   addWrap.style.display = '';
