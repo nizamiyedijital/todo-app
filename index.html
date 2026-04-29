@@ -6153,18 +6153,12 @@ function renderEditSubtasksList(taskId) {
     row.dataset.subId = s.id;
     row.innerHTML = `
       <span class="add-subtask-bullet${s.done?' done':''}" title="Tamamla">${s.done?'●':'○'}</span>
-      <span class="add-subtask-text${s.done?' done':''}"></span>
-      <span class="add-subtask-rm" title="Sil">×</span>`;
+      <span class="add-subtask-text${s.done?' done':''}" title="Düzenle (silmek için metni boşalt + Enter)"></span>`;
     const txtEl = row.querySelector('.add-subtask-text');
     txtEl.textContent = s.text;
     row.querySelector('.add-subtask-bullet').onclick = async (e) => {
       e.stopPropagation();
       await toggleTask(s);
-      renderEditSubtasksList(taskId);
-    };
-    row.querySelector('.add-subtask-rm').onclick = async (e) => {
-      e.stopPropagation();
-      await deleteTask(s.id);
       renderEditSubtasksList(taskId);
     };
     if (!s.done) {
