@@ -1074,9 +1074,16 @@
       font-size:.84rem; color:var(--text2); border-radius:5px;
     }
     .add-subtask-row:hover { background:var(--surface2); }
-    .add-subtask-row .add-subtask-bullet { color:var(--text4); flex-shrink:0; font-size:.9rem; line-height:1; cursor:pointer; user-select:none; transition:color .15s; }
-    .add-subtask-row .add-subtask-bullet:hover { color:var(--accent); }
-    .add-subtask-row .add-subtask-bullet.done { color:var(--accent); }
+    /* Alt görev tik göstergesi — kart altı sub-i-chk ile birebir aynı stil */
+    .add-subtask-row .add-subtask-bullet {
+      width:13px; height:13px; border:1.5px solid #c8cde0; border-radius:50%;
+      flex-shrink:0; cursor:pointer; display:inline-flex; align-items:center;
+      justify-content:center; transition:all .15s; user-select:none;
+      font-size:0; line-height:0;
+    }
+    .add-subtask-row .add-subtask-bullet:hover { border-color:var(--accent); }
+    .add-subtask-row .add-subtask-bullet.done { background:var(--accent); border-color:var(--accent); }
+    .add-subtask-row .add-subtask-bullet.done::after { content:'✓'; color:#fff; font-size:9px; font-weight:700; line-height:1; }
     .add-subtask-row .add-subtask-text { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:text; padding:1px 2px; border-radius:3px; }
     .add-subtask-row .add-subtask-text.done { text-decoration:line-through; color:var(--text3); }
     .add-subtask-row .add-subtask-text.editing {
@@ -4274,7 +4281,7 @@ function renderAddSubtasksList() {
   addSubtasks.forEach((t, i) => {
     const row = document.createElement('div');
     row.className = 'add-subtask-row';
-    row.innerHTML = `<span class="add-subtask-bullet">○</span><span class="add-subtask-text"></span><span class="add-subtask-rm">×</span>`;
+    row.innerHTML = `<span class="add-subtask-bullet"></span><span class="add-subtask-text"></span><span class="add-subtask-rm">×</span>`;
     row.querySelector('.add-subtask-text').textContent = t;
     row.querySelector('.add-subtask-rm').onclick = () => {
       addSubtasks.splice(i, 1);
@@ -6694,7 +6701,7 @@ function renderEditSubtasksList(taskId) {
     row.className = 'add-subtask-row';
     row.dataset.subId = s.id;
     row.innerHTML = `
-      <span class="add-subtask-bullet${s.done?' done':''}" title="Tamamla">${s.done?'●':'○'}</span>
+      <span class="add-subtask-bullet${s.done?' done':''}" title="Tamamla"></span>
       <span class="add-subtask-text${s.done?' done':''}" title="Düzenle (silmek için metni boşalt + Enter)"></span>`;
     const txtEl = row.querySelector('.add-subtask-text');
     txtEl.textContent = s.text;
