@@ -4915,7 +4915,7 @@ function renderAllListsPage() {
     if (list) {
       const badge = document.createElement('span');
       badge.className = 'task-list-badge';
-      badge.innerHTML = `<span class="mi s12">folder</span>${escapeHtml(list.name)}`;
+      badge.textContent = list.name;
       const infoBar = card.querySelector('.task-info-bar');
       if (infoBar) infoBar.appendChild(badge);
       else card.appendChild(badge);
@@ -5150,7 +5150,7 @@ function buildTaskCard(task, isDone) {
     if (listObj) {
       const lbl = document.createElement('span');
       lbl.className = 'tib-list-lbl';
-      lbl.textContent = `${listObj.icon} ${listObj.name}`;
+      lbl.textContent = listObj.name;
       infoBar.appendChild(lbl);
     }
   }
