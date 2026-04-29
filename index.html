@@ -1148,9 +1148,16 @@
     }
     .add-list-chip:hover { border-color:var(--accent); color:var(--accent); }
     .add-list-chip.active { border-color:var(--accent); color:var(--accent); background:var(--accent-bg); border-style:solid; }
-    /* Collapse satırları (Denge / Süre / Liste — picker açıkken görünür) */
-    .add-balance-row, .add-mins-row {
-      display:flex; flex-wrap:wrap; gap:5px; padding:4px 0 0; align-items:center;
+    /* Denge / Süre wrap (floating popup için relative parent) */
+    .add-balance-wrap, .add-mins-wrap { position:relative; display:inline-flex; }
+    /* Floating chip popup'ları (priority picker pattern) */
+    .add-balance-chips, .add-mins-chips {
+      position:absolute; bottom:calc(100% + 8px); right:0; z-index:200;
+      background:var(--surface); border:1.5px solid var(--border2);
+      border-radius:12px; padding:8px;
+      display:flex; gap:6px; flex-wrap:wrap;
+      min-width:200px;
+      box-shadow:0 4px 16px rgba(0,0,0,.12);
     }
     .add-balance-chip, .add-mins-chip {
       font-size:.78rem; color:var(--text3); cursor:pointer; padding:6px 12px;
@@ -1169,7 +1176,7 @@
     }
     .bi-icon svg { display:block; stroke:currentColor; }
     /* Denge alt chip'leri ikon + label */
-    .add-balance-row .add-balance-chip {
+    .add-balance-chip {
       display:inline-flex; align-items:center; gap:6px;
     }
     /* Denge / Süre ana ikon butonları seçili durumda accent renge düşer */
@@ -1183,9 +1190,6 @@
     /* Süre ana butonu seçili durumda ikon yerine değer yazısı */
     .add-mins-value {
       font-size:.7rem; font-weight:600; line-height:1; padding:0 1px;
-    }
-    .add-balance-chips, .add-mins-chips {
-      display:flex; gap:6px; flex-wrap:wrap;
     }
     .add-mins-input {
       width:60px; padding:3px 7px; font-size:.7rem; border:1.5px solid var(--accent);
@@ -2574,12 +2578,27 @@
               <button class="add-icon-btn" id="addDueBtn"
                 onclick="dtpOpen(this, addDueValue||null, v=>{addDueValue=v; renderAddDueLabel();})"
                 title="Tarih ekle"><span class="mi s14">calendar_month</span></button>
-              <button class="add-icon-btn" id="addBalanceMainBtn" type="button" onclick="toggleBalancePicker(event)" title="Denge">
-                <span class="bi-icon" id="addBalanceMainIcon"></span>
-              </button>
-              <button class="add-icon-btn" id="addMinsMainBtn" type="button" onclick="toggleMinsPicker(event)" title="Süre">
-                <span id="addMinsMainContent"><span class="mi s14">timer</span></span>
-              </button>
+              <div class="add-balance-wrap">
+                <button class="add-icon-btn" id="addBalanceMainBtn" type="button" onclick="toggleBalancePicker(event)" title="Denge">
+                  <span class="bi-icon" id="addBalanceMainIcon"></span>
+                </button>
+                <div class="add-balance-chips" id="addBalanceChips" style="display:none">
+                  <span class="add-balance-chip" data-cat="spiritual" onclick="toggleAddBalance('spiritual')"></span>
+                  <span class="add-balance-chip" data-cat="physical"  onclick="toggleAddBalance('physical')"></span>
+                  <span class="add-balance-chip" data-cat="mental"    onclick="toggleAddBalance('mental')"></span>
+                </div>
+              </div>
+              <div class="add-mins-wrap">
+                <button class="add-icon-btn" id="addMinsMainBtn" type="button" onclick="toggleMinsPicker(event)" title="Süre">
+                  <span id="addMinsMainContent"><span class="mi s14">timer</span></span>
+                </button>
+                <div class="add-mins-chips" id="addMinsChips" style="display:none">
+                  <span class="add-mins-chip" data-mins="5"  onclick="toggleAddMins(5)">5dk</span>
+                  <span class="add-mins-chip" data-mins="25" onclick="toggleAddMins(25)">25dk</span>
+                  <span class="add-mins-chip" data-mins="60" onclick="toggleAddMins(60)">60dk</span>
+                  <span class="add-mins-chip" data-mins="90" onclick="toggleAddMins(90)">90dk</span>
+                </div>
+              </div>
               <button class="add-icon-btn" id="addListMainBtn" type="button" onclick="toggleListPicker(event)" title="Liste" style="display:none">
                 <span class="mi s14">folder</span>
               </button>
@@ -2607,24 +2626,8 @@
               <div class="add-list-chips" id="addListChips" style="display:none"></div>
               <select id="addListSelect" style="display:none" onchange="addCategoryOverride = this.value || null"></select>
             </div>
-            <!-- Aktif Yaşam Dengesi: collapse alt kategoriler -->
-            <div class="add-balance-row">
-              <div class="add-balance-chips" id="addBalanceChips" style="display:none">
-                <span class="add-balance-chip" data-cat="spiritual" onclick="toggleAddBalance('spiritual')"></span>
-                <span class="add-balance-chip" data-cat="physical"  onclick="toggleAddBalance('physical')"></span>
-                <span class="add-balance-chip" data-cat="mental"    onclick="toggleAddBalance('mental')"></span>
-              </div>
-            </div>
-            <!-- Tahmini süre collapse chip'leri -->
-            <div class="add-mins-row">
-              <div class="add-mins-chips" id="addMinsChips" style="display:none">
-                <span class="add-mins-chip" data-mins="5"  onclick="toggleAddMins(5)">5dk</span>
-                <span class="add-mins-chip" data-mins="25" onclick="toggleAddMins(25)">25dk</span>
-                <span class="add-mins-chip" data-mins="60" onclick="toggleAddMins(60)">60dk</span>
-                <span class="add-mins-chip" data-mins="90" onclick="toggleAddMins(90)">90dk</span>
-              </div>
-              <input class="add-mins-input" id="addMinsCustomInp" type="number" min="1" max="600" placeholder="dk" style="display:none">
-            </div>
+            <!-- Süre özel input (ana buton'un yanında değil, gerektiğinde popover içinde de gösterilebilir) -->
+            <input class="add-mins-input" id="addMinsCustomInp" type="number" min="1" max="600" placeholder="dk" style="display:none">
             <!-- Bağlantı popup -->
             <div class="add-link-popup" id="addLinkPopup" style="display:none">
               <input class="add-link-input" id="addLinkInput" type="url" placeholder="https://..." autocomplete="off">
