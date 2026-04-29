@@ -848,6 +848,24 @@
     .lc-head-list-name {
       max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     }
+    .lc-head-list-wrap { position:relative; display:inline-flex; }
+    /* Liste picker — header'ın altında floating-down */
+    .lc-head-list-wrap .add-list-chips {
+      position:absolute; top:calc(100% + 8px); right:0; z-index:210;
+      background:var(--surface); border:1.5px solid var(--border2);
+      border-radius:12px; padding:6px;
+      display:flex; flex-direction:column; gap:2px; flex-wrap:nowrap;
+      min-width:160px; max-width:260px;
+      max-height:280px; overflow:auto;
+      box-shadow:0 4px 16px rgba(0,0,0,.15);
+    }
+    .lc-head-list-wrap .add-list-chip {
+      border:none; background:transparent; border-radius:6px;
+      padding:6px 10px; font-size:.78rem;
+      justify-content:flex-start;
+    }
+    .lc-head-list-wrap .add-list-chip:hover { background:var(--surface2); border-color:transparent; }
+    .lc-head-list-wrap .add-list-chip.active { background:var(--accent-bg); color:var(--accent); }
     .lc-add-popover-head .lc-ap-time {
       color:var(--accent); font-variant-numeric:tabular-nums;
     }
@@ -2637,9 +2655,8 @@
               <span class="add-label-name" id="addDueLabel" onclick="document.getElementById('addDueBtn').click()"></span>
               <span class="add-label-rm" onclick="addDueValue=''; renderAddDueLabel();" title="Tarihi kaldır">×</span>
             </div>
-            <!-- Liste collapse seçenekleri -->
+            <!-- Liste seçimi: chips header'da; gizli select API geriye dönük uyumluluk için -->
             <div class="add-list-row" id="addListRow" style="display:none">
-              <div class="add-list-chips" id="addListChips" style="display:none"></div>
               <select id="addListSelect" style="display:none" onchange="addCategoryOverride = this.value || null"></select>
             </div>
             <!-- Süre özel input (ana buton'un yanında değil, gerektiğinde popover içinde de gösterilebilir) -->
@@ -6509,10 +6526,13 @@ function buildPopoverHeadHTML(titleText, listName) {
       <button class="lc-head-btn" id="addStarBtn" onclick="toggleAddStar()" title="Günün Odağı">
         <span class="mi s14">star</span>
       </button>
-      <button class="lc-head-btn lc-head-list" id="addListMainBtn" type="button" onclick="toggleListPicker(event)" title="Liste">
-        <span class="mi s14">folder</span>
-        <span class="lc-head-list-name" id="addListMainName">${safeName}</span>
-      </button>
+      <div class="lc-head-list-wrap">
+        <button class="lc-head-btn lc-head-list" id="addListMainBtn" type="button" onclick="toggleListPicker(event)" title="Liste">
+          <span class="mi s14">folder</span>
+          <span class="lc-head-list-name" id="addListMainName">${safeName}</span>
+        </button>
+        <div class="add-list-chips" id="addListChips" style="display:none"></div>
+      </div>
     </div>
   `;
 }
