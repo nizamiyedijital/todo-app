@@ -607,6 +607,45 @@
     .pomo-start-btn:disabled { opacity:.4; cursor:not-allowed; }
     .pomo-start-btn:not(:disabled):hover { opacity:.9; }
     .pomo-hint { font-size:.74rem; color:var(--text3); line-height:1.4; text-align:center; }
+    .pomo-plan-section {
+      border-top:1px solid #f0f2f8; padding-top:12px;
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .pomo-plan-head { font-size:.82rem; font-weight:600; color:var(--text2); }
+    .pomo-queue {
+      display:flex; flex-direction:column; gap:5px;
+      min-height:120px; padding:8px;
+      border:1.5px dashed var(--border2); border-radius:10px;
+      background:var(--surface2);
+      transition:border-color .15s, background .15s;
+    }
+    .pomo-queue.drag-over {
+      border-color:var(--accent); background:var(--accent-bg); border-style:solid;
+    }
+    .pomo-queue-empty {
+      color:var(--text3); font-size:.78rem; text-align:center;
+      padding:12px 4px; line-height:1.4;
+    }
+    .pomo-queue-item {
+      display:flex; align-items:center; gap:6px;
+      padding:7px 8px; border-radius:8px;
+      background:var(--surface); border:1px solid var(--border2);
+      font-size:.82rem;
+    }
+    .pomo-queue-item.is-dragging { opacity:.4; }
+    .pomo-queue-item.drop-target { border-color:var(--accent); border-style:solid; }
+    .pomo-queue-handle {
+      cursor:grab; color:var(--text4); font-size:.95rem; line-height:1;
+      padding:2px 4px; user-select:none; flex-shrink:0;
+    }
+    .pomo-queue-handle:active { cursor:grabbing; }
+    .pomo-queue-pos { font-weight:600; color:var(--text3); flex-shrink:0; }
+    .pomo-queue-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); }
+    .pomo-queue-rm {
+      cursor:pointer; opacity:.5; padding:2px 6px; border-radius:5px;
+      user-select:none; font-size:.95rem; flex-shrink:0;
+    }
+    .pomo-queue-rm:hover { opacity:1; background:var(--surface2); color:#dc2626; }
     @media (max-width: 900px) {
       .pomo-panel { width:240px; padding:12px; }
     }
@@ -2773,7 +2812,11 @@
               </div>
               <div class="pomo-tasks-info" id="pomoTasksInfo">Hazır: 0 / 4 görev</div>
               <button id="pomoStartBtn" class="pomo-start-btn" disabled>Başlat</button>
-              <div class="pomo-hint" id="pomoHint">Bugün için takvime 4 adet 25 dakikalık görev yerleştir.</div>
+              <div class="pomo-hint" id="pomoHint">Aşağıdan görevleri sürükle, sırala ve takvime yerleştir.</div>
+              <div class="pomo-plan-section">
+                <div class="pomo-plan-head">📋 Planlama</div>
+                <div class="pomo-queue" id="pomoQueue"></div>
+              </div>
             </div>
           </aside>
         </div>
@@ -3112,6 +3155,7 @@ let isRegMode    = false;
 let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', dir:'asc'|'desc' } }
 let boardDoneStates  = {};
 let dragState        = null;
+let pomoQueue        = [];   // Pomodoro planlama: sırayla 4 görev ID
 let recentlyAddedId  = null;
 
 const SORT_OPTIONS = [
@@ -6939,7 +6983,7 @@ function lcUpdateGhostBlock() {
   ghost.textContent = `${text} · ${tStr} · ${fmtBalanceMinutes(minutes)}`;
 }
 
-/* ── Pomodoro paneli (Faz 1: iskelet + 4-görev detection) ── */
+/* ── Pomodoro paneli (Faz 1: iskelet, Faz 2: planlama drop-zone) ── */
 function renderPomoPanel() {
   const panel = document.getElementById('pomoPanel');
   if (!panel) return;
@@ -6947,14 +6991,9 @@ function renderPomoPanel() {
   const isDay = !!lcSingleDate;
   panel.style.display = isDay ? 'flex' : 'none';
   if (!isDay) return;
-  // O gün için 25dk slotlarda yerleşmiş, henüz tamamlanmamış görevleri say (timezone-safe)
-  const eligible = tasks.filter(t => {
-    if (t.parent_id || t.done) return false;
-    if (t.estimated_minutes !== 25) return false;
-    if (!t.due_at) return false;
-    return sameDay(t.due_at, lcSingleDate);
-  });
-  const count = eligible.length;
+  // pomoQueue'da geçersiz id varsa temizle
+  pomoQueue = pomoQueue.filter(id => tasks.some(t => t.id === id && !t.done));
+  const count = pomoQueue.length;
   const requiredCount = 4;
   const ready = count >= requiredCount;
   const info = document.getElementById('pomoTasksInfo');
@@ -6968,10 +7007,96 @@ function renderPomoPanel() {
   if (btn) btn.disabled = !ready;
   if (hint) {
     hint.textContent = ready
-      ? '4 görevin hazır. Pomodoro\'yu başlatabilirsin.'
-      : `Bugün için takvime ${requiredCount - count} adet daha 25 dakikalık görev yerleştir.`;
+      ? '4 görevin hazır. Saat ayarla ve takvime yerleştir.'
+      : `Aşağıdan ${requiredCount - count} adet daha 25 dakikalık görev sürükle.`;
   }
   if (mode) mode.textContent = ready ? 'Hazır' : 'Hazır değil';
+  renderPomoQueue();
+}
+
+function renderPomoQueue() {
+  const queue = document.getElementById('pomoQueue');
+  if (!queue) return;
+  queue.innerHTML = '';
+  if (pomoQueue.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'pomo-queue-empty';
+    empty.textContent = 'Orta sütundan 4 adet görevi buraya sürükle.';
+    queue.appendChild(empty);
+  } else {
+    pomoQueue.forEach((id, i) => {
+      const t = tasks.find(x => x.id === id);
+      if (!t) return;
+      queue.appendChild(makePomoQueueItem(t, i + 1));
+    });
+  }
+}
+
+function makePomoQueueItem(task, position) {
+  const item = document.createElement('div');
+  item.className = 'pomo-queue-item';
+  item.dataset.id = task.id;
+  item.draggable = true;
+  item.innerHTML = `
+    <span class="pomo-queue-handle" title="Sırala">⋮⋮</span>
+    <span class="pomo-queue-pos">${position}.</span>
+    <span class="pomo-queue-name">${escapeHtml(task.text || '(boş)')}</span>
+    <span class="pomo-queue-rm" title="Çıkar">×</span>
+  `;
+  item.querySelector('.pomo-queue-rm').onclick = () => removeFromPomoQueue(task.id);
+  // HTML5 drag-sort: queue içi sıralama
+  item.addEventListener('dragstart', (e) => {
+    e.dataTransfer.setData('text/pomo-sort', task.id);
+    e.dataTransfer.effectAllowed = 'move';
+    item.classList.add('is-dragging');
+  });
+  item.addEventListener('dragend', () => item.classList.remove('is-dragging'));
+  item.addEventListener('dragover', (e) => {
+    if (e.dataTransfer.types.includes('text/pomo-sort')) {
+      e.preventDefault();
+      item.classList.add('drop-target');
+    }
+  });
+  item.addEventListener('dragleave', () => item.classList.remove('drop-target'));
+  item.addEventListener('drop', (e) => {
+    e.preventDefault();
+    item.classList.remove('drop-target');
+    const sourceId = e.dataTransfer.getData('text/pomo-sort');
+    if (!sourceId || sourceId === task.id) return;
+    const fromIdx = pomoQueue.indexOf(sourceId);
+    const toIdx = pomoQueue.indexOf(task.id);
+    if (fromIdx < 0 || toIdx < 0) return;
+    pomoQueue.splice(fromIdx, 1);
+    pomoQueue.splice(toIdx, 0, sourceId);
+    renderPomoPanel();
+  });
+  return item;
+}
+
+async function addToPomoQueue(taskId) {
+  if (pomoQueue.includes(taskId)) return;
+  if (pomoQueue.length >= 4) {
+    if (typeof showToast === 'function') showToast('Sırada 4 görev var; önce birini çıkar');
+    return;
+  }
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+  // Otomatik 25dk güncelleme
+  if (task.estimated_minutes !== 25) {
+    task.estimated_minutes = 25;
+    if (typeof showToast === 'function') showToast('Görev süresi Pomodoro için 25dk olarak ayarlandı');
+    try {
+      await db(`/todos?id=eq.${task.id}`, { method:'PATCH', body: JSON.stringify({ estimated_minutes: 25 }) });
+    } catch(e) { console.warn('Pomo 25dk PATCH:', e.message); }
+  }
+  pomoQueue.push(taskId);
+  renderPomoPanel();
+  if (typeof render === 'function') render();
+}
+
+function removeFromPomoQueue(taskId) {
+  pomoQueue = pomoQueue.filter(id => id !== taskId);
+  renderPomoPanel();
 }
 
 function lcMakeBalanceContent(r) {
@@ -7283,6 +7408,7 @@ function initLcDrag(el, task) {
 
     function startDrag(ev) {
       dragging = true;
+      window.__lcDragTask = task;  // Pomodoro queue drop için task referansı
       if (typeof lcHideBlockPopover === 'function') lcHideBlockPopover();
       document.body.style.userSelect = 'none';
       const rect = el.getBoundingClientRect();
@@ -7320,6 +7446,14 @@ function initLcDrag(el, task) {
       const elAt = document.elementFromPoint(ev.clientX, ev.clientY);
       ghost.style.visibility = '';
 
+      // Pomodoro queue üstündeyse highlight + takvim drop'unu pas geç
+      const queueEl = document.getElementById('pomoQueue');
+      if (queueEl && elAt && elAt.closest('#pomoQueue')) {
+        queueEl.classList.add('drag-over');
+        clearTarget();
+        return;
+      }
+      if (queueEl) queueEl.classList.remove('drag-over');
       const target = lcParseDropTarget(elAt, ev.clientX, ev.clientY);
       clearTarget();
       if (target) {
@@ -7344,13 +7478,19 @@ function initLcDrag(el, task) {
       document.body.style.userSelect = '';
       el.classList.remove('is-dragging');
 
-      if (!dragging) return;
+      if (!dragging) { window.__lcDragTask = null; return; }
       if (ghost) { ghost.remove(); ghost = null; }
       const dropTarget = lastTarget;
       clearTarget();
-      if (dropTarget) {
+      // Pomodoro queue drop kontrolü (önce kontrol et — queue takvim hücresine baskın)
+      const elAtUp = document.elementFromPoint(ev.clientX, ev.clientY);
+      const queueHit = elAtUp?.closest('#pomoQueue');
+      if (queueHit) {
+        await addToPomoQueue(task.id);
+      } else if (dropTarget) {
         await dropTaskOnCalendar(task, dropTarget);
       }
+      window.__lcDragTask = null;
     }
 
     function onKey(ev) {
