@@ -642,6 +642,8 @@
     .lc-bal-bar-row .lc-bal-emoji,
     .lc-bal-bar-row .lc-bal-icon { width:18px; height:18px; flex-shrink:0; text-align:center; display:inline-flex; align-items:center; justify-content:center; }
     .lc-bal-bar-row .lc-bal-icon svg { display:block; width:100%; height:100%; }
+    /* Balance ikonu Material Symbols glyph kullanıyorsa parent rengini alır */
+    .lc-bal-icon .mi, .bi-icon .mi, .tib-bal-icon .mi { color:inherit !important; }
     .lc-bal-bar {
       flex:1; min-width:0; height:6px; border-radius:3px;
       background:var(--surface2); position:relative; overflow:hidden;
@@ -5365,7 +5367,7 @@ const BAL_SVG = {
   heart:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5c-3-1.6-7.5-4.7-7.5-9.4 0-2.5 2-4.6 4.5-4.6 1.6 0 2.6.6 3 1.4.4-.8 1.4-1.4 3-1.4 2.5 0 4.5 2.1 4.5 4.6 0 4.7-4.5 7.8-7.5 9.4z"/><path d="M9.2 11.5l1.8 1.6c.3.3.8.3 1.1 0l1.7-1.6"/></svg>',
   // body / mind → Material Symbols Outlined font glyph (zaten yüklü, daha belirgin)
   body:      'mi:directions_run',
-  mind:      'mi:psychology',
+  mind:      'mi:neurology',
 };
 
 function balSvg(key, size = 14) {
