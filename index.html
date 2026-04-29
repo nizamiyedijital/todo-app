@@ -926,6 +926,36 @@
     .lc-task-block.is-faded { opacity:.42; }
     .lc-task-block.is-faded:hover { opacity:1; }
     .lc-task-block.is-faded.is-done { opacity:.28; }
+    /* Faz 9: aktif pomo görevi pulse */
+    .lc-task-block.is-pomo-active {
+      opacity:1 !important;
+      box-shadow:0 0 0 2px var(--accent), 0 0 16px rgba(82,125,255,.45);
+      animation: pomoBlockPulse 1.6s ease-in-out infinite;
+      z-index:4;
+    }
+    @keyframes pomoBlockPulse {
+      0%, 100% { box-shadow:0 0 0 2px var(--accent), 0 0 12px rgba(82,125,255,.35); }
+      50%      { box-shadow:0 0 0 3px var(--accent), 0 0 22px rgba(82,125,255,.65); }
+    }
+    /* Faz 9: takvimde sağ-alt mola mini-bar */
+    .lc-pomo-break-bar {
+      position:fixed; right:16px; bottom:16px; z-index:50;
+      display:flex; align-items:center; gap:8px;
+      padding:8px 12px;
+      background:#0f172a; color:#fff;
+      border-radius:10px;
+      box-shadow:0 6px 20px rgba(0,0,0,.25);
+      font-size:.82rem; font-weight:600;
+      font-variant-numeric: tabular-nums;
+      animation: pomoBreakBarIn .3s ease-out;
+    }
+    .lc-pomo-break-bar .pbb-icon {
+      font-size:.9rem;
+    }
+    @keyframes pomoBreakBarIn {
+      from { transform:translateY(8px); opacity:0; }
+      to   { transform:translateY(0);   opacity:1; }
+    }
     /* Block içi tamamla butonu (sol üst, absolute) */
     .lc-block-check {
       position:absolute; left:5px; top:5px;
@@ -2986,6 +3016,11 @@
 <div class="pomo-undo-toast" id="pomoUndoToast" style="display:none">
   <span class="pomo-undo-msg" id="pomoUndoMsg"></span>
   <button class="pomo-undo-btn" id="pomoUndoBtn">Geri al</button>
+</div>
+
+<div class="lc-pomo-break-bar" id="pomoBreakBar" style="display:none">
+  <span class="pbb-icon">🌿</span>
+  <span id="pomoBreakBarText">Mola</span>
 </div>
 
 <!-- Mobile: task edit bottom sheet -->
@@ -7351,6 +7386,8 @@ function pomoReset() {
   pomoTickAudioStop();
   hidePomoOverlay();
   renderPomoPanel();
+  if (typeof renderListCalendar === 'function') renderListCalendar();
+  renderPomoBreakBar();
 }
 
 // Faz 4: kurulu mod tetik. 1sn'lik tick'te armed schedule'ın saati gelmişse pomoFire.
@@ -7378,7 +7415,26 @@ function pomoTick() {
     }
     renderPomoScheduleControls(pomoQueue.length >= 4);
     renderPomoOverlayTime();
+    renderPomoBreakBar();
   }
+}
+
+// Faz 9: takvimin sağ-alt köşesindeki mola mini-bar; her saniye güncellenir.
+function renderPomoBreakBar() {
+  const bar = document.getElementById('pomoBreakBar');
+  const txt = document.getElementById('pomoBreakBarText');
+  if (!bar || !txt) return;
+  const isBreak = pomoSchedule.status === 'running'
+                && (pomoPhase === 'break' || pomoPhase === 'long_break')
+                && !pomoCountdownActive;
+  if (!isBreak) { bar.style.display = 'none'; return; }
+  const remMs = Math.max(0, pomoEndMs - Date.now());
+  const remSec = Math.ceil(remMs / 1000);
+  const mm = String(Math.floor(remSec / 60)).padStart(2,'0');
+  const ss = String(remSec % 60).padStart(2,'0');
+  const label = pomoPhase === 'long_break' ? 'Uzun Mola' : 'Mola';
+  txt.textContent = `${label} — ${mm}:${ss}`;
+  bar.style.display = 'flex';
 }
 
 // Faz 6/7: faz geçişleri. Son work bittiğinde 15dk uzun mola; work bitiminde
@@ -7403,6 +7459,8 @@ function pomoNextPhase() {
     showPomoOverlay();
     renderPomoOverlayTime();
     renderPomoPanel();
+    if (typeof renderListCalendar === 'function') renderListCalendar();
+    renderPomoBreakBar();
     return;
   }
   if (pomoPhase === 'break' || pomoPhase === 'long_break') {
@@ -7423,6 +7481,8 @@ function pomoNextPhase() {
     showPomoOverlay();
     renderPomoOverlayTime();
     renderPomoPanel();
+    if (typeof renderListCalendar === 'function') renderListCalendar();
+    renderPomoBreakBar();
     return;
   }
 }
@@ -7501,6 +7561,7 @@ function pomoFire() {
     pomoTickAudioStart();
     renderPomoPanel();
     renderPomoOverlayTime();
+    if (typeof renderListCalendar === 'function') renderListCalendar();
   });
   renderPomoPanel();
 }
@@ -7751,6 +7812,10 @@ function lcMakeTaskBlock(t, layout) {
   if (t.priority) block.dataset.prio = t.priority;
   if (t.done) block.classList.add('is-done');
   if (!lcIsActiveTask(t)) block.classList.add('is-faded');
+  if (pomoSchedule.status === 'running' && pomoPhase === 'work'
+      && pomoQueue[pomoActiveIndex] === t.id) {
+    block.classList.add('is-pomo-active');
+  }
   const d = new Date(t.due_at);
   const startMin = d.getMinutes();
   const minutes  = (t.estimated_minutes != null && t.estimated_minutes > 0) ? t.estimated_minutes : DEFAULT_TASK_MINUTES;
