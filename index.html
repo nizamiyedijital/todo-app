@@ -4096,7 +4096,18 @@ function resetAddForm() {
 function toggleAddStar() {
   addStarred = !addStarred;
   document.getElementById('addStarBtn').classList.toggle('active', addStarred);
-  if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation(); pushUndoSnapshot("chip");
+  if (addEditingTaskId) {
+    // Anlık görsel: kart yıldızını da güncelle (DB PATCH 700ms debounced)
+    const task = tasks.find(t => t.id === addEditingTaskId);
+    if (task) {
+      task.starred = addStarred;
+      render(); renderSidebar();
+    }
+    scheduleUpdateFromAddWrap();
+  } else {
+    scheduleDraftCreation();
+  }
+  pushUndoSnapshot("chip");
 }
 
 let addPrioPickerOpen = false;
@@ -5313,6 +5324,11 @@ async function toggleStar(task) {
   const starred = !task.starred;
   await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify({starred})});
   task.starred = starred;
+  // Popover bu görev için açıksa header yıldızını sync et
+  if (addEditingTaskId === task.id) {
+    addStarred = starred;
+    document.getElementById('addStarBtn')?.classList.toggle('active', starred);
+  }
   render(); renderSidebar();
 }
 
@@ -6547,6 +6563,9 @@ function openTaskEditor(task, anchor) {
   addWrap.style.display = '';
   pop.appendChild(addWrap);
   document.body.appendChild(pop);
+
+  // Yıldız active durumunu yansıt (DOM hazır olduktan sonra)
+  if (task.starred) document.getElementById('addStarBtn')?.classList.add('active');
 
   // Action-row gizle (edit modunda otomatik kayıt; "Ekle" butonu yok)
   const actionRow = addWrap.querySelector('.add-action-row');
