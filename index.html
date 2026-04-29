@@ -6322,7 +6322,7 @@ function openNewTaskPopover(anchor, opts = {}) {
   let listLabel = opts.headerLabel;
   if (!listLabel) {
     const list = lists.find(l => l.id === opts.defaultCategory);
-    listLabel = list ? `${list.icon || '📋'} ${escapeHtml(list.name)}` : 'Yeni görev';
+    listLabel = list ? escapeHtml(list.name) : 'Yeni görev';
   }
   head.innerHTML = `<span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Yeni görev</span>`;
   pop.appendChild(head);
@@ -6460,7 +6460,7 @@ function refreshPopoverHeaderToEditMode(task) {
   const head = pop.querySelector('.lc-add-popover-head');
   if (!head) return;
   const list = lists.find(l => l.id === task.category);
-  const listLabel = list ? `${list.icon || '📋'} ${escapeHtml(list.name)}` : 'Görev';
+  const listLabel = list ? escapeHtml(list.name) : 'Görev';
   head.innerHTML = `<span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Görev düzenle</span>`;
   pop.dataset.mode = 'edit';
 }
@@ -6486,7 +6486,7 @@ function openTaskEditor(task, anchor) {
   const head = document.createElement('div');
   head.className = 'lc-add-popover-head';
   const list = lists.find(l => l.id === task.category);
-  const listLabel = list ? `${list.icon || '📋'} ${escapeHtml(list.name)}` : 'Görev';
+  const listLabel = list ? escapeHtml(list.name) : 'Görev';
   head.innerHTML = `<span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Görev düzenle</span>`;
   pop.appendChild(head);
 
