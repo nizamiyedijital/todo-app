@@ -818,6 +818,31 @@
     .lc-add-popover-head .lc-ap-close:hover { background:var(--surface2); color:var(--text); }
     .lc-add-popover .add-wrap { display:block !important; padding:10px 12px; }
     .lc-add-popover #addDetail { display:flex !important; max-height:none !important; overflow:visible !important; }
+    /* Edit modu (görev düzenleme) header */
+    .lc-add-popover[data-mode="edit"] .lc-add-popover-head {
+      gap:8px; padding:10px 12px;
+    }
+    .lc-add-popover .lc-edit-close,
+    .lc-add-popover .lc-edit-delete {
+      background:none; border:none; cursor:pointer;
+      color:var(--text3); padding:4px; border-radius:6px;
+      display:flex; align-items:center; justify-content:center;
+      transition:background .15s, color .15s;
+    }
+    .lc-add-popover .lc-edit-close:hover { background:var(--surface2); color:var(--text); }
+    .lc-add-popover .lc-edit-delete:hover { background:#fdecec; color:#e53e3e; }
+    .lc-add-popover .lc-edit-title {
+      flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;
+      white-space:nowrap; font-weight:600;
+    }
+    /* Mobil: bottom-sheet konumu */
+    .lc-add-popover.lc-add-popover-mobile {
+      width:100% !important; max-width:none !important;
+      border-radius:16px 16px 0 0;
+      max-height:85vh;
+      animation:lcApSlideUp .22s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes lcApSlideUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
 
     /* Hayalet (önizleme) blok — popover açıkken hücrede görünür */
     .lc-ghost-block {
@@ -2863,93 +2888,6 @@
   </div>
 </div>
 
-<div id="mobTaskSheetOverlay" onclick="saveMobTaskSheet()"></div>
-<div id="mobTaskSheet">
-  <div class="mob-handle"></div>
-  <!-- Header: Geri + menu -->
-  <div class="mob-task-sheet-top">
-    <button class="mob-back-btn" onclick="saveMobTaskSheet()"><span class="mi s20">arrow_back_ios</span> Geri</button>
-    <button class="mob-task-del-btn" onclick="deleteMobTaskSheet()" title="Görevi sil"><span class="mi s20">delete</span></button>
-  </div>
-  <!-- Liste + MIT yıldız satırı -->
-  <div class="mob-sheet-meta-bar">
-    <div class="mob-list-row" id="mobListRow" onclick="toggleMobListPicker()">
-      <span class="mob-list-chip-icon" id="mobListChipIcon"></span>
-      <span class="mob-list-chip-name" id="mobListChipName">Liste</span>
-      <span class="mi s14">expand_more</span>
-    </div>
-    <button class="mob-mit-btn" id="mobMITBtn" onclick="toggleMobMIT()" title="Günün En Önemli Görevi">
-      <span class="mi s20">star</span>
-      <span class="mob-mit-label">Günün Odağı</span>
-    </button>
-  </div>
-  <div class="mob-list-picker" id="mobListPicker"></div>
-  <div id="mobSheetScroll">
-    <!-- Görev başlığı -->
-    <div id="mobTaskTitleInput" contenteditable="true" role="textbox" data-placeholder="Görev başlığı..." spellcheck="true" autocapitalize="sentences"></div>
-    <!-- Notlar -->
-    <div class="mob-notes-row">
-      <span class="mi s18 mob-notes-icon">notes</span>
-      <div id="mobTaskNotesInput" contenteditable="true" role="textbox" data-placeholder="Notlar ekle..." spellcheck="true" autocapitalize="sentences"></div>
-    </div>
-    <!-- Öncelik -->
-    <div class="mob-prio-section">
-      <div class="mob-prio-row" id="mobTaskPrioRow"></div>
-    </div>
-    <!-- Aktif Yaşam Dengesi: kategori + süre -->
-    <div class="mob-balance-section">
-      <div class="mob-balance-row">
-        <span class="mob-balance-chip" data-cat="mental"    onclick="toggleMobBalance('mental')">🧠 Zihin</span>
-        <span class="mob-balance-chip" data-cat="physical"  onclick="toggleMobBalance('physical')">🚶 Beden</span>
-        <span class="mob-balance-chip" data-cat="spiritual" onclick="toggleMobBalance('spiritual')">🤲 Ruh</span>
-      </div>
-      <div class="mob-mins-row">
-        <span class="mob-mins-chip" data-mins="15"  onclick="toggleMobMins(15)">15dk</span>
-        <span class="mob-mins-chip" data-mins="30"  onclick="toggleMobMins(30)">30dk</span>
-        <span class="mob-mins-chip" data-mins="60"  onclick="toggleMobMins(60)">1sa</span>
-        <span class="mob-mins-chip" data-mins="120" onclick="toggleMobMins(120)">2sa</span>
-        <span class="mob-mins-chip mob-mins-custom" onclick="openMobMinsCustom()">⋯</span>
-        <input class="mob-mins-input" id="mobMinsCustomInp" type="number" min="1" max="600" placeholder="dk" style="display:none">
-      </div>
-    </div>
-    <!-- Tarih: Bugün / Yarın / Takvim -->
-    <div class="mob-due-row">
-      <span class="mi s18 mob-due-icon">schedule</span>
-      <button class="mob-due-quick" onclick="setMobDueQuick(0)">Bugün</button>
-      <button class="mob-due-quick" onclick="setMobDueQuick(1)">Yarın</button>
-      <button id="mobTaskDueBtn" class="mob-due-cal" title="Bitiş tarihi seç"><span class="mi s18">calendar_today</span></button>
-      <span class="mob-due-lbl" id="mobTaskDueLabel" onclick="document.getElementById('mobTaskDueBtn').click()"></span>
-      <button class="mob-due-clear" id="mobDueClearBtn" onclick="clearMobDue()" style="display:none"><span class="mi s14">close</span></button>
-    </div>
-    <!-- Alt görevler -->
-    <div class="mob-subs-section">
-      <div id="mobTaskSubsList"></div>
-      <div class="mob-sub-add-row">
-        <button class="mob-sub-add-btn" onclick="openMobSubInp()">
-          <span class="mi s16">add_circle</span> Alt görev ekle
-        </button>
-        <div class="mob-sub-inp-wrap" id="mobSubInpWrap" style="display:none">
-          <div id="mobSubInp" contenteditable="true" role="textbox" data-placeholder="Alt görev..." spellcheck="true" autocapitalize="sentences"></div>
-          <button class="mob-sub-ok" onclick="addMobSub()"><span class="mi s16">check</span></button>
-        </div>
-      </div>
-    </div>
-    <!-- Bağlantı -->
-    <div class="mob-link-section">
-      <span class="mi s18 mob-link-icon">link</span>
-      <div id="mobLinkWrap" style="flex:1;min-width:0;">
-        <input id="mobTaskLinkInput" type="search" placeholder="Bağlantı ekle..." autocomplete="off" data-form-type="other" data-lpignore="true">
-      </div>
-    </div>
-  </div>
-  <!-- Alt: Tamamlandı -->
-  <div class="mob-sheet-footer">
-    <button class="mob-done-btn" id="mobDoneBtn" onclick="toggleMobTaskDone()">
-      <span class="mi s18">check_circle</span> Tamamlandı
-    </button>
-  </div>
-</div>
-
 <script>
 const SB      = 'https://uzkscrrqyxftbtwkiyra.supabase.co';
 const ANON    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6a3NjcnJxeXhmdGJ0d2tpeXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDkxNDMsImV4cCI6MjA5MjI4NTE0M30.wA7g4SVacghNunC0nt6ZP3SgHZ6U6LAWu3ggUrypBxE';
@@ -2988,6 +2926,7 @@ let addBalanceCategory  = null;     // 'mental' | 'physical' | 'spiritual' | nul
 let addEstimatedMinutes = null;     // dakika veya null
 let addCategoryOverride = null;     // BOARD/STARRED/DAY modunda fallback liste id'si
 let boardInlineColId    = null;     // Sütun görünümünde inline form açık olan kolon id'si
+let addEditingTaskId    = null;     // Düzenleme modu: addWrap mevcut bir görev için açıkken task.id
 let editTimers   = {};
 let isRegMode    = false;
 let listSorts    = {};   // { [listId]: { by:'created_at'|'due_at'|'priority', dir:'asc'|'desc' } }
@@ -4009,6 +3948,7 @@ function resetAddForm() {
 function toggleAddStar() {
   addStarred = !addStarred;
   document.getElementById('addStarBtn').classList.toggle('active', addStarred);
+  if (addEditingTaskId) scheduleUpdateFromAddWrap();
 }
 
 let addPrioPickerOpen = false;
@@ -4059,6 +3999,7 @@ function renderAddPrioBtn() {
     btn.classList.remove('has-prio');
     btn.style.color = '';
   }
+  if (addEditingTaskId) scheduleUpdateFromAddWrap();
 }
 
 function setAddDueQuick(days) {
@@ -4136,6 +4077,7 @@ function renderAddLinkUI() {
     wrap.style.display = 'none';
     btn.classList.remove('active');
   }
+  if (addEditingTaskId) scheduleUpdateFromAddWrap();
 }
 
 function toggleAddSubtaskInput() {
@@ -4192,6 +4134,7 @@ function renderAddBalanceChips() {
   document.querySelectorAll('.add-balance-chip').forEach(el => {
     el.classList.toggle('active', el.dataset.cat === addBalanceCategory);
   });
+  if (addEditingTaskId) scheduleUpdateFromAddWrap();
 }
 function toggleAddMins(mins) {
   addEstimatedMinutes = (addEstimatedMinutes === mins) ? null : mins;
@@ -4211,6 +4154,7 @@ function renderAddMinsChips() {
   });
   const inp = document.getElementById('addMinsCustomInp');
   if (inp) inp.style.display = 'none';
+  if (addEditingTaskId) scheduleUpdateFromAddWrap();
 }
 function openAddMinsCustom() {
   const inp = document.getElementById('addMinsCustomInp');
@@ -4341,7 +4285,7 @@ async function toggleTask(task) {
     }
   }
   const patch = { done:nowDone };
-  if (nowDone) { patch.completed_at = new Date().toISOString(); openDetailIds.delete(task.id); }
+  if (nowDone) { patch.completed_at = new Date().toISOString(); }
   else           patch.completed_at = null;
   await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify(patch)});
   Object.assign(task, patch);
@@ -4469,20 +4413,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   });
 
-  document.getElementById('mobTaskTitleInput').addEventListener('keydown', e => {
-    if (e.key==='Enter')  { e.preventDefault(); saveMobTaskSheet(); }
-    if (e.key==='Escape') saveMobTaskSheet();
-  });
-  document.getElementById('mobSubInp').addEventListener('keydown', e => {
-    if (e.key==='Enter')  { e.preventDefault(); addMobSub(); }
-    if (e.key==='Escape') closeMobSubInp();
-  });
-
-  ['mainBody','boardArea'].forEach(id => {
-    document.getElementById(id).addEventListener('click', e => {
-      if (!e.target.closest('.task-card')) closeAllDetails();
-    });
-  });
 });
 
 function renderAddDueLabel() {
@@ -4507,6 +4437,7 @@ function renderAddDueLabel() {
   }
   if (row) row.classList.toggle('show', !!addDueValue && !isQuick);
   renderAddDueQuickButtons();
+  if (addEditingTaskId) scheduleUpdateFromAddWrap();
 }
 
 
@@ -4704,66 +4635,9 @@ function renderWithFlip() {
   });
 }
 
-function openTaskDetail(detail) {
-  detail.classList.add('open');
-  detail.style.overflow = 'hidden';
-  detail.style.maxHeight = detail.scrollHeight + 'px';
-  const onEnd = ev => {
-    if (ev.propertyName !== 'max-height') return;
-    detail.style.maxHeight = 'none';
-    detail.style.overflow = 'visible';
-    detail.removeEventListener('transitionend', onEnd);
-  };
-  detail.addEventListener('transitionend', onEnd);
-}
-
-function closeTaskDetail(detail) {
-  detail.style.overflow = 'hidden';
-  detail.style.maxHeight = detail.scrollHeight + 'px';
-  void detail.offsetHeight;
-  detail.style.maxHeight = '0';
-  detail.classList.remove('open');
-  const onEnd = ev => {
-    if (ev.propertyName !== 'max-height') return;
-    detail.style.maxHeight = '';
-    detail.style.overflow = '';
-    detail.removeEventListener('transitionend', onEnd);
-  };
-  detail.addEventListener('transitionend', onEnd);
-}
-
-function closeAllDetails() {
-  document.querySelectorAll('.task-card.detail-open').forEach(c => {
-    c.classList.remove('detail-open');
-    const prev = c.querySelector('.task-title-preview');
-    if (prev && prev.dataset.shortText) prev.textContent = prev.dataset.shortText;
-    const subSect = c.querySelector('.task-sub-section');
-    const body = c.querySelector('.task-body');
-    if (subSect && body && subSect.parentElement !== body) body.appendChild(subSect);
-  });
-  document.querySelectorAll('.task-detail.open').forEach(d => closeTaskDetail(d));
-  openDetailIds.clear();
-  if (pendingReorder) {
-    pendingReorder = false;
-    setTimeout(renderWithFlip, 290);
-  }
-}
-
 function restoreOpenDetails() {
-  openDetailIds.forEach(tid => {
-    const card = document.querySelector(`[data-task-id="${tid}"]`);
-    if (card) {
-      const detail = card.querySelector('.task-detail');
-      card.classList.add('detail-open');
-      const subSect = card.querySelector('.task-sub-section');
-      if (detail && subSect) detail.appendChild(subSect);
-      const ta = card.querySelector('.task-title');
-      if (ta) { ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
-      const notes = card.querySelector('.detail-notes');
-      if (notes) { notes.style.height='auto'; notes.style.height=notes.scrollHeight+'px'; }
-      if (detail) openTaskDetail(detail);
-    }
-  });
+  // Edit popover (openTaskEditor) eski inline detail panel'in yerini aldı; bu fonksiyon
+  // şimdi yalnızca alt görev odak akışını korumak için duruyor.
   if (pendingSubtaskFocus) {
     const tid = pendingSubtaskFocus; pendingSubtaskFocus = null;
     const card = document.querySelector(`[data-task-id="${tid}"]`);
@@ -5166,132 +5040,12 @@ function buildTaskCard(task, isDone) {
   row.appendChild(body);
   row.appendChild(side);
 
-  /* Detail */
-  const detail = document.createElement('div');
-  detail.className = 'task-detail';
-
-  const notesTA = document.createElement('textarea');
-  notesTA.className='detail-notes'; notesTA.placeholder='Notlar';
-  notesTA.value=task.notes||''; notesTA.rows=2;
-  notesTA.addEventListener('input',()=>{ notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px'; });
-  notesTA.addEventListener('change',()=>scheduleUpdate(task,{notes:notesTA.value}));
-
-  const linkWrap = document.createElement('div');
-  linkWrap.className = 'link-wrap';
-  const linkInp = document.createElement('input');
-  linkInp.type='url'; linkInp.className='detail-link-input';
-  linkInp.placeholder='Bağlantı ekle (https://...)';
-  linkInp.value=task.link||'';
-  linkInp.addEventListener('click', e=>e.stopPropagation());
-  linkInp.addEventListener('change',()=>{
-    const v=linkInp.value.trim()||null;
-    scheduleUpdate(task,{link:v}); task.link=v;
-  });
-  linkWrap.appendChild(linkInp);
-  setupLinkDisplay(linkInp, linkWrap);
-
-  /* Priority picker */
-  const prioRow = document.createElement('div');
-  prioRow.className = 'priority-row';
-  Object.entries(PRIORITIES).forEach(([key, prio]) => {
-    const btn = document.createElement('button');
-    btn.className = `priority-btn ${key}` + (task.priority===key?' active':'');
-    btn.dataset.tip = prio.tooltip;
-    const sym = document.createElement('span'); sym.className='prio-sym'; sym.textContent=prio.symbol;
-    btn.appendChild(sym);
-    btn.onclick = () => {
-      const newVal = task.priority === key ? null : key;
-      const oldVal = task.priority;
-      if (newVal === oldVal) return;
-      task.priority = newVal;
-      prioRow.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
-      if (newVal) prioRow.querySelector(`.priority-btn.${newVal}`)?.classList.add('active');
-      if (oldVal) card.classList.remove('prio-' + oldVal);
-      if (newVal) card.classList.add('prio-' + newVal);
-      if (newVal && PRIORITIES[newVal]) {
-        const p = PRIORITIES[newVal];
-        prioHint.textContent = `${p.name} → ${p.action}`;
-        prioHint.style.color = `var(--prio-${newVal.slice(1)}-text)`;
-        prioHint.style.display = '';
-      } else {
-        prioHint.style.display = 'none';
-      }
-      const oldChip = infoBar.querySelector('.tib-prio');
-      if (oldChip) oldChip.remove();
-      if (newVal && PRIORITIES[newVal]) {
-        const p = PRIORITIES[newVal];
-        const chip = document.createElement('div');
-        chip.className = `tib-chip tib-prio ${newVal}`;
-        chip.title = p.label;
-        const sym = document.createElement('span'); sym.className='tib-prio-sym'; sym.textContent=p.symbol;
-        const lbl = document.createElement('span'); lbl.className='tib-lbl'; lbl.textContent=p.label;
-        chip.appendChild(sym); chip.appendChild(lbl);
-        infoBar.insertBefore(chip, infoBar.firstChild);
-      }
-      pendingReorder = true;
-      updatePriority(task, newVal);
-    };
-    btn.addEventListener('touchstart', () => { btn.classList.add('show-tip'); setTimeout(()=>btn.classList.remove('show-tip'),1800); }, {passive:true});
-    prioRow.appendChild(btn);
-  });
-  const prioHint = document.createElement('div');
-  prioHint.className = 'priority-hint';
-  if (task.priority && PRIORITIES[task.priority]) {
-    const p = PRIORITIES[task.priority];
-    prioHint.textContent = `${p.name} → ${p.action}`;
-    prioHint.style.color = `var(--prio-${task.priority.slice(1)}-text)`;
-  } else {
-    prioHint.style.display = 'none';
-  }
-
-  /* Due date row with Bugün/Yarın shortcuts */
-  const dueRow = document.createElement('div');
-  dueRow.className='detail-due-row';
-  const dueIcon = document.createElement('span'); dueIcon.className='mi s16'; dueIcon.textContent='schedule'; dueIcon.style.color='#bbb';
-  const dueTodayBtn = document.createElement('button');
-  dueTodayBtn.className='det-due-quick'; dueTodayBtn.textContent='Bugün';
-  dueTodayBtn.onclick=()=>{ const d=new Date(); d.setHours(0,0,0,0); updateDue(task,d.toISOString()); dueCalBtn.classList.add('has-date'); dueDateLabel.textContent=fmtShort(d.toISOString()); };
-  const dueTomBtn = document.createElement('button');
-  dueTomBtn.className='det-due-quick'; dueTomBtn.textContent='Yarın';
-  dueTomBtn.onclick=()=>{ const d=new Date(); d.setDate(d.getDate()+1); d.setHours(0,0,0,0); updateDue(task,d.toISOString()); dueCalBtn.classList.add('has-date'); dueDateLabel.textContent=fmtShort(d.toISOString()); };
-  const dueCalBtn = document.createElement('button');
-  dueCalBtn.className='btn-cal'+(task.due_at?' has-date':'');
-  dueCalBtn.title='Bitiş tarihi seç'; dueCalBtn.innerHTML=mi('calendar_today',16);
-  dueCalBtn.onclick=()=>dtpOpen(dueCalBtn,task.due_at,async v=>{ await updateDue(task,v); dueCalBtn.classList.toggle('has-date',!!v); dueDateLabel.textContent=v?fmtShort(v):''; });
-  const dueDateLabel = document.createElement('span');
-  dueDateLabel.className='due-selected-label'; dueDateLabel.textContent=task.due_at?fmtShort(task.due_at):''; dueDateLabel.onclick=()=>dueCalBtn.click();
-  const clearDueBtn = document.createElement('button');
-  clearDueBtn.className='btn-clear-due'; clearDueBtn.title='Tarihi kaldır'; clearDueBtn.innerHTML=mi('close',14);
-  clearDueBtn.onclick=()=>{ updateDue(task,''); dueCalBtn.classList.remove('has-date'); dueDateLabel.textContent=''; };
-  dueRow.appendChild(dueIcon); dueRow.appendChild(dueTodayBtn); dueRow.appendChild(dueTomBtn);
-  dueRow.appendChild(dueCalBtn); dueRow.appendChild(dueDateLabel);
-  if (task.due_at) dueRow.appendChild(clearDueBtn);
-
-  detail.appendChild(notesTA);
-  detail.appendChild(prioRow);
-  detail.appendChild(prioHint);
-  detail.appendChild(dueRow);
-  detail.appendChild(linkWrap);
-
   row.addEventListener('click', e => {
     if (e.target.closest('.task-side') || e.target.closest('.task-check')) return;
-    if (window.innerWidth <= 600) { openMobTaskSheet(task); return; }
-    const wasOpen = detail.classList.contains('open');
-    closeAllDetails();
-    if (!wasOpen) {
-      card.classList.add('detail-open');
-      detail.appendChild(subSect);
-      openDetailIds.add(task.id);
-      titlePreview.textContent = task.text;
-      titleInput.value = task.text;
-      notesTA.style.height='auto'; notesTA.style.height=notesTA.scrollHeight+'px';
-      openTaskDetail(detail);
-      if (!isDone) setTimeout(() => { autoGrow(); titleInput.focus(); }, 0);
-    }
+    openTaskEditor(task, card);
   });
 
   card.appendChild(row);
-  card.appendChild(detail);
   return card;
 }
 
@@ -6121,10 +5875,11 @@ function lcOpenAddPopover(target) {
 
 function lcCloseAddPopover() {
   if (!lcAddPopoverState) return;
-  const { popover, ghost, prevParent, prevDisplay, onDoc, onKey } = lcAddPopoverState;
+  const { popover, ghost, prevParent, prevDisplay, onDoc, onKey, isEdit } = lcAddPopoverState;
   document.removeEventListener('mousedown', onDoc);
   document.removeEventListener('keydown',   onKey);
   ghost?.remove();
+  if (isEdit) detachEditListeners();
   const addWrap = document.getElementById('addWrap');
   if (addWrap && prevParent) {
     // Orijinal konuma yerleştir: balanceCard'dan sonra, taskList'ten önce
@@ -6138,13 +5893,229 @@ function lcCloseAddPopover() {
   }
   popover?.remove();
   lcAddPopoverState = null;
+  // Edit modu kapatıldıysa state'i temizle, action-row geri görünür yap
+  if (isEdit) {
+    addEditingTaskId = null;
+    resetAddForm();
+    const actionRow = document.querySelector('#addWrap .add-action-row');
+    if (actionRow) actionRow.style.display = '';
+  }
   if (typeof closeAddDetail === 'function') closeAddDetail();
 }
 
-function lcPositionAddPopover(cell) {
+/* ── Görev düzenleme modu (addWrap'i edit moda al) ── */
+function openTaskEditor(task, anchor) {
+  if (!task) return;
+  // Açıksa önce kapat
+  lcCloseAddPopover();
+  addEditingTaskId = task.id;
+  // Form'u görevin verisiyle doldur
+  populateAddWrapFromTask(task);
+
+  const addWrap = document.getElementById('addWrap');
+  const prevParent = addWrap.parentElement;
+  const prevDisplay = addWrap.style.display;
+
+  const pop = document.createElement('div');
+  pop.className = 'lc-add-popover';
+  pop.id = 'lcAddPopover';
+  pop.dataset.mode = 'edit';
+
+  const head = document.createElement('div');
+  head.className = 'lc-add-popover-head';
+  const list = lists.find(l => l.id === task.category);
+  const listLabel = list ? `${list.icon || '📋'} ${escapeHtml(list.name)}` : 'Görev';
+  head.innerHTML = `
+    <button class="lc-ap-close lc-edit-close" title="Kapat (Esc)"><span class="mi s18">close</span></button>
+    <span class="lc-edit-title"><span style="color:var(--text3);font-weight:500">${listLabel} · </span>Görev düzenle</span>
+    <button class="lc-edit-delete" title="Görevi sil"><span class="mi s18">delete</span></button>`;
+  pop.appendChild(head);
+
+  addWrap.style.display = '';
+  pop.appendChild(addWrap);
+  document.body.appendChild(pop);
+
+  // Action-row gizle (edit modunda otomatik kayıt; "Ekle" butonu yok)
+  const actionRow = addWrap.querySelector('.add-action-row');
+  if (actionRow) actionRow.style.display = 'none';
+
+  // Detail görünür olsun (form alanları açık)
+  if (typeof openAddDetail === 'function') openAddDetail();
+
+  lcAddPopoverState = {
+    popover: pop, ghost: null, target: null, prevParent, prevDisplay,
+    isEdit: true,
+    onDoc: (e) => {
+      if (pop.contains(e.target)) return;
+      if (e.target.closest('.dtp-overlay, .dtp-box, .add-prio-picker, .add-link-popup, .add-subtasks-popup')) return;
+      lcCloseAddPopover();
+    },
+    onKey: (e) => { if (e.key === 'Escape') lcCloseAddPopover(); },
+  };
+  setTimeout(() => {
+    document.addEventListener('mousedown', lcAddPopoverState.onDoc);
+    document.addEventListener('keydown',   lcAddPopoverState.onKey);
+  }, 0);
+
+  head.querySelector('.lc-ap-close').onclick = () => lcCloseAddPopover();
+  head.querySelector('.lc-edit-delete').onclick = () => {
+    if (!confirm('Bu görevi silmek istediğinden emin misin?')) return;
+    const id = addEditingTaskId;
+    lcCloseAddPopover();
+    if (id) deleteTask(id);
+  };
+
+  attachEditListeners();
+  lcPositionAddPopover(anchor);
+  setTimeout(() => document.getElementById('taskInput')?.focus(), 50);
+}
+
+function populateAddWrapFromTask(task) {
+  // Title
+  const taskInput = document.getElementById('taskInput');
+  if (taskInput) {
+    taskInput.value = task.text || '';
+    if (typeof taskInputAutoGrow === 'function') taskInputAutoGrow();
+  }
+  // Notes
+  const notesEl = document.getElementById('addNotesInput');
+  if (notesEl) {
+    notesEl.value = task.notes || '';
+    notesEl.style.height = 'auto';
+    notesEl.style.height = Math.min(notesEl.scrollHeight, 180) + 'px';
+  }
+  addDueValue         = task.due_at || '';
+  addStarred          = !!task.starred;
+  addPriority         = task.priority || null;
+  addLinkValue        = task.link || '';
+  addBalanceCategory  = task.balance_category || null;
+  addEstimatedMinutes = (task.estimated_minutes != null) ? task.estimated_minutes : null;
+  addCategoryOverride = task.category || null;
+  // Yeni görev için kullanılan addSubtasks array (string list); edit modunda DB'den çocuklar gösterilir
+  addSubtasks = [];
+
+  // Liste seçicisini görünür yap ve aktif değeri ata
+  if (typeof populateAddListSelect === 'function') populateAddListSelect();
+  const listRow = document.getElementById('addListRow');
+  if (listRow) listRow.style.display = 'flex';
+  const listSel = document.getElementById('addListSelect');
+  if (listSel && addCategoryOverride) listSel.value = addCategoryOverride;
+
+  // Yıldız butonu
+  const starBtn = document.getElementById('addStarBtn');
+  if (starBtn) starBtn.classList.toggle('active', addStarred);
+
+  // Render'lar
+  if (typeof renderAddPrioBtn      === 'function') renderAddPrioBtn();
+  if (typeof renderAddBalanceChips === 'function') renderAddBalanceChips();
+  if (typeof renderAddMinsChips    === 'function') renderAddMinsChips();
+  if (typeof renderAddDueLabel     === 'function') renderAddDueLabel();
+  if (typeof renderAddLinkUI       === 'function') renderAddLinkUI();
+  // Edit modunda subtask listesi: DB'deki çocukları göster
+  renderEditSubtasksList(task.id);
+}
+
+function renderEditSubtasksList(taskId) {
+  const list = document.getElementById('addSubtasksList');
+  const popup = document.getElementById('addSubtasksPopup');
+  const badge = document.getElementById('addSubtaskBadge');
+  const subBtn = document.getElementById('addSubtaskBtn');
+  if (!list) return;
+  list.innerHTML = '';
+  const subs = tasks.filter(t => t.parent_id === taskId);
+  subs.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'add-subtask-row';
+    row.dataset.subId = s.id;
+    row.innerHTML = `
+      <span class="add-subtask-bullet${s.done?' done':''}">${s.done?'●':'○'}</span>
+      <span class="add-subtask-text${s.done?' done':''}"></span>
+      <span class="add-subtask-rm">×</span>`;
+    const txtEl = row.querySelector('.add-subtask-text');
+    txtEl.textContent = s.text;
+    row.querySelector('.add-subtask-bullet').onclick = async () => { await toggleTask(s); renderEditSubtasksList(taskId); };
+    row.querySelector('.add-subtask-rm').onclick = async () => {
+      await deleteTask(s.id);
+      renderEditSubtasksList(taskId);
+    };
+    list.appendChild(row);
+  });
+  if (badge && subBtn) {
+    if (subs.length > 0) {
+      badge.textContent = subs.length;
+      badge.style.display = '';
+      subBtn.classList.add('active');
+    } else {
+      badge.style.display = 'none';
+      subBtn.classList.remove('active');
+    }
+  }
+  // Popup'ı her zaman açık tut: edit modunda alt görevler her an görünür
+  if (popup) popup.style.display = 'flex';
+}
+
+let _addEditListeners = null;
+function attachEditListeners() {
+  detachEditListeners();
+  const taskInput = document.getElementById('taskInput');
+  const notesEl   = document.getElementById('addNotesInput');
+  const linkInp   = document.getElementById('addLinkInput');
+  const listSel   = document.getElementById('addListSelect');
+  const onChange  = () => scheduleUpdateFromAddWrap();
+  taskInput?.addEventListener('input',  onChange);
+  notesEl  ?.addEventListener('input',  onChange);
+  linkInp  ?.addEventListener('change', onChange);
+  listSel  ?.addEventListener('change', onChange);
+  _addEditListeners = { taskInput, notesEl, linkInp, listSel, onChange };
+}
+
+function detachEditListeners() {
+  if (!_addEditListeners) return;
+  const { taskInput, notesEl, linkInp, listSel, onChange } = _addEditListeners;
+  taskInput?.removeEventListener('input',  onChange);
+  notesEl  ?.removeEventListener('input',  onChange);
+  linkInp  ?.removeEventListener('change', onChange);
+  listSel  ?.removeEventListener('change', onChange);
+  _addEditListeners = null;
+}
+
+function scheduleUpdateFromAddWrap() {
+  if (!addEditingTaskId) return;
+  const task = tasks.find(t => t.id === addEditingTaskId);
+  if (!task) return;
+  const titleVal = (document.getElementById('taskInput')?.value || '').trim();
+  if (!titleVal) return;  // boş başlıkla kayıt yapma
+  const notesVal = (document.getElementById('addNotesInput')?.value || '').trim();
+  const patch = {
+    text: titleVal,
+    notes: notesVal || null,
+    priority: addPriority || null,
+    starred: !!addStarred,
+    balance_category: addBalanceCategory || null,
+    estimated_minutes: addEstimatedMinutes || null,
+    due_at: addDueValue || null,
+    link: addLinkValue || null,
+    category: addCategoryOverride || task.category,
+  };
+  scheduleUpdate(task, patch);
+  // Lokal task da hemen güncelle (UI tutarlılığı için optimistic)
+  Object.assign(task, patch);
+}
+
+function lcPositionAddPopover(anchor) {
   if (!lcAddPopoverState) return;
   const pop = lcAddPopoverState.popover;
-  const r = cell.getBoundingClientRect();
+  // Mobil: bottom-sheet konumu (full-width, alttan)
+  if (window.innerWidth < 600) {
+    pop.classList.add('lc-add-popover-mobile');
+    pop.style.left   = '0';
+    pop.style.right  = '0';
+    pop.style.top    = '';
+    pop.style.bottom = '0';
+    return;
+  }
+  if (!anchor || !anchor.getBoundingClientRect) return;
+  const r = anchor.getBoundingClientRect();
   const popW = pop.offsetWidth;
   const popH = pop.offsetHeight;
   // Tercih: hücrenin sağında; sığmazsa solunda
@@ -6337,7 +6308,7 @@ function lcMakeTaskBlock(t, layout) {
   });
   // Drag başlatmasını da engelle: pointerdown stop
   checkEl.addEventListener('pointerdown', (e) => e.stopPropagation());
-  block.onclick = (e) => { e.stopPropagation(); openMobTaskSheet(t); };
+  block.onclick = (e) => { e.stopPropagation(); lcHideBlockPopover(); openTaskEditor(t, block); };
   block.addEventListener('mouseenter', () => lcShowBlockPopover(block, t));
   block.addEventListener('mouseleave', lcHideBlockPopover);
   initLcDrag(block, t);
@@ -7092,302 +7063,6 @@ async function dropTask(task, targetListId, insertBeforeId) {
     Object.assign(task, patch);
     renderBoard(); renderSidebar();
   } catch(e) { showToast('Hata: '+e.message); }
-}
-
-/* ── Mobile bottom sheet ── */
-
-/* ── Mobile task edit sheet ── */
-let mobTaskSheetTask    = null;
-let mobTaskSheetDue     = '';
-let mobTaskSheetPrio    = null;
-let mobTaskSheetCat     = null;
-let mobTaskSheetStarred = false;
-let mobTaskSheetBalance = null;
-let mobTaskSheetMins    = null;
-
-function openMobTaskSheet(task) {
-  mobTaskSheetTask    = task;
-  mobTaskSheetDue     = task.due_at   || '';
-  mobTaskSheetPrio    = task.priority || null;
-  mobTaskSheetCat     = task.category || activeListId;
-  mobTaskSheetStarred = task.starred  || false;
-  mobTaskSheetBalance = task.balance_category || null;
-  mobTaskSheetMins    = task.estimated_minutes != null ? task.estimated_minutes : null;
-  document.getElementById('mobTaskTitleInput').innerText = task.text;
-  document.getElementById('mobTaskNotesInput').innerText = task.notes || '';
-  const _mobLinkInp = document.getElementById('mobTaskLinkInput');
-  _mobLinkInp.value = task.link || '';
-  if (!document.getElementById('mobLinkWrap')._linkSetup) {
-    document.getElementById('mobLinkWrap')._linkSetup = true;
-    setupLinkDisplay(_mobLinkInp, document.getElementById('mobLinkWrap'));
-  } else {
-    _mobLinkInp.dispatchEvent(new Event('blur'));
-  }
-  const dueBtn = document.getElementById('mobTaskDueBtn');
-  dueBtn.onclick = () => dtpOpen(dueBtn, mobTaskSheetDue||null, v => { mobTaskSheetDue = v; renderMobTaskSheetDue(); });
-  renderMobTaskSheetDue();
-  renderMobTaskSheetPrio();
-  renderMobBalanceChips();
-  renderMobMinsChips();
-  renderMobMITBtn();
-  renderMobDoneBtn();
-  renderMobListChip();
-  renderMobSubsList();
-  closeMobSubInp();
-  document.getElementById('mobListPicker').classList.remove('open');
-  document.getElementById('mobTaskSheet').classList.add('open');
-  document.getElementById('mobTaskSheetOverlay').classList.add('open');
-  setTimeout(() => document.getElementById('mobTaskTitleInput').focus(), 320);
-}
-
-function renderMobListChip() {
-  const cat  = lists.find(l => l.id === mobTaskSheetCat);
-  document.getElementById('mobListChipIcon').textContent = cat?.icon || '📋';
-  document.getElementById('mobListChipName').textContent = cat?.name || 'Liste';
-}
-
-function toggleMobListPicker() {
-  const row    = document.getElementById('mobListRow');
-  const picker = document.getElementById('mobListPicker');
-  const isOpen = picker.classList.contains('open');
-  if (!isOpen) {
-    picker.innerHTML = '';
-    lists.forEach(l => {
-      const opt = document.createElement('button');
-      opt.className = 'mob-list-opt' + (l.id === mobTaskSheetCat ? ' active' : '');
-      opt.innerHTML = `<span>${l.name}</span>`;
-      opt.onclick = () => {
-        mobTaskSheetCat = l.id;
-        renderMobListChip();
-        picker.classList.remove('open');
-        row.classList.remove('open');
-      };
-      picker.appendChild(opt);
-    });
-  }
-  picker.classList.toggle('open', !isOpen);
-  row.classList.toggle('open', !isOpen);
-}
-
-function renderMobSubsList() {
-  const list = document.getElementById('mobTaskSubsList');
-  list.innerHTML = '';
-  if (!mobTaskSheetTask) return;
-  tasks.filter(t => t.parent_id === mobTaskSheetTask.id).forEach(s => {
-    const row = document.createElement('div'); row.className = 'mob-sub-row';
-    const chk = document.createElement('span');
-    chk.className = 'mob-sub-chk' + (s.done ? ' done' : '');
-    chk.onclick = async () => { await toggleTask(s); renderMobSubsList(); };
-    if (s.done) {
-      const txt = document.createElement('span');
-      txt.className = 'mob-sub-txt done';
-      txt.textContent = s.text;
-      row.appendChild(chk); row.appendChild(txt);
-    } else {
-      const txt = document.createElement('div');
-      txt.className = 'mob-sub-txt';
-      txt.contentEditable = 'true';
-      txt.innerText = s.text;
-      txt.style.cssText = 'outline:none;white-space:nowrap;overflow-x:hidden;-webkit-user-select:text;user-select:text;cursor:text;';
-      txt.addEventListener('click', e => { e.stopPropagation(); txt.focus(); });
-      txt.addEventListener('touchend', e => { e.stopPropagation(); setTimeout(() => txt.focus(), 0); });
-      let done = false;
-      const finish = async () => {
-        if (done) return; done = true;
-        const v = (txt.innerText || '').trim();
-        if (!v) {
-          await deleteTask(s.id);
-          saveMobTaskSheet();
-          return;
-        }
-        if (v !== s.text) { s.text = v; scheduleUpdate(s, {text: v}); }
-        txt.innerText = v;
-      };
-      txt.addEventListener('blur', finish);
-      txt.addEventListener('keydown', e => {
-        e.stopPropagation();
-        if (e.key === 'Enter') { e.preventDefault(); txt.blur(); }
-        if (e.key === 'Escape') { txt.innerText = s.text; done = true; txt.blur(); }
-      });
-      row.appendChild(chk); row.appendChild(txt);
-    }
-    list.appendChild(row);
-  });
-}
-
-function openMobSubInp() {
-  document.getElementById('mobSubInpWrap').style.display = 'flex';
-  document.querySelector('.mob-sub-add-btn').style.display = 'none';
-  setTimeout(() => document.getElementById('mobSubInp').focus(), 0);
-}
-
-function closeMobSubInp() {
-  document.getElementById('mobSubInp').innerText = '';
-  document.getElementById('mobSubInpWrap').style.display = 'none';
-  const btn = document.querySelector('.mob-sub-add-btn');
-  if (btn) btn.style.display = '';
-}
-
-async function addMobSub() {
-  const inp = document.getElementById('mobSubInp');
-  const val = (inp.innerText || '').trim();
-  if (!val || !mobTaskSheetTask) return;
-  await addSubtask(mobTaskSheetTask.id, val);
-  inp.innerText = '';
-  renderMobSubsList();
-  setTimeout(() => inp.focus(), 0);
-}
-
-function closeMobTaskSheet() {
-  document.getElementById('mobTaskSheet').classList.remove('open');
-  document.getElementById('mobTaskSheetOverlay').classList.remove('open');
-  mobTaskSheetTask = null;
-}
-
-function renderMobTaskSheetDue() {
-  const lbl     = document.getElementById('mobTaskDueLabel');
-  const clearBtn = document.getElementById('mobDueClearBtn');
-  const calBtn   = document.getElementById('mobTaskDueBtn');
-  lbl.textContent = mobTaskSheetDue ? fmtShort(mobTaskSheetDue) : '';
-  calBtn.classList.toggle('has-date', !!mobTaskSheetDue);
-  if (clearBtn) clearBtn.style.display = mobTaskSheetDue ? '' : 'none';
-}
-
-function setMobDueQuick(days) {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  d.setHours(0, 0, 0, 0);
-  mobTaskSheetDue = d.toISOString();
-  renderMobTaskSheetDue();
-}
-
-function clearMobDue() {
-  mobTaskSheetDue = '';
-  renderMobTaskSheetDue();
-}
-
-function renderMobMITBtn() {
-  const btn = document.getElementById('mobMITBtn');
-  if (!btn) return;
-  btn.classList.toggle('active', !!mobTaskSheetStarred);
-}
-
-function toggleMobMIT() {
-  mobTaskSheetStarred = !mobTaskSheetStarred;
-  renderMobMITBtn();
-}
-
-function renderMobDoneBtn() {
-  const btn = document.getElementById('mobDoneBtn');
-  if (!btn || !mobTaskSheetTask) return;
-  const isDone = mobTaskSheetTask.done;
-  btn.classList.toggle('done-state', isDone);
-  btn.innerHTML = isDone
-    ? `<span class="mi s18">undo</span> Tamamlandıyı Geri Al`
-    : `<span class="mi s18">check_circle</span> Tamamlandı`;
-}
-
-async function toggleMobTaskDone() {
-  if (!mobTaskSheetTask) return;
-  await saveMobTaskSheet();
-  await toggleTask(mobTaskSheetTask);
-}
-
-function renderMobTaskSheetPrio() {
-  const row = document.getElementById('mobTaskPrioRow');
-  row.innerHTML = '';
-  Object.entries(PRIORITIES).forEach(([key, prio]) => {
-    const btn = document.createElement('button');
-    btn.className = `priority-btn ${key}` + (mobTaskSheetPrio === key ? ' active' : '');
-    btn.dataset.tip = prio.tooltip;
-    const sym = document.createElement('span'); sym.className='prio-sym'; sym.textContent=prio.symbol;
-    btn.appendChild(sym);
-    btn.onclick = () => { mobTaskSheetPrio = mobTaskSheetPrio === key ? null : key; renderMobTaskSheetPrio(); };
-    btn.addEventListener('touchstart', () => { btn.classList.add('show-tip'); setTimeout(()=>btn.classList.remove('show-tip'),1800); }, {passive:true});
-    row.appendChild(btn);
-  });
-}
-
-async function saveMobTaskSheet() {
-  if (!mobTaskSheetTask) return;
-  const task  = mobTaskSheetTask;
-  const title = (document.getElementById('mobTaskTitleInput').innerText || '').trim();
-  if (!title) { document.getElementById('mobTaskTitleInput').focus(); return; }
-  const notes = (document.getElementById('mobTaskNotesInput').innerText || '').trim();
-  const updates = {};
-  if (title !== task.text)                      { updates.text     = title;                task.text     = title; }
-  const link = document.getElementById('mobTaskLinkInput').value.trim();
-  if (notes !== (task.notes||''))               { updates.notes    = notes||null;          task.notes    = notes||null; }
-  if (link  !== (task.link||''))                { updates.link     = link||null;           task.link     = link||null; }
-  if (mobTaskSheetDue     !== (task.due_at||''))      { updates.due_at   = mobTaskSheetDue||null;    task.due_at   = mobTaskSheetDue||null; }
-  if (mobTaskSheetPrio    !== (task.priority||null))  { updates.priority = mobTaskSheetPrio;          task.priority = mobTaskSheetPrio; }
-  if (mobTaskSheetCat     !== task.category)          { updates.category = mobTaskSheetCat;           task.category = mobTaskSheetCat; }
-  if (mobTaskSheetStarred !== (task.starred||false))  { updates.starred  = mobTaskSheetStarred;       task.starred  = mobTaskSheetStarred; }
-  if (mobTaskSheetBalance !== (task.balance_category||null)) { updates.balance_category = mobTaskSheetBalance; task.balance_category = mobTaskSheetBalance; }
-  const oldMins = task.estimated_minutes != null ? task.estimated_minutes : null;
-  if (mobTaskSheetMins    !== oldMins)                { updates.estimated_minutes = mobTaskSheetMins; task.estimated_minutes = mobTaskSheetMins; }
-  closeMobTaskSheet();
-  if (Object.keys(updates).length > 0) {
-    try {
-      await db(`/todos?id=eq.${task.id}`, {method:'PATCH', body:JSON.stringify(updates)});
-      render(); renderSidebar();
-    } catch(e) { showToast('Hata: '+e.message); }
-  }
-}
-
-async function deleteMobTaskSheet() {
-  if (!mobTaskSheetTask) return;
-  const taskId = mobTaskSheetTask.id;
-  closeMobTaskSheet();
-  await deleteTask(taskId);
-}
-
-function toggleMobBalance(cat) {
-  mobTaskSheetBalance = (mobTaskSheetBalance === cat) ? null : cat;
-  renderMobBalanceChips();
-}
-function renderMobBalanceChips() {
-  document.querySelectorAll('.mob-balance-chip').forEach(el => {
-    el.classList.toggle('active', el.dataset.cat === mobTaskSheetBalance);
-  });
-}
-function toggleMobMins(mins) {
-  mobTaskSheetMins = (mobTaskSheetMins === mins) ? null : mins;
-  renderMobMinsChips();
-}
-function renderMobMinsChips() {
-  document.querySelectorAll('.mob-mins-chip').forEach(el => {
-    if (el.classList.contains('mob-mins-custom')) {
-      const isCustom = mobTaskSheetMins != null && ![15,30,60,120].includes(mobTaskSheetMins);
-      el.textContent = isCustom ? `${mobTaskSheetMins}dk` : '⋯';
-      el.classList.toggle('active', isCustom);
-    } else {
-      const m = parseInt(el.dataset.mins, 10);
-      el.classList.toggle('active', mobTaskSheetMins === m);
-    }
-  });
-  const inp = document.getElementById('mobMinsCustomInp');
-  if (inp) inp.style.display = 'none';
-}
-function openMobMinsCustom() {
-  const inp = document.getElementById('mobMinsCustomInp');
-  if (!inp) return;
-  inp.style.display = '';
-  inp.value = (mobTaskSheetMins != null && ![15,30,60,120].includes(mobTaskSheetMins)) ? mobTaskSheetMins : '';
-  inp.focus();
-  if (!inp._setup) {
-    inp._setup = true;
-    const commit = () => {
-      const v = parseInt(inp.value, 10);
-      if (Number.isFinite(v) && v > 0 && v <= 600) mobTaskSheetMins = v;
-      renderMobMinsChips();
-    };
-    inp.addEventListener('keydown', e => {
-      if (e.key === 'Enter')  { e.preventDefault(); e.stopPropagation(); commit(); }
-      if (e.key === 'Escape') { e.preventDefault(); inp.style.display='none'; }
-    });
-    inp.addEventListener('blur', commit);
-  }
 }
 
 /* ── Settings ── */
