@@ -729,6 +729,33 @@
       40% { transform:scale(1.1); opacity:1; }
       100% { transform:scale(1); opacity:.95; }
     }
+    /* Pomodoro auto-done geri al toast'ı (Faz 7) */
+    .pomo-undo-toast {
+      position:fixed; left:50%; bottom:32px;
+      transform:translateX(-50%);
+      z-index:10000;
+      display:flex; align-items:center; gap:14px;
+      padding:11px 16px;
+      background:#1f2937; color:#fff;
+      border-radius:10px;
+      box-shadow:0 8px 24px rgba(0,0,0,.3);
+      font-size:.88rem; font-family:inherit;
+      animation: pomoUndoIn .25s ease-out;
+      max-width:90vw;
+    }
+    @keyframes pomoUndoIn {
+      from { transform:translate(-50%, 12px); opacity:0; }
+      to   { transform:translate(-50%, 0);    opacity:1; }
+    }
+    .pomo-undo-msg { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:60vw; }
+    .pomo-undo-btn {
+      background:transparent; border:none;
+      color:#60a5fa; cursor:pointer;
+      font-weight:600; font-size:.88rem; font-family:inherit;
+      padding:4px 8px; border-radius:6px;
+      transition:background .15s;
+    }
+    .pomo-undo-btn:hover { background:rgba(96,165,250,.12); }
     .lc-grid::-webkit-scrollbar { width:6px; }
     .lc-grid::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
 
@@ -2955,6 +2982,11 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="pomo-undo-toast" id="pomoUndoToast" style="display:none">
+  <span class="pomo-undo-msg" id="pomoUndoMsg"></span>
+  <button class="pomo-undo-btn" id="pomoUndoBtn">Geri al</button>
+</div>
 
 <!-- Mobile: task edit bottom sheet -->
 <!-- Settings Modal -->
@@ -7347,13 +7379,18 @@ function pomoTick() {
   }
 }
 
-// Faz 6: pomo bitince otomatik mola, mola bitince sonraki görev. 3-2-1 sayım yok.
-// Faz 7'de uzun mola (4 pomo sonrası) ve auto-done eklenecek.
+// Faz 6/7: faz geçişleri. Son work bittiğinde 15dk uzun mola; work bitiminde
+// aktif görev otomatik done + 5sn "Geri al" toast.
 function pomoNextPhase() {
   if (pomoPhase === 'work') {
-    // Çalışma bitti → kısa mola (5dk)
-    pomoPhase = 'break';
-    pomoEndMs = Date.now() + 5 * 60 * 1000;
+    // Aktif görev tamamlandı sayılır (auto-done + geri al toast).
+    const finishedTaskId = pomoQueue[pomoActiveIndex];
+    pomoAutoDoneTask(finishedTaskId);
+    // Son work mu? (queue'nun son görevi) → uzun mola, değilse kısa mola.
+    const isLastWork = pomoActiveIndex === pomoQueue.length - 1;
+    pomoPhase = isLastWork ? 'long_break' : 'break';
+    const breakMin = isLastWork ? 15 : 5;
+    pomoEndMs = Date.now() + breakMin * 60 * 1000;
     pomoTickAudioStop();
     pomoPlayTrink();
     showPomoOverlay();
@@ -7378,6 +7415,53 @@ function pomoNextPhase() {
     renderPomoPanel();
     return;
   }
+}
+
+/* ──── Faz 7: auto-done + 5sn geri al toast ──── */
+let _pomoUndoTimer = null;
+async function pomoAutoDoneTask(taskId) {
+  if (!taskId) return;
+  const task = tasks.find(t => t.id === taskId);
+  if (!task || task.done) return;
+  task.done = true;
+  try {
+    await db(`/todos?id=eq.${task.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ done: true })
+    });
+  } catch(e) { console.warn('Pomo auto-done PATCH:', e?.message); }
+  if (typeof render === 'function') render();
+  showPomoUndoToast(`Tamamlandı: ${task.text || '(boş)'}`, taskId);
+}
+async function pomoUndoDone(taskId) {
+  hidePomoUndoToast();
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+  task.done = false;
+  try {
+    await db(`/todos?id=eq.${task.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ done: false })
+    });
+  } catch(e) { console.warn('Pomo undo PATCH:', e?.message); }
+  if (typeof render === 'function') render();
+}
+function showPomoUndoToast(msg, taskId) {
+  const wrap = document.getElementById('pomoUndoToast');
+  const msgEl = document.getElementById('pomoUndoMsg');
+  const btn = document.getElementById('pomoUndoBtn');
+  if (!wrap || !btn) return;
+  if (msgEl) msgEl.textContent = msg;
+  btn.onclick = () => pomoUndoDone(taskId);
+  wrap.style.display = 'flex';
+  clearTimeout(_pomoUndoTimer);
+  _pomoUndoTimer = setTimeout(hidePomoUndoToast, 5000);
+}
+function hidePomoUndoToast() {
+  const wrap = document.getElementById('pomoUndoToast');
+  if (wrap) wrap.style.display = 'none';
+  clearTimeout(_pomoUndoTimer);
+  _pomoUndoTimer = null;
 }
 function pomoFire() {
   if (pomoQueue.length === 0) { pomoReset(); return; }
