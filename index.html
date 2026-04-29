@@ -563,6 +563,57 @@
       max-width:480px;
       /* sola yaslı — sağda kalan alan Pomodoro paneli için ayrılmış */
     }
+    /* Takvim grid + pomodoro yan yana */
+    .lc-grid-row { display:flex; flex:1; min-height:0; gap:12px; }
+    .lc-grid-row .lc-grid-wrap { flex:1; min-width:0; }
+    /* Pomodoro paneli */
+    .pomo-panel {
+      width:280px; flex-shrink:0;
+      background:var(--surface); border-left:1px solid #f0f2f8;
+      padding:14px 16px;
+      display:flex; flex-direction:column; gap:14px;
+      overflow:auto;
+    }
+    .pomo-head {
+      display:flex; align-items:center; gap:8px;
+      padding-bottom:10px; border-bottom:1px solid #f0f2f8;
+    }
+    .pomo-head .mi { color:#ef4444; }
+    .pomo-title { font-size:.95rem; font-weight:700; color:var(--text); }
+    .pomo-body { display:flex; flex-direction:column; gap:14px; }
+    .pomo-clock {
+      display:flex; flex-direction:column; align-items:center;
+      padding:18px 0; background:var(--surface2); border-radius:14px;
+    }
+    .pomo-time {
+      font-size:2.4rem; font-weight:700; line-height:1;
+      color:var(--text); font-variant-numeric:tabular-nums;
+      letter-spacing:.02em;
+    }
+    .pomo-mode {
+      margin-top:6px; font-size:.78rem; color:var(--text3);
+      font-weight:500;
+    }
+    .pomo-tasks-info {
+      font-size:.82rem; color:var(--text2); text-align:center;
+      padding:6px 8px; background:var(--accent-bg); border-radius:8px;
+    }
+    .pomo-tasks-info.ready { background:#d4f4e0; color:#15803d; }
+    .pomo-start-btn {
+      width:100%; padding:10px; border-radius:10px; border:none;
+      background:var(--accent); color:#fff; font-size:.92rem; font-weight:600;
+      cursor:pointer; font-family:inherit; transition:opacity .15s;
+    }
+    .pomo-start-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .pomo-start-btn:not(:disabled):hover { opacity:.9; }
+    .pomo-hint { font-size:.74rem; color:var(--text3); line-height:1.4; text-align:center; }
+    @media (max-width: 900px) {
+      .pomo-panel { width:240px; padding:12px; }
+    }
+    @media (max-width: 600px) {
+      .lc-grid-row { flex-direction:column; }
+      .pomo-panel { width:100%; border-left:none; border-top:1px solid #f0f2f8; }
+    }
     .lc-grid::-webkit-scrollbar { width:6px; }
     .lc-grid::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
 
@@ -2705,8 +2756,26 @@
           <button class="lc-today-btn" id="lcBackToWeek" title="Hafta görünümüne dön" style="display:none">‹ Hafta</button>
           <button class="lc-today-btn" id="lcTodayBtn" title="Bugüne dön">Bugün</button>
         </div>
-        <div class="lc-grid-wrap" id="lcGridWrap">
-          <div class="lc-grid" id="lcGrid"></div>
+        <div class="lc-grid-row">
+          <div class="lc-grid-wrap" id="lcGridWrap">
+            <div class="lc-grid" id="lcGrid"></div>
+          </div>
+          <!-- Pomodoro paneli (DAY mode'da görünür, hafta modunda gizli) -->
+          <aside class="pomo-panel" id="pomoPanel" style="display:none">
+            <div class="pomo-head">
+              <span class="mi s18">timer</span>
+              <span class="pomo-title">Pomodoro</span>
+            </div>
+            <div class="pomo-body">
+              <div class="pomo-clock">
+                <div class="pomo-time" id="pomoTime">25:00</div>
+                <div class="pomo-mode" id="pomoMode">Hazır değil</div>
+              </div>
+              <div class="pomo-tasks-info" id="pomoTasksInfo">Hazır: 0 / 4 görev</div>
+              <button id="pomoStartBtn" class="pomo-start-btn" disabled>Başlat</button>
+              <div class="pomo-hint" id="pomoHint">Bugün için takvime 4 adet 25 dakikalık görev yerleştir.</div>
+            </div>
+          </aside>
         </div>
       </div>
       </div>
@@ -5861,6 +5930,7 @@ function renderListCalendar() {
   const root = document.getElementById('listCalendar');
   if (!root || root.style.display === 'none') return;
   lcInitState();
+  if (typeof renderPomoPanel === 'function') renderPomoPanel();
   // Render sırasında grid sıfırlandığında scrollTop tarayıcı tarafından 0'a alınıyor.
   // Render bittikten sonra geri yükle (lcMaybeScrollToNow otomatik scroll istiyorsa override eder).
   const _wrap = document.getElementById('lcGridWrap');
@@ -6867,6 +6937,41 @@ function lcUpdateGhostBlock() {
   const text = (document.getElementById('taskInput')?.value || 'Yeni görev').slice(0, 60);
   const tStr = `${String(target.hour).padStart(2,'0')}:${String(target.minute).padStart(2,'0')}`;
   ghost.textContent = `${text} · ${tStr} · ${fmtBalanceMinutes(minutes)}`;
+}
+
+/* ── Pomodoro paneli (Faz 1: iskelet + 4-görev detection) ── */
+function renderPomoPanel() {
+  const panel = document.getElementById('pomoPanel');
+  if (!panel) return;
+  // DAY mode'da görünür, hafta modunda gizli
+  const isDay = !!lcSingleDate;
+  panel.style.display = isDay ? 'flex' : 'none';
+  if (!isDay) return;
+  // O gün için 25dk slotlarda yerleşmiş, henüz tamamlanmamış görevleri say (timezone-safe)
+  const eligible = tasks.filter(t => {
+    if (t.parent_id || t.done) return false;
+    if (t.estimated_minutes !== 25) return false;
+    if (!t.due_at) return false;
+    return sameDay(t.due_at, lcSingleDate);
+  });
+  const count = eligible.length;
+  const requiredCount = 4;
+  const ready = count >= requiredCount;
+  const info = document.getElementById('pomoTasksInfo');
+  const btn  = document.getElementById('pomoStartBtn');
+  const hint = document.getElementById('pomoHint');
+  const mode = document.getElementById('pomoMode');
+  if (info) {
+    info.textContent = `Hazır: ${count} / ${requiredCount} görev`;
+    info.classList.toggle('ready', ready);
+  }
+  if (btn) btn.disabled = !ready;
+  if (hint) {
+    hint.textContent = ready
+      ? '4 görevin hazır. Pomodoro\'yu başlatabilirsin.'
+      : `Bugün için takvime ${requiredCount - count} adet daha 25 dakikalık görev yerleştir.`;
+  }
+  if (mode) mode.textContent = ready ? 'Hazır' : 'Hazır değil';
 }
 
 function lcMakeBalanceContent(r) {
