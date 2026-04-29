@@ -6335,6 +6335,10 @@ function lcCloseAddPopover() {
     }
   }
   ghost?.remove();
+  // ResizeObserver'ı temizle
+  if (lcAddPopoverState && lcAddPopoverState.resizeObserver) {
+    try { lcAddPopoverState.resizeObserver.disconnect(); } catch(_) {}
+  }
   if (isEdit) detachEditListeners();
   const addWrap = document.getElementById('addWrap');
   if (addWrap && prevParent) {
@@ -6814,6 +6818,9 @@ function scheduleUpdateFromAddWrap() {
 function lcPositionAddPopover(anchor) {
   if (!lcAddPopoverState) return;
   const pop = lcAddPopoverState.popover;
+  // Anchor'u state'te tut — ResizeObserver tarafından reposition için
+  if (anchor) lcAddPopoverState.anchor = anchor;
+  anchor = anchor || lcAddPopoverState.anchor;
   // Mobil: bottom-sheet konumu (full-width, alttan)
   if (window.innerWidth < 600) {
     pop.classList.add('lc-add-popover-mobile');
@@ -6831,12 +6838,23 @@ function lcPositionAddPopover(anchor) {
   let left = r.right + 8;
   if (left + popW > window.innerWidth - 8) left = r.left - popW - 8;
   if (left < 8) left = 8;
-  // Dikey: üstüne hizala; aşağı taşarsa yukarı al
+  // Dikey: üstüne hizala; aşağı taşarsa yukarı al — popover içeriği büyüdükçe
+  // top değeri yeniden hesaplanır (ResizeObserver ile)
   let top = r.top;
-  if (top + popH > window.innerHeight - 8) top = window.innerHeight - popH - 8;
+  if (top + popH > window.innerHeight - 8) top = Math.max(8, window.innerHeight - popH - 8);
   if (top < 8) top = 8;
   pop.style.left = `${Math.round(left)}px`;
   pop.style.top  = `${Math.round(top)}px`;
+  // İlk çağrıda ResizeObserver kur (popover içeriği büyüyünce/küçülünce reposition)
+  if (anchor && !lcAddPopoverState.resizeObserver && typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver(() => {
+      if (lcAddPopoverState && lcAddPopoverState.anchor) {
+        lcPositionAddPopover(lcAddPopoverState.anchor);
+      }
+    });
+    ro.observe(pop);
+    lcAddPopoverState.resizeObserver = ro;
+  }
 }
 
 function lcUpdateGhostBlock() {
