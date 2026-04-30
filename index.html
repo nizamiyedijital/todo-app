@@ -1597,6 +1597,24 @@
       width:12px; height:12px;
     }
     .bc-pct-row .bc-pct-icon svg { display:block; }
+    /* Faz 12: tamamlanan kategori dakikaları */
+    .bc-completed-row {
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; margin-top:6px;
+      font-size:.78rem; color:var(--text2);
+    }
+    .bc-completed-label {
+      font-weight:500; opacity:.75; flex-shrink:0;
+    }
+    .bc-completed-vals {
+      display:inline-flex; gap:10px; flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .bc-completed-vals span { display:inline-flex; align-items:center; gap:3px; }
+    .bc-completed-vals .bc-pct-icon {
+      display:inline-flex; align-items:center; width:11px; height:11px;
+    }
+    .bc-completed-vals .bc-pct-icon svg { display:block; }
 
     /* Bugünkü Aktif Yaşam Dengesi kartı */
     #balanceCard {
@@ -5984,6 +6002,35 @@ function renderBalanceCard(forDate) {
         <span>Kategori atanmış görev yok</span>
        </div>`;
 
+  // Faz 12: bugün tamamlanan (done) görevlerin balance kategorilerine göre dakikaları
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
+  const completed = { mental:0, physical:0, spiritual:0 };
+  for (const t of tasks) {
+    if (t.parent_id) continue;
+    if (!t.done) continue;
+    if (!t.balance_category || !BALANCE_CATEGORIES[t.balance_category]) continue;
+    if (!t.due_at) continue;
+    const d = new Date(t.due_at);
+    if (d < today || d >= tomorrow) continue;
+    if (isAllLists) { /* tüm listeler */ }
+    else if (isStarred) { if (!t.starred) continue; }
+    else { if (t.category !== activeListId) continue; }
+    const mins = (t.estimated_minutes != null) ? t.estimated_minutes : DEFAULT_TASK_MINUTES;
+    completed[t.balance_category] += mins;
+  }
+  const completedTotal = completed.mental + completed.physical + completed.spiritual;
+  const completedRow = completedTotal > 0
+    ? `<div class="bc-completed-row" title="Bugün done görevlerin kategori dakika toplamı">
+        <span class="bc-completed-label">Bugün tamamlandı</span>
+        <span class="bc-completed-vals">
+          ${completed.spiritual > 0 ? `<span><span class="bc-pct-icon" style="color:${BALANCE_CATEGORIES.spiritual.color}">${balSvg('heart', 11)}</span> ${completed.spiritual}dk</span>` : ''}
+          ${completed.physical  > 0 ? `<span><span class="bc-pct-icon" style="color:${BALANCE_CATEGORIES.physical.color}">${balSvg('body', 11)}</span> ${completed.physical}dk</span>` : ''}
+          ${completed.mental    > 0 ? `<span><span class="bc-pct-icon" style="color:${BALANCE_CATEGORIES.mental.color}">${balSvg('mind', 11)}</span> ${completed.mental}dk</span>` : ''}
+        </span>
+       </div>`
+    : '';
+
   card.innerHTML = `
     <div class="bc-title">${escapeHtml(titleText)}</div>
     <div class="bc-sub">${escapeHtml(subTitle)}</div>
@@ -5998,6 +6045,7 @@ function renderBalanceCard(forDate) {
       ${seg('spiritual', s.spiritualRatio)}
     </div>
     ${pctRow}
+    ${completedRow}
     <div class="bc-status" style="background:${s.color}">${escapeHtml(s.label)}</div>
     <div class="bc-msg">${escapeHtml(s.comment)}</div>
   `;
