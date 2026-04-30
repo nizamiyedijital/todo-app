@@ -679,6 +679,14 @@
       padding:0 4px; opacity:.7;
     }
     .pomo-reset-btn:hover { opacity:1; color:#dc2626; }
+    .pomo-fullreset-btn {
+      background:transparent; border:none; cursor:pointer;
+      color:var(--text3); font-size:.75rem; font-family:inherit;
+      padding:4px 0; margin-top:2px; opacity:.7;
+      text-decoration:underline; text-underline-offset:3px;
+      align-self:center;
+    }
+    .pomo-fullreset-btn:hover { opacity:1; color:#dc2626; }
     @media (max-width: 900px) {
       .pomo-panel { width:240px; padding:12px; }
     }
@@ -2959,6 +2967,7 @@
                   <span id="pomoArmedText">Kurulu</span>
                   <button class="pomo-reset-btn" id="pomoResetBtn" title="Sıfırla">×</button>
                 </div>
+                <button id="pomoFullResetBtn" class="pomo-fullreset-btn" style="display:none" onclick="pomoFullReset()">Tümünü Sıfırla</button>
               </div>
             </div>
           </aside>
@@ -3497,6 +3506,7 @@ async function initApp() {
   document.getElementById('appBox').style.display='block';
   if (appSettings.notifEnabled) setTimeout(scheduleReminders, 2000);
   connectRealtime();
+  pomoRestore();
   pomoTickerStart();
 }
 
@@ -7225,6 +7235,9 @@ function renderPomoScheduleControls(ready) {
     nowBtn.disabled = !ready;
     if (startBtn) startBtn.textContent = 'Başlat';
   }
+  // "Tümünü Sıfırla": queue'da görev varsa görünür
+  const fullResetBtn = document.getElementById('pomoFullResetBtn');
+  if (fullResetBtn) fullResetBtn.style.display = pomoQueue.length > 0 ? 'block' : 'none';
 }
 
 function renderPomoQueue() {
@@ -7281,6 +7294,7 @@ function makePomoQueueItem(task, position) {
     if (fromIdx < 0 || toIdx < 0) return;
     pomoQueue.splice(fromIdx, 1);
     pomoQueue.splice(toIdx, 0, sourceId);
+    pomoPersist();
     renderPomoPanel();
   });
   return item;
@@ -7303,12 +7317,14 @@ async function addToPomoQueue(taskId) {
     } catch(e) { console.warn('Pomo 25dk PATCH:', e.message); }
   }
   pomoQueue.push(taskId);
+  pomoPersist();
   renderPomoPanel();
   if (typeof render === 'function') render();
 }
 
 function removeFromPomoQueue(taskId) {
   pomoQueue = pomoQueue.filter(id => id !== taskId);
+  pomoPersist();
   renderPomoPanel();
 }
 
@@ -7361,6 +7377,7 @@ async function pomoArm() {
   }
   await placePomoTasksOnCalendar(startMs);
   pomoSchedule = { startMs, status:'armed' };
+  pomoPersist();
   renderPomoPanel();
 }
 
@@ -7373,7 +7390,7 @@ async function pomoStartNow() {
   const startMs = Date.now();
   await placePomoTasksOnCalendar(startMs);
   pomoSchedule = { startMs, status:'armed' };
-  // Faz 4: hemen tetik (Faz 5'te tam ekran sayım); şimdilik armed durumu görüntülenir.
+  pomoPersist();
   renderPomoPanel();
 }
 
@@ -7385,9 +7402,51 @@ function pomoReset() {
   pomoCountdownActive = false;
   pomoTickAudioStop();
   hidePomoOverlay();
+  pomoPersist();
   renderPomoPanel();
   if (typeof renderListCalendar === 'function') renderListCalendar();
   renderPomoBreakBar();
+}
+
+// Faz 10: localStorage persist + restore
+const POMO_STORAGE_KEY = 'pomo_state_v1';
+function pomoPersist() {
+  try {
+    localStorage.setItem(POMO_STORAGE_KEY, JSON.stringify({
+      queue: pomoQueue,
+      schedule: pomoSchedule,
+      activeIndex: pomoActiveIndex,
+      phase: pomoPhase,
+      endMs: pomoEndMs,
+      savedAt: Date.now()
+    }));
+  } catch(_){}
+}
+function pomoRestore() {
+  try {
+    const raw = localStorage.getItem(POMO_STORAGE_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (!s) return;
+    pomoQueue       = Array.isArray(s.queue) ? s.queue.filter(id => tasks.some(t => t.id === id)) : [];
+    pomoSchedule    = s.schedule || { startMs:null, status:'idle' };
+    pomoActiveIndex = typeof s.activeIndex === 'number' ? s.activeIndex : 0;
+    pomoPhase       = s.phase || 'work';
+    pomoEndMs       = s.endMs || 0;
+    // Queue boyutu küçüldüyse running geçersiz; sıfırla.
+    if (pomoSchedule.status === 'running' && pomoActiveIndex >= pomoQueue.length) {
+      pomoSchedule = { startMs:null, status:'idle' };
+      pomoActiveIndex = 0; pomoPhase = 'work'; pomoEndMs = 0;
+    }
+    // running ve sayfa kapalıyken endMs çoktan geçmişse, ticker pomoNextPhase'i tetikleyecek
+    // (DOM hazır olduktan sonra). Burada ek işlem yok.
+  } catch(_){}
+}
+function pomoFullReset() {
+  pomoQueue = [];
+  pomoReset();           // schedule idle + audio + overlay temizle
+  pomoPersist();         // boş queue persist
+  if (typeof showToast === 'function') showToast('Pomodoro sıfırlandı');
 }
 
 // Faz 4: kurulu mod tetik. 1sn'lik tick'te armed schedule'ın saati gelmişse pomoFire.
@@ -7456,6 +7515,7 @@ function pomoNextPhase() {
       isLastWork ? 'Pomodoro seti tamamlandı' : 'Mola zamanı',
       `${finishedTask?.text || 'Görev'} tamamlandı — ${breakMin}dk ${isLastWork ? 'uzun ' : ''}mola başladı.`
     );
+    pomoPersist();
     showPomoOverlay();
     renderPomoOverlayTime();
     renderPomoPanel();
@@ -7478,6 +7538,7 @@ function pomoNextPhase() {
     pomoPlayTrink();
     const nextTask = tasks.find(t => t.id === pomoQueue[pomoActiveIndex]);
     pomoNotify('Çalışma zamanı', `${nextTask?.text || 'Görev'} — 25dk pomo başladı.`);
+    pomoPersist();
     showPomoOverlay();
     renderPomoOverlayTime();
     renderPomoPanel();
@@ -7553,6 +7614,7 @@ function pomoFire() {
   pomoSchedule.status = 'running';
   pomoActiveIndex = 0;
   pomoPhase = 'work';
+  pomoPersist();
   const firstTask = tasks.find(t => t.id === pomoQueue[0]);
   pomoNotify('Pomodoro başlıyor', `${firstTask?.text || 'İlk görev'} — 25dk.`);
   // 3-2-1 countdown → trink → 25dk work fazı + tik tak loop
