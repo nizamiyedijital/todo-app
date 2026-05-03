@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>İletişim | Disiplan</title>
+<meta name="description" content="Disiplan ekibiyle iletişime geç.">
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{navy:'#0A1F49','deep-blue':'#143F8B','bright-blue':'#12A3E3','balance-green':'#4EAC39','action-orange':'#E9731C','bg-soft':'#F7FAFC','text-dark':'#101828','muted-text':'#667085'},fontFamily:{sans:['Inter','sans-serif'],display:['"Plus Jakarta Sans"','Inter','sans-serif']}}}};</script>
+<style>
+  body{font-family:'Inter',sans-serif;color:#101828}h1,h2,h3{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.02em}.h-display{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;line-height:1.05}
+  .nav-link{color:#475467;font-size:.92rem;font-weight:500}.nav-link:hover{color:#0A1F49}.nav-link.active{color:#0A1F49;font-weight:600}
+  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;background:#E9731C;color:#fff;border-radius:10px;font-weight:600;font-size:.95rem;box-shadow:0 8px 24px rgba(233,115,28,.30)}
+  .form-input{width:100%;padding:11px 14px;border:1.5px solid #E4E7EC;border-radius:10px;font-size:.95rem;font-family:inherit}.form-input:focus{outline:none;border-color:#12A3E3}
+  .brand-mark{display:inline-grid;grid-template-columns:1fr 1fr;gap:3px;width:32px;height:32px}.brand-mark span{background:#143F8B;border-radius:6px 1px 6px 1px}.brand-mark span:nth-child(2){background:#12A3E3;border-radius:1px 6px 1px 6px}.brand-mark span:nth-child(3){background:#4EAC39;border-radius:6px 1px 6px 1px}.brand-mark span:nth-child(4){background:#E9731C;border-radius:1px 6px 1px 6px}
+</style>
+</head>
+<body class="antialiased">
+
+<header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <a href="index.html" class="flex items-center gap-2.5"><img src="assets/logo-yatay.png" alt="disiplan" class="h-10 lg:h-11 w-auto"></a>
+      <nav class="hidden lg:flex items-center gap-7">
+        <a href="index.html#features" class="nav-link">Özellikler</a>
+        <a href="index.html#balance" class="nav-link">Aktif Yaşam Dengesi</a>
+        <a href="index.html#corporate" class="nav-link">Kurumsal Kullanım</a>
+        <a href="fiyatlandirma.html" class="nav-link">Fiyatlandırma</a>
+        <a href="blog.html" class="nav-link">Blog</a>
+      </nav>
+      <div class="hidden lg:flex items-center gap-3">
+        <a href="giris.html" class="nav-link">Giriş Yap</a>
+        <a href="erken-erisim.html" class="btn-primary text-sm py-2.5 px-4">Ücretsiz Başla</a>
+      </div>
+      <button id="mobileMenuBtn" class="lg:hidden p-2 -mr-2 text-navy"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
+    </div>
+    <div id="mobileMenu" class="lg:hidden hidden pb-4 pt-2 border-t border-gray-100">
+      <div class="flex flex-col gap-1">
+        <a href="index.html#features" class="nav-link py-2.5">Özellikler</a>
+        <a href="index.html#balance" class="nav-link py-2.5">Aktif Yaşam Dengesi</a>
+        <a href="index.html#corporate" class="nav-link py-2.5">Kurumsal Kullanım</a>
+        <a href="fiyatlandirma.html" class="nav-link py-2.5">Fiyatlandırma</a>
+        <a href="blog.html" class="nav-link py-2.5">Blog</a>
+        <a href="giris.html" class="nav-link py-2.5">Giriş Yap</a>
+        <a href="erken-erisim.html" class="btn-primary mt-3 justify-center">Ücretsiz Başla</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="bg-bg-soft py-16 lg:py-20">
+  <div class="max-w-3xl mx-auto px-4 text-center">
+    <div class="text-bright-blue text-sm font-bold uppercase tracking-wider mb-3">İletişim</div>
+    <h1 class="h-display text-4xl lg:text-5xl text-navy mb-5">Sana nasıl yardımcı olabiliriz?</h1>
+    <p class="text-lg text-muted-text">Sorularınız, geri bildirimleriniz veya kurumsal görüşmeler için buradayız.</p>
+  </div>
+</section>
+
+<section class="py-16 bg-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid lg:grid-cols-3 gap-6 mb-12">
+      <a href="mailto:destek@disiplan.com" class="bg-bg-soft rounded-2xl p-6 hover:shadow-lg transition">
+        <div class="w-11 h-11 rounded-xl bg-bright-blue/10 flex items-center justify-center mb-4"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#12A3E3" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+        <h3 class="font-display font-bold text-navy mb-1">Genel & Destek</h3>
+        <p class="text-sm text-muted-text mb-2">Ürün, hesap ve kullanım soruları için.</p>
+        <span class="text-bright-blue text-sm font-semibold">destek@disiplan.com</span>
+      </a>
+      <a href="mailto:kurumsal@disiplan.com" class="bg-bg-soft rounded-2xl p-6 hover:shadow-lg transition">
+        <div class="w-11 h-11 rounded-xl bg-deep-blue/10 flex items-center justify-center mb-4"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#143F8B" stroke-width="2" stroke-linecap="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h2M9 13h2M13 9h2M13 13h2M9 17h6"/></svg></div>
+        <h3 class="font-display font-bold text-navy mb-1">Kurumsal Satış</h3>
+        <p class="text-sm text-muted-text mb-2">Ekip ve kurumsal planlar için demo isteği.</p>
+        <span class="text-bright-blue text-sm font-semibold">kurumsal@disiplan.com</span>
+      </a>
+      <a href="mailto:basin@disiplan.com" class="bg-bg-soft rounded-2xl p-6 hover:shadow-lg transition">
+        <div class="w-11 h-11 rounded-xl bg-action-orange/10 flex items-center justify-center mb-4"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E9731C" stroke-width="2" stroke-linecap="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></div>
+        <h3 class="font-display font-bold text-navy mb-1">Basın & Medya</h3>
+        <p class="text-sm text-muted-text mb-2">Demeçler, haber ve marka kullanımı.</p>
+        <span class="text-bright-blue text-sm font-semibold">basin@disiplan.com</span>
+      </a>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-10 max-w-5xl mx-auto">
+      <div>
+        <h2 class="h-display text-2xl text-navy mb-3">Mesaj gönder</h2>
+        <p class="text-muted-text text-sm mb-6">Genelde 1 iş günü içinde dönüş yapıyoruz.</p>
+        <form onsubmit="event.preventDefault(); alert('Mesajın alındı, en kısa sürede dönüş yapacağız.'); this.reset();" class="space-y-4">
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div><label class="text-sm font-medium block mb-1.5">Ad</label><input type="text" required class="form-input"></div>
+            <div><label class="text-sm font-medium block mb-1.5">E-posta</label><input type="email" required class="form-input"></div>
+          </div>
+          <div><label class="text-sm font-medium block mb-1.5">Konu</label>
+            <select class="form-input"><option>Genel soru</option><option>Hata bildirimi</option><option>Özellik önerisi</option><option>Kurumsal demo isteği</option><option>Basın & medya</option></select>
+          </div>
+          <div><label class="text-sm font-medium block mb-1.5">Mesaj</label><textarea required rows="5" class="form-input resize-none"></textarea></div>
+          <button type="submit" class="btn-primary w-full">Gönder</button>
+        </form>
+      </div>
+      <div>
+        <h2 class="h-display text-2xl text-navy mb-5">Diğer kanallar</h2>
+        <div class="space-y-4">
+          <div class="bg-bg-soft rounded-xl p-4">
+            <div class="text-xs font-bold uppercase tracking-wider text-muted-text mb-1">Konum</div>
+            <p class="text-sm text-text-dark">İstanbul, Türkiye</p>
+          </div>
+          <div class="bg-bg-soft rounded-xl p-4">
+            <div class="text-xs font-bold uppercase tracking-wider text-muted-text mb-1">Çalışma saatleri</div>
+            <p class="text-sm text-text-dark">Pzt – Cum · 09:00 – 18:00 (TRT)</p>
+          </div>
+          <div class="bg-bg-soft rounded-xl p-4">
+            <div class="text-xs font-bold uppercase tracking-wider text-muted-text mb-1">Sosyal Medya</div>
+            <div class="flex gap-2 mt-1.5 text-sm">
+              <a href="#" onclick="event.preventDefault(); alert('Sosyal medya hesapları yakında.')" class="text-bright-blue hover:underline">Twitter</a>
+              <span class="text-muted-text">·</span>
+              <a href="#" onclick="event.preventDefault(); alert('Sosyal medya hesapları yakında.')" class="text-bright-blue hover:underline">LinkedIn</a>
+              <span class="text-muted-text">·</span>
+              <a href="#" onclick="event.preventDefault(); alert('Sosyal medya hesapları yakında.')" class="text-bright-blue hover:underline">Instagram</a>
+            </div>
+          </div>
+          <div class="bg-navy text-white/90 rounded-xl p-5">
+            <div class="text-xs font-bold uppercase tracking-wider text-white/60 mb-2">SSS'e mi bakmak istersin?</div>
+            <p class="text-sm mb-3">Sorunun yanıtı zaten <a href="yardim.html" class="text-bright-blue underline">Yardım Merkezi</a>'nde olabilir.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-navy text-white/85 pt-16 pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
+      <div class="lg:col-span-2">
+        <div class="flex items-center gap-2.5 mb-4"><img src="assets/logo-yatay.png" alt="disiplan" class="h-9 lg:h-10 w-auto bg-white rounded-lg px-2 py-1.5"></div>
+        <p class="text-white/70 text-sm leading-relaxed max-w-sm">Görev yönetimi, planlama, alışkanlık takibi ve Aktif Yaşam Dengesi'ni birleştiren akıllı planlama platformu.</p>
+      </div>
+      <div><div class="text-xs uppercase tracking-wider font-bold text-white/60 mb-4">Ürün</div><ul class="space-y-2.5 text-sm"><li><a href="index.html#features" class="hover:text-white">Görev Yönetimi</a></li><li><a href="index.html#balance" class="hover:text-white">Aktif Yaşam Dengesi</a></li><li><a href="index.html#corporate" class="hover:text-white">Ekip Yönetimi</a></li><li><a href="fiyatlandirma.html" class="hover:text-white">Fiyatlandırma</a></li></ul></div>
+      <div><div class="text-xs uppercase tracking-wider font-bold text-white/60 mb-4">Kaynaklar</div><ul class="space-y-2.5 text-sm"><li><a href="blog.html" class="hover:text-white">Blog</a></li><li><a href="rehberler.html" class="hover:text-white">Rehberler</a></li><li><a href="yardim.html" class="hover:text-white">Yardım Merkezi</a></li></ul></div>
+      <div><div class="text-xs uppercase tracking-wider font-bold text-white/60 mb-4">Şirket</div><ul class="space-y-2.5 text-sm"><li><a href="hakkimizda.html" class="hover:text-white">Hakkımızda</a></li><li><a href="iletisim.html" class="hover:text-white">İletişim</a></li><li><a href="gizlilik.html" class="hover:text-white">Gizlilik Politikası</a></li><li><a href="kullanim-sartlari.html" class="hover:text-white">Kullanım Şartları</a></li></ul></div>
+    </div>
+    <div class="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/50"><div>© 2026 Disiplan. Tüm hakları saklıdır.</div><div class="flex items-center gap-2"><span>Türkiye'de tasarlandı</span><span>·</span><span>Bireysel + Kurumsal</span></div></div>
+  </div>
+</footer>
+<script>document.getElementById('mobileMenuBtn')?.addEventListener('click',()=>document.getElementById('mobileMenu')?.classList.toggle('hidden'));document.querySelectorAll('#mobileMenu a').forEach(a=>a.addEventListener('click',()=>document.getElementById('mobileMenu')?.classList.add('hidden')));</script>
+</body></html>

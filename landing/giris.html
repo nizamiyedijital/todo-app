@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giriş Yap | Disiplan</title>
+<meta name="description" content="Disiplan hesabına giriş yap.">
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{navy:'#0A1F49','deep-blue':'#143F8B','bright-blue':'#12A3E3','balance-green':'#4EAC39','action-orange':'#E9731C','bg-soft':'#F7FAFC','text-dark':'#101828','muted-text':'#667085'},fontFamily:{sans:['Inter','sans-serif'],display:['"Plus Jakarta Sans"','Inter','sans-serif']}}}};</script>
+<style>
+  body{font-family:'Inter',sans-serif;color:#101828}h1,h2,h3{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.02em}.h-display{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800}
+  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;background:#E9731C;color:#fff;border-radius:10px;font-weight:600;font-size:.95rem;box-shadow:0 8px 24px rgba(233,115,28,.30);width:100%}
+  .btn-google{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:11px 20px;background:#fff;color:#101828;border:1.5px solid #E4E7EC;border-radius:10px;font-weight:600;font-size:.92rem;width:100%}.btn-google:hover{border-color:#12A3E3}
+  .form-input{width:100%;padding:11px 14px;border:1.5px solid #E4E7EC;border-radius:10px;font-size:.95rem;font-family:inherit;transition:border-color .15s}.form-input:focus{outline:none;border-color:#12A3E3}
+  .brand-mark{display:inline-grid;grid-template-columns:1fr 1fr;gap:3px;width:32px;height:32px}.brand-mark span{background:#143F8B;border-radius:6px 1px 6px 1px}.brand-mark span:nth-child(2){background:#12A3E3;border-radius:1px 6px 1px 6px}.brand-mark span:nth-child(3){background:#4EAC39;border-radius:6px 1px 6px 1px}.brand-mark span:nth-child(4){background:#E9731C;border-radius:1px 6px 1px 6px}
+</style>
+</head>
+<body class="antialiased min-h-screen flex flex-col bg-bg-soft">
+
+<!-- Minimal header -->
+<header class="bg-white border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center">
+    <a href="index.html" class="flex items-center gap-2.5"><img src="assets/logo-yatay.png" alt="disiplan" class="h-10 lg:h-11 w-auto"></a>
+  </div>
+</header>
+
+<!-- Login form -->
+<main class="flex-1 flex items-center justify-center py-12 px-4">
+  <div class="w-full max-w-md">
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+      <h1 class="h-display text-2xl text-navy mb-1">Tekrar hoş geldin</h1>
+      <p class="text-muted-text text-sm mb-6">Hesabına giriş yap ve gününü planlamaya devam et.</p>
+
+      <button onclick="alert('Google ile giriş — pilot sürümde aktif olacak.')" class="btn-google mb-3">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Google ile Giriş
+      </button>
+
+      <div class="relative my-5">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
+        <div class="relative flex justify-center text-xs"><span class="bg-white px-3 text-muted-text">veya e-posta ile</span></div>
+      </div>
+
+      <form onsubmit="event.preventDefault(); alert('Pilot sürüm — giriş yakında aktif olacak. Erken erişime katılarak ilk haberi alabilirsin.');" class="space-y-4">
+        <div>
+          <label class="text-sm font-medium text-text-dark mb-1.5 block">E-posta</label>
+          <input type="email" required placeholder="ornek@email.com" class="form-input">
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-sm font-medium text-text-dark">Şifre</label>
+            <a href="#" onclick="event.preventDefault(); alert('Şifre sıfırlama yakında aktif olacak.')" class="text-xs text-bright-blue hover:underline">Şifremi unuttum</a>
+          </div>
+          <input type="password" required placeholder="••••••••" class="form-input">
+        </div>
+        <label class="flex items-center gap-2 text-sm text-muted-text">
+          <input type="checkbox" class="rounded border-gray-300"> Beni hatırla
+        </label>
+        <button type="submit" class="btn-primary">Giriş Yap</button>
+      </form>
+
+      <p class="text-center text-sm text-muted-text mt-6">
+        Hesabın yok mu? <a href="erken-erisim.html" class="text-bright-blue font-semibold hover:underline">Erken erişime katıl</a>
+      </p>
+    </div>
+    <p class="text-center text-xs text-muted-text mt-6">
+      <a href="gizlilik.html" class="hover:underline">Gizlilik Politikası</a> · <a href="kullanim-sartlari.html" class="hover:underline">Kullanım Şartları</a>
+    </p>
+  </div>
+</main>
+
+</body></html>

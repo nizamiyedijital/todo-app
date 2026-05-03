@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blog | Disiplan</title>
+<meta name="description" content="Üretkenlik, planlama, Aktif Yaşam Dengesi ve ekip yönetimi üzerine içerikler.">
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{navy:'#0A1F49','deep-blue':'#143F8B','bright-blue':'#12A3E3','balance-green':'#4EAC39','action-orange':'#E9731C','bg-soft':'#F7FAFC','text-dark':'#101828','muted-text':'#667085'},fontFamily:{sans:['Inter','sans-serif'],display:['"Plus Jakarta Sans"','Inter','sans-serif']}}}};</script>
+<style>
+  body{font-family:'Inter',sans-serif;color:#101828}h1,h2,h3,h4{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.02em}.h-display{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;line-height:1.05}
+  .nav-link{color:#475467;font-size:.92rem;font-weight:500}.nav-link:hover{color:#0A1F49}.nav-link.active{color:#0A1F49;font-weight:600}
+  .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#E9731C;color:#fff;border-radius:10px;font-weight:600;font-size:.95rem;box-shadow:0 8px 24px rgba(233,115,28,.30)}
+  .btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;background:#fff;color:#0A1F49;border:1.5px solid #E4E7EC;border-radius:10px;font-weight:600;font-size:.95rem}
+  .brand-mark{display:inline-grid;grid-template-columns:1fr 1fr;gap:3px;width:32px;height:32px}.brand-mark span{background:#143F8B;border-radius:6px 1px 6px 1px}.brand-mark span:nth-child(2){background:#12A3E3;border-radius:1px 6px 1px 6px}.brand-mark span:nth-child(3){background:#4EAC39;border-radius:6px 1px 6px 1px}.brand-mark span:nth-child(4){background:#E9731C;border-radius:1px 6px 1px 6px}
+  .blog-card{background:#fff;border:1px solid #EAECF0;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s}.blog-card:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(10,31,73,.08)}
+  .blog-thumb{aspect-ratio:16/9;background:linear-gradient(135deg,var(--c1),var(--c2));position:relative}.blog-thumb-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3rem;opacity:.85}
+  .cat-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+</style>
+</head>
+<body class="antialiased">
+
+<header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <a href="index.html" class="flex items-center gap-2.5"><img src="assets/logo-yatay.png" alt="disiplan" class="h-10 lg:h-11 w-auto"></a>
+      <nav class="hidden lg:flex items-center gap-7">
+        <a href="index.html#features" class="nav-link">Özellikler</a>
+        <a href="index.html#balance" class="nav-link">Aktif Yaşam Dengesi</a>
+        <a href="index.html#corporate" class="nav-link">Kurumsal Kullanım</a>
+        <a href="fiyatlandirma.html" class="nav-link">Fiyatlandırma</a>
+        <a href="blog.html" class="nav-link active">Blog</a>
+      </nav>
+      <div class="hidden lg:flex items-center gap-3">
+        <a href="giris.html" class="nav-link">Giriş Yap</a>
+        <a href="erken-erisim.html" class="btn-primary text-sm py-2.5 px-4">Ücretsiz Başla</a>
+      </div>
+      <button id="mobileMenuBtn" class="lg:hidden p-2 -mr-2 text-navy"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
+    </div>
+    <div id="mobileMenu" class="lg:hidden hidden pb-4 pt-2 border-t border-gray-100">
+      <div class="flex flex-col gap-1">
+        <a href="index.html#features" class="nav-link py-2.5">Özellikler</a>
+        <a href="index.html#balance" class="nav-link py-2.5">Aktif Yaşam Dengesi</a>
+        <a href="index.html#corporate" class="nav-link py-2.5">Kurumsal Kullanım</a>
+        <a href="fiyatlandirma.html" class="nav-link py-2.5">Fiyatlandırma</a>
+        <a href="blog.html" class="nav-link py-2.5">Blog</a>
+        <a href="giris.html" class="nav-link py-2.5">Giriş Yap</a>
+        <a href="erken-erisim.html" class="btn-primary mt-3 justify-center">Ücretsiz Başla</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="bg-bg-soft py-16 lg:py-20">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <div class="text-bright-blue text-sm font-bold uppercase tracking-wider mb-3">Disiplan Blog</div>
+    <h1 class="h-display text-4xl lg:text-5xl text-navy mb-5">Daha düzenli ve dengeli çalışmak için fikirler</h1>
+    <p class="text-lg text-muted-text">Üretkenlik, planlama, ekip yönetimi ve Aktif Yaşam Dengesi üzerine pratik içerikler.</p>
+  </div>
+</section>
+
+<!-- Categories filter -->
+<section class="bg-white border-b border-gray-100 py-5">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap gap-2 justify-center">
+    <button class="px-4 py-2 rounded-full bg-navy text-white text-sm font-semibold">Tümü</button>
+    <button class="px-4 py-2 rounded-full bg-gray-100 text-text-dark text-sm font-medium hover:bg-gray-200">Felsefe</button>
+    <button class="px-4 py-2 rounded-full bg-gray-100 text-text-dark text-sm font-medium hover:bg-gray-200">Verimlilik</button>
+    <button class="px-4 py-2 rounded-full bg-gray-100 text-text-dark text-sm font-medium hover:bg-gray-200">Planlama</button>
+    <button class="px-4 py-2 rounded-full bg-gray-100 text-text-dark text-sm font-medium hover:bg-gray-200">Ekip</button>
+    <button class="px-4 py-2 rounded-full bg-gray-100 text-text-dark text-sm font-medium hover:bg-gray-200">Davranış</button>
+  </div>
+</section>
+
+<!-- Posts -->
+<section class="py-16 bg-bg-soft">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <article class="blog-card">
+        <div class="blog-thumb" style="--c1:#143F8B;--c2:#12A3E3"><div class="blog-thumb-icon">🧠</div></div>
+        <div class="p-6 flex flex-col flex-1">
+          <span class="cat-pill bg-bright-blue/10 text-bright-blue mb-3">Felsefe</span>
+          <h3 class="font-display font-bold text-lg text-navy mb-2">Aktif Yaşam Dengesi nedir?</h3>
+          <p class="text-sm text-muted-text leading-relaxed mb-4 flex-1">24 saatin tamamını ölçmek yerine, bilinçli görevlerin Zihin–Beden–Kalp dağılımına bakmak neden daha sağlıklı?</p>
+          <div class="flex items-center justify-between text-xs text-muted-text"><span>5 dk okuma</span><span>2 Mayıs 2026</span></div>
+        </div>
+      </article>
+      <article class="blog-card">
+        <div class="blog-thumb" style="--c1:#E9731C;--c2:#FFA15B"><div class="blog-thumb-icon">⏱</div></div>
+        <div class="p-6 flex flex-col flex-1">
+          <span class="cat-pill bg-action-orange/10 text-action-orange mb-3">Verimlilik</span>
+          <h3 class="font-display font-bold text-lg text-navy mb-2">Pomodoro tekniği ile odaklanma</h3>
+          <p class="text-sm text-muted-text leading-relaxed mb-4 flex-1">25 dakikalık döngüler beyni nasıl korur? Disiplan'ın Pomodoro modu pratikte nasıl çalışır?</p>
+          <div class="flex items-center justify-between text-xs text-muted-text"><span>4 dk okuma</span><span>28 Nisan 2026</span></div>
+        </div>
+      </article>
+      <article class="blog-card">
+        <div class="blog-thumb" style="--c1:#4EAC39;--c2:#7DD55E"><div class="blog-thumb-icon">👥</div></div>
+        <div class="p-6 flex flex-col flex-1">
+          <span class="cat-pill bg-balance-green/10 text-balance-green mb-3">Ekip</span>
+          <h3 class="font-display font-bold text-lg text-navy mb-2">Ekip görev yönetimi: 5 ipucu</h3>
+          <p class="text-sm text-muted-text leading-relaxed mb-4 flex-1">Sorumluluk netliği, görünürlük, geri bildirim — tıkanan ekipleri açan 5 basit pratik.</p>
+          <div class="flex items-center justify-between text-xs text-muted-text"><span>6 dk okuma</span><span>22 Nisan 2026</span></div>
+        </div>
+      </article>
+      <article class="blog-card">
+        <div class="blog-thumb" style="--c1:#0A1F49;--c2:#143F8B"><div class="blog-thumb-icon">🔁</div></div>
+        <div class="p-6 flex flex-col flex-1">
+          <span class="cat-pill bg-deep-blue/10 text-deep-blue mb-3">Davranış</span>
+          <h3 class="font-display font-bold text-lg text-navy mb-2">Erteleme alışkanlığını kırmak</h3>
+          <p class="text-sm text-muted-text leading-relaxed mb-4 flex-1">Aynı görevi 3 kez ertelediysen — neyin tıkadığını ve nasıl küçük bir başlangıç yapacağını anlat.</p>
+          <div class="flex items-center justify-between text-xs text-muted-text"><span>7 dk okuma</span><span>15 Nisan 2026</span></div>
+        </div>
+      </article>
+      <article class="blog-card">
+        <div class="blog-thumb" style="--c1:#12A3E3;--c2:#4EAC39"><div class="blog-thumb-icon">📅</div></div>
+        <div class="p-6 flex flex-col flex-1">
+          <span class="cat-pill bg-bright-blue/10 text-bright-blue mb-3">Planlama</span>
+          <h3 class="font-display font-bold text-lg text-navy mb-2">Haftalık plan kurma rehberi</h3>
+          <p class="text-sm text-muted-text leading-relaxed mb-4 flex-1">Pazar akşamı 20 dakika ile haftanı dengele: zihinsel/fiziksel/iç dünya alanları için pratik şablon.</p>
+          <div class="flex items-center justify-between text-xs text-muted-text"><span>8 dk okuma</span><span>10 Nisan 2026</span></div>
+        </div>
+      </article>
+      <article class="blog-card">
+        <div class="blog-thumb" style="--c1:#DC2626;--c2:#E9731C"><div class="blog-thumb-icon">❤️</div></div>
+        <div class="p-6 flex flex-col flex-1">
+          <span class="cat-pill bg-bright-blue/10 text-bright-blue mb-3">Felsefe</span>
+          <h3 class="font-display font-bold text-lg text-navy mb-2">Önce zihin mi, beden mi, kalp mi?</h3>
+          <p class="text-sm text-muted-text leading-relaxed mb-4 flex-1">Üç alan arasında öncelik aramak yerine, gün içinde nasıl rotasyon yapılır?</p>
+          <div class="flex items-center justify-between text-xs text-muted-text"><span>5 dk okuma</span><span>3 Nisan 2026</span></div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Newsletter -->
+    <div class="mt-16 bg-white rounded-2xl p-8 lg:p-10 border border-gray-100 text-center max-w-2xl mx-auto">
+      <h3 class="h-display text-2xl text-navy mb-3">Yeni içerikleri kaçırma</h3>
+      <p class="text-muted-text mb-6">Ayda 2-3 e-posta. Spam yok, istediğin an çık.</p>
+      <form onsubmit="event.preventDefault(); alert('Teşekkürler! Bültene kaydoldun.'); this.reset();" class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+        <input type="email" required placeholder="E-posta adresin" class="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-bright-blue text-sm">
+        <button type="submit" class="btn-primary justify-center">Abone Ol</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-navy text-white/85 pt-16 pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
+      <div class="lg:col-span-2">
+        <div class="flex items-center gap-2.5 mb-4"><img src="assets/logo-yatay.png" alt="disiplan" class="h-9 lg:h-10 w-auto bg-white rounded-lg px-2 py-1.5"></div>
+        <p class="text-white/70 text-sm leading-relaxed max-w-sm">Görev yönetimi, planlama, alışkanlık takibi ve Aktif Yaşam Dengesi'ni birleştiren akıllı planlama platformu.</p>
+      </div>
+      <div><div class="text-xs uppercase tracking-wider font-bold text-white/60 mb-4">Ürün</div><ul class="space-y-2.5 text-sm"><li><a href="index.html#features" class="hover:text-white">Görev Yönetimi</a></li><li><a href="index.html#balance" class="hover:text-white">Aktif Yaşam Dengesi</a></li><li><a href="index.html#corporate" class="hover:text-white">Ekip Yönetimi</a></li><li><a href="fiyatlandirma.html" class="hover:text-white">Fiyatlandırma</a></li></ul></div>
+      <div><div class="text-xs uppercase tracking-wider font-bold text-white/60 mb-4">Kaynaklar</div><ul class="space-y-2.5 text-sm"><li><a href="blog.html" class="hover:text-white">Blog</a></li><li><a href="rehberler.html" class="hover:text-white">Rehberler</a></li><li><a href="yardim.html" class="hover:text-white">Yardım Merkezi</a></li></ul></div>
+      <div><div class="text-xs uppercase tracking-wider font-bold text-white/60 mb-4">Şirket</div><ul class="space-y-2.5 text-sm"><li><a href="hakkimizda.html" class="hover:text-white">Hakkımızda</a></li><li><a href="iletisim.html" class="hover:text-white">İletişim</a></li><li><a href="gizlilik.html" class="hover:text-white">Gizlilik Politikası</a></li><li><a href="kullanim-sartlari.html" class="hover:text-white">Kullanım Şartları</a></li></ul></div>
+    </div>
+    <div class="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/50"><div>© 2026 Disiplan. Tüm hakları saklıdır.</div><div class="flex items-center gap-2"><span>Türkiye'de tasarlandı</span><span>·</span><span>Bireysel + Kurumsal</span></div></div>
+  </div>
+</footer>
+<script>document.getElementById('mobileMenuBtn')?.addEventListener('click',()=>document.getElementById('mobileMenu')?.classList.toggle('hidden'));document.querySelectorAll('#mobileMenu a').forEach(a=>a.addEventListener('click',()=>document.getElementById('mobileMenu')?.classList.add('hidden')));</script>
+</body></html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Erken Erişim | Disiplan</title>
+<meta name="description" content="Disiplan erken erişim programına katıl. Pilot kullanıcılara öncelikli erişim ve %50 indirim.">
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{navy:'#0A1F49','deep-blue':'#143F8B','bright-blue':'#12A3E3','balance-green':'#4EAC39','action-orange':'#E9731C','bg-soft':'#F7FAFC','text-dark':'#101828','muted-text':'#667085'},fontFamily:{sans:['Inter','sans-serif'],display:['"Plus Jakarta Sans"','Inter','sans-serif']}}}};</script>
+<style>
+  body{font-family:'Inter',sans-serif;color:#101828}h1,h2,h3{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.02em}.h-display{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;line-height:1.05}
+  .nav-link{color:#475467;font-size:.92rem;font-weight:500}.nav-link:hover{color:#0A1F49}
+  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;background:#E9731C;color:#fff;border-radius:10px;font-weight:600;font-size:.95rem;box-shadow:0 8px 24px rgba(233,115,28,.30)}
+  .form-input{width:100%;padding:13px 16px;border:1.5px solid #E4E7EC;border-radius:10px;font-size:.95rem;font-family:inherit}.form-input:focus{outline:none;border-color:#12A3E3}
+  .brand-mark{display:inline-grid;grid-template-columns:1fr 1fr;gap:3px;width:32px;height:32px}.brand-mark span{background:#143F8B;border-radius:6px 1px 6px 1px}.brand-mark span:nth-child(2){background:#12A3E3;border-radius:1px 6px 1px 6px}.brand-mark span:nth-child(3){background:#4EAC39;border-radius:6px 1px 6px 1px}.brand-mark span:nth-child(4){background:#E9731C;border-radius:1px 6px 1px 6px}
+  .gradient-balance{background:linear-gradient(135deg,#0A1F49 0%,#143F8B 60%,#12A3E3 100%)}
+</style>
+</head>
+<body class="antialiased">
+
+<header class="bg-white border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2.5"><img src="assets/logo-yatay.png" alt="disiplan" class="h-10 lg:h-11 w-auto"></a>
+    <a href="giris.html" class="nav-link">Zaten hesabım var</a>
+  </div>
+</header>
+
+<section class="gradient-balance text-white py-16 lg:py-24 relative overflow-hidden">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white/95 text-xs font-semibold mb-5 backdrop-blur-sm">
+      <span class="w-1.5 h-1.5 rounded-full bg-balance-green"></span>
+      Sınırlı pilot programı
+    </div>
+    <h1 class="h-display text-4xl lg:text-5xl mb-5">Disiplan'ı ilk deneyenlerden ol</h1>
+    <p class="text-lg text-white/85 leading-relaxed mb-8">Erken erişim üyeleri ürünü şekillendirir, geri bildirimleriyle Disiplan'ın gelişimine katılır. Lansmanda %50 ömür boyu indirim.</p>
+  </div>
+</section>
+
+<section class="py-16 lg:py-20 bg-white">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-bg-soft rounded-2xl p-8 lg:p-10">
+      <h2 class="h-display text-2xl text-navy mb-2">Erken erişim formu</h2>
+      <p class="text-muted-text text-sm mb-6">Form gönderildikten sonra e-postanı doğrulayacağız ve sıraya alacağız.</p>
+      <form onsubmit="event.preventDefault(); document.getElementById('successMsg').style.display='block'; this.style.display='none'; window.scrollTo({top:0,behavior:'smooth'});" class="space-y-4">
+        <div>
+          <label class="text-sm font-medium text-text-dark mb-1.5 block">Ad Soyad</label>
+          <input type="text" required placeholder="Adın ve soyadın" class="form-input">
+        </div>
+        <div>
+          <label class="text-sm font-medium text-text-dark mb-1.5 block">E-posta</label>
+          <input type="email" required placeholder="ornek@email.com" class="form-input">
+        </div>
+        <div>
+          <label class="text-sm font-medium text-text-dark mb-1.5 block">Kullanım amacı</label>
+          <select class="form-input">
+            <option>Bireysel kullanım</option>
+            <option>Küçük ekip (2-10 kişi)</option>
+            <option>Orta ölçek (10-50 kişi)</option>
+            <option>Kurumsal (50+ kişi)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-medium text-text-dark mb-1.5 block">Bugünkü en büyük zorluğun nedir? <span class="text-muted-text font-normal">(opsiyonel)</span></label>
+          <textarea rows="3" placeholder="Örn: Görevler farklı yerlerde dağılıyor, dengeyi yakalayamıyorum..." class="form-input resize-none"></textarea>
+        </div>
+        <label class="flex items-start gap-2 text-sm text-muted-text">
+          <input type="checkbox" required class="mt-1 rounded border-gray-300">
+          <span><a href="gizlilik.html" class="text-bright-blue hover:underline">Gizlilik Politikası</a> ve <a href="kullanim-sartlari.html" class="text-bright-blue hover:underline">Kullanım Şartları</a>'nı okudum, kabul ediyorum.</span>
+        </label>
+        <button type="submit" class="btn-primary w-full">Erken Erişime Katıl</button>
+      </form>
+      <div id="successMsg" style="display:none" class="bg-balance-green/10 border border-balance-green/30 rounded-xl p-6 text-center">
+        <div class="text-4xl mb-2">✓</div>
+        <h3 class="font-display font-bold text-navy text-lg mb-2">Teşekkürler!</h3>
+        <p class="text-sm text-muted-text">E-postanı doğrulamak için bir bağlantı gönderdik. Pilot programda yer açıldığında haberdar olacaksın.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Benefits -->
+<section class="py-16 lg:py-20 bg-bg-soft">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="h-display text-2xl lg:text-3xl text-navy mb-10 text-center">Erken erişimin avantajları</h2>
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="bg-white rounded-2xl p-6 text-center border border-gray-100">
+        <div class="text-3xl mb-3">🚀</div>
+        <h3 class="font-display font-bold text-navy mb-2">Öncelikli erişim</h3>
+        <p class="text-sm text-muted-text leading-relaxed">Lansmandan önce ürünü dene, ekibe doğrudan geri bildirim ver.</p>
+      </div>
+      <div class="bg-white rounded-2xl p-6 text-center border border-gray-100">
+        <div class="text-3xl mb-3">💬</div>
+        <h3 class="font-display font-bold text-navy mb-2">Yapım ortağı ol</h3>
+        <p class="text-sm text-muted-text leading-relaxed">Geri bildirimlerin doğrudan ürün yol haritasını şekillendirir.</p>
+      </div>
+      <div class="bg-white rounded-2xl p-6 text-center border border-gray-100">
+        <div class="text-3xl mb-3">🎁</div>
+        <h3 class="font-display font-bold text-navy mb-2">%50 ömür boyu indirim</h3>
+        <p class="text-sm text-muted-text leading-relaxed">Pilot kullanıcılar için Pro abonelikte ömür boyu yarı fiyat.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-navy text-white/85 pt-16 pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
+      <div class="lg:col-span-2">
+        <div class="flex items-center gap-2.5 mb-4"><img src="assets/logo-yatay.png" alt="disiplan" class="h-9 lg:h-10 w-auto bg-white rounded-lg px-2 py-1.5"></div>
+        <p class="text-white/70 text-sm leading-relaxed max-w-sm">Görev yönetimi, planlama, alışkanlık takibi ve Aktif Yaşam Dengesi'ni birleştiren akıllı planlama platformu.</p>
+      </div>
+      <div><div class="text-xs uppercase tracking-wider font-bold text-white/60 mb-4">Ürün</div><ul class="space-y-2.5 text-sm"><li><a href="index.html#features" class="hover:text-white">Görev Yönetimi</a></li><li><a href="index.html#balance" class="hover:text-white">Aktif Yaşam Dengesi</a></li><li><a href="index.html#corporate" class="hover:text-white">Ekip Yönetimi</a></li><li><a href="fiyatlandirma.html" class="hover:text-white">Fiyatlandırma</a></li></ul></div>
+      <div><div class="text-xs uppercase tracking-wider font-bold text-white/60 mb-4">Kaynaklar</div><ul class="space-y-2.5 text-sm"><li><a href="blog.html" class="hover:text-white">Blog</a></li><li><a href="rehberler.html" class="hover:text-white">Rehberler</a></li><li><a href="yardim.html" class="hover:text-white">Yardım Merkezi</a></li></ul></div>
+      <div><div class="text-xs uppercase tracking-wider font-bold text-white/60 mb-4">Şirket</div><ul class="space-y-2.5 text-sm"><li><a href="hakkimizda.html" class="hover:text-white">Hakkımızda</a></li><li><a href="iletisim.html" class="hover:text-white">İletişim</a></li><li><a href="gizlilik.html" class="hover:text-white">Gizlilik Politikası</a></li><li><a href="kullanim-sartlari.html" class="hover:text-white">Kullanım Şartları</a></li></ul></div>
+    </div>
+    <div class="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/50"><div>© 2026 Disiplan. Tüm hakları saklıdır.</div><div class="flex items-center gap-2"><span>Türkiye'de tasarlandı</span><span>·</span><span>Bireysel + Kurumsal</span></div></div>
+  </div>
+</footer>
+</body></html>

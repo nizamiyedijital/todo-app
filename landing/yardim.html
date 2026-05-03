@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yardım Merkezi | Disiplan</title>
+<meta name="description" content="Disiplan kullanım kılavuzu, sıkça sorulan sorular ve destek.">
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{navy:'#0A1F49','deep-blue':'#143F8B','bright-blue':'#12A3E3','balance-green':'#4EAC39','action-orange':'#E9731C','bg-soft':'#F7FAFC','text-dark':'#101828','muted-text':'#667085'},fontFamily:{sans:['Inter','sans-serif'],display:['"Plus Jakarta Sans"','Inter','sans-serif']}}}};</script>
+<style>
+  body{font-family:'Inter',sans-serif;color:#101828}h1,h2,h3{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.02em}.h-display{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;line-height:1.05}
+  .nav-link{color:#475467;font-size:.92rem;font-weight:500}.nav-link:hover{color:#0A1F49}
+  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;background:#E9731C;color:#fff;border-radius:10px;font-weight:600;font-size:.95rem;box-shadow:0 8px 24px rgba(233,115,28,.30)}
+  .brand-mark{display:inline-grid;grid-template-columns:1fr 1fr;gap:3px;width:32px;height:32px}.brand-mark span{background:#143F8B;border-radius:6px 1px 6px 1px}.brand-mark span:nth-child(2){background:#12A3E3;border-radius:1px 6px 1px 6px}.brand-mark span:nth-child(3){background:#4EAC39;border-radius:6px 1px 6px 1px}.brand-mark span:nth-child(4){background:#E9731C;border-radius:1px 6px 1px 6px}
+</style>
+</head>
+<body class="antialiased">
+
+<header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <a href="index.html" class="flex items-center gap-2.5"><img src="assets/logo-yatay.png" alt="disiplan" class="h-10 lg:h-11 w-auto"></a>
+      <nav class="hidden lg:flex items-center gap-7">
+        <a href="index.html#features" class="nav-link">Özellikler</a>
+        <a href="index.html#balance" class="nav-link">Aktif Yaşam Dengesi</a>
+        <a href="index.html#corporate" class="nav-link">Kurumsal Kullanım</a>
+        <a href="fiyatlandirma.html" class="nav-link">Fiyatlandırma</a>
+        <a href="blog.html" class="nav-link">Blog</a>
+      </nav>
+      <div class="hidden lg:flex items-center gap-3">
+        <a href="giris.html" class="nav-link">Giriş Yap</a>
+        <a href="erken-erisim.html" class="btn-primary text-sm py-2.5 px-4">Ücretsiz Başla</a>
+      </div>
+      <button id="mobileMenuBtn" class="lg:hidden p-2 -mr-2 text-navy"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
+    </div>
+    <div id="mobileMenu" class="lg:hidden hidden pb-4 pt-2 border-t border-gray-100">
+      <div class="flex flex-col gap-1">
+        <a href="index.html#features" class="nav-link py-2.5">Özellikler</a>
+        <a href="index.html#balance" class="nav-link py-2.5">Aktif Yaşam Dengesi</a>
+        <a href="index.html#corporate" class="nav-link py-2.5">Kurumsal Kullanım</a>
+        <a href="fiyatlandirma.html" class="nav-link py-2.5">Fiyatlandırma</a>
+        <a href="blog.html" class="nav-link py-2.5">Blog</a>
+        <a href="giris.html" class="nav-link py-2.5">Giriş Yap</a>
+        <a href="erken-erisim.html" class="btn-primary mt-3 justify-center">Ücretsiz Başla</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="bg-bg-soft py-16">
+  <div class="max-w-3xl mx-auto px-4 text-center">
+    <div class="text-bright-blue text-sm font-bold uppercase tracking-wider mb-3">Yardım Merkezi</div>
+    <h1 class="h-display text-4xl lg:text-5xl text-navy mb-5">Sorularına yanıt bulmaya geldin</h1>
+    <p class="text-lg text-muted-text mb-7">Kullanım, hesap ve özelliklerle ilgili sorular tek yerde.</p>
+    <div class="max-w-xl mx-auto relative">
+      <input type="text" placeholder="Sorunu yaz, ara..." onkeyup="if(event.key==='Enter') alert('Arama özelliği yakında aktif olacak.');" class="w-full px-5 py-4 pl-12 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-bright-blue text-base">
+      <svg width="20" height="20" class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    </div>
+  </div>
+</section>
+
+<section class="py-16 bg-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-16">
+      <a href="#sss" class="bg-bg-soft rounded-2xl p-6 hover:shadow-lg transition">
+        <div class="w-11 h-11 rounded-xl bg-bright-blue/10 flex items-center justify-center mb-4">📚</div>
+        <h3 class="font-display font-bold text-navy mb-1">Sıkça Sorulanlar</h3>
+        <p class="text-xs text-muted-text">12 makale</p>
+      </a>
+      <a href="rehberler.html" class="bg-bg-soft rounded-2xl p-6 hover:shadow-lg transition">
+        <div class="w-11 h-11 rounded-xl bg-balance-green/10 flex items-center justify-center mb-4">🚀</div>
+        <h3 class="font-display font-bold text-navy mb-1">Başlangıç</h3>
+        <p class="text-xs text-muted-text">5 rehber</p>
+      </a>
+      <a href="#hesap" class="bg-bg-soft rounded-2xl p-6 hover:shadow-lg transition">
+        <div class="w-11 h-11 rounded-xl bg-deep-blue/10 flex items-center justify-center mb-4">👤</div>
+        <h3 class="font-display font-bold text-navy mb-1">Hesap & Faturalama</h3>
+        <p class="text-xs text-muted-text">8 makale</p>
+      </a>
+      <a href="#ekip" class="bg-bg-soft rounded-2xl p-6 hover:shadow-lg transition">
+        <div class="w-11 h-11 rounded-xl bg-action-orange/10 flex items-center justify-center mb-4">👥</div>
+        <h3 class="font-display font-bold text-navy mb-1">Ekip Yönetimi</h3>
+        <p class="text-xs text-muted-text">6 makale</p>
+      </a>
+    </div>
+
+    <div id="sss" class="max-w-3xl mx-auto">
+      <h2 class="h-display text-2xl text-navy mb-6">Sık Sorulan Sorular</h2>
+      <div class="space-y-3">
+        <details class="bg-bg-soft rounded-xl p-5 group">
+          <summary class="font-semibold text-navy cursor-pointer flex justify-between items-center">Disiplan ücretsiz mi?<span class="text-muted-text group-open:rotate-180 transition">▾</span></summary>
+          <p class="text-sm text-muted-text mt-3 leading-relaxed">Bireysel plan tamamen ücretsiz. Pro ve Kurumsal planlar aylık/yıllık ücretli. Detaylar için <a href="fiyatlandirma.html" class="text-bright-blue underline">Fiyatlandırma</a> sayfasına bak.</p>
+        </details>
+        <details class="bg-bg-soft rounded-xl p-5 group">
+          <summary class="font-semibold text-navy cursor-pointer flex justify-between items-center">Verilerim nerede tutuluyor?<span class="text-muted-text group-open:rotate-180 transition">▾</span></summary>
+          <p class="text-sm text-muted-text mt-3 leading-relaxed">Verilerin AB içinde, KVKK ve GDPR uyumlu sunucularda şifrelenmiş olarak saklanır. Detaylı bilgi için <a href="gizlilik.html" class="text-bright-blue underline">Gizlilik Politikası</a>.</p>
+        </details>
+        <details class="bg-bg-soft rounded-xl p-5 group">
+          <summary class="font-semibold text-navy cursor-pointer flex justify-between items-center">Aktif Yaşam Dengesi nedir?<span class="text-muted-text group-open:rotate-180 transition">▾</span></summary>
+          <p class="text-sm text-muted-text mt-3 leading-relaxed">Disiplan'a özgü bir özellik: bilinçli olarak planladığın görevleri Zihin–Beden–Kalp kategorilerine göre dağılım olarak gösterir. <a href="index.html#balance" class="text-bright-blue underline">Detayları gör</a>.</p>
+        </details>
+        <details class="bg-bg-soft rounded-xl p-5 group">
+          <summary class="font-semibold text-navy cursor-pointer flex justify-between items-center">Mobilde çalışıyor mu?<span class="text-muted-text group-open:rotate-180 transition">▾</span></summary>
+          <p class="text-sm text-muted-text mt-3 leading-relaxed">Web uygulaması mobil tarayıcılarda tam uyumlu. iOS ve Android native uygulamalar pilot programdan sonra yayınlanacak.</p>
+        </details>
+        <details class="bg-bg-soft rounded-xl p-5 group">
+          <summary class="font-semibold text-navy cursor-pointer flex justify-between items-center">Hesabımı silebilir miyim?<span class="text-muted-text group-open:rotate-180 transition">▾</span></summary>
+          <p class="text-sm text-muted-text mt-3 leading-relaxed">Evet, ayarlardan tek tıkla. Tüm verilerin 30 gün içinde silinir. Önceden yedek almak istersen veriyi JSON/CSV olarak indirebilirsin.</p>
+        </details>
+        <details class="bg-bg-soft rounded-xl p-5 group">
+          <summary class="font-semibold text-navy cursor-pointer flex justify-between items-center">Aboneliğimi nasıl iptal ederim?<span class="text-muted-text group-open:rotate-180 transition">▾</span></summary>
+          <p class="text-sm text-muted-text mt-3 leading-relaxed">Hesap → Faturalama → "Aboneliği iptal et". İptal sonrası mevcut dönem sonuna kadar Pro özellikleri kullanmaya devam edersin.</p>
+        </details>
+      </div>
+    </div>
+
+    <div class="bg-navy text-white rounded-2xl p-8 mt-12 max-w-3xl mx-auto text-center">
+      <h3 class="h-display text-xl mb-2">Aradığını bulamadın mı?</h3>
+      <p class="text-white/80 mb-5">Destek ekibimiz 1 iş günü içinde yanıt veriyor.</p>
+      <a href="iletisim.html" class="btn-primary">İletişime Geç</a>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-navy text-white/85 pt-16 pb-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
+      <div class="lg:col-span-2">
+        <div class="flex items-center gap-2.5 mb-4"><img src="assets/logo-yatay.png" alt="disiplan" class="h-9 lg:h-10 w-auto bg-white rounded-lg px-2 py-1.5"></div>
+        <p class="text-white/70 text-sm leading-relaxed max-w-sm">Görev yönetimi, planlama, alışkanlık takibi ve Aktif Yaşam Dengesi'ni birleştiren akıllı planlama platformu.</p>
+      </div>
+      <div><div class="text-xs uppercase tracking-wider font-bold text-white/60 mb-4">Ürün</div><ul class="space-y-2.5 text-sm"><li><a href="index.html#features" class="hover:text-white">Görev Yönetimi</a></li><li><a href="index.html#balance" class="hover:text-white">Aktif Yaşam Dengesi</a></li><li><a href="index.html#corporate" class="hover:text-white">Ekip Yönetimi</a></li><li><a href="fiyatlandirma.html" class="hover:text-white">Fiyatlandırma</a></li></ul></div>
+      <div><div class="text-xs uppercase tracking-wider font-bold text-white/60 mb-4">Kaynaklar</div><ul class="space-y-2.5 text-sm"><li><a href="blog.html" class="hover:text-white">Blog</a></li><li><a href="rehberler.html" class="hover:text-white">Rehberler</a></li><li><a href="yardim.html" class="hover:text-white">Yardım Merkezi</a></li></ul></div>
+      <div><div class="text-xs uppercase tracking-wider font-bold text-white/60 mb-4">Şirket</div><ul class="space-y-2.5 text-sm"><li><a href="hakkimizda.html" class="hover:text-white">Hakkımızda</a></li><li><a href="iletisim.html" class="hover:text-white">İletişim</a></li><li><a href="gizlilik.html" class="hover:text-white">Gizlilik Politikası</a></li><li><a href="kullanim-sartlari.html" class="hover:text-white">Kullanım Şartları</a></li></ul></div>
+    </div>
+    <div class="border-t border-white/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/50"><div>© 2026 Disiplan. Tüm hakları saklıdır.</div><div class="flex items-center gap-2"><span>Türkiye'de tasarlandı</span><span>·</span><span>Bireysel + Kurumsal</span></div></div>
+  </div>
+</footer>
+<script>document.getElementById('mobileMenuBtn')?.addEventListener('click',()=>document.getElementById('mobileMenu')?.classList.toggle('hidden'));document.querySelectorAll('#mobileMenu a').forEach(a=>a.addEventListener('click',()=>document.getElementById('mobileMenu')?.classList.add('hidden')));</script>
+</body></html>
