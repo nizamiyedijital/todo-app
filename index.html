@@ -8,13 +8,17 @@
   <meta http-equiv="pragma" content="no-cache">
   <meta http-equiv="expires" content="0">
   <title>Yapılacaklar</title>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json?v=3">
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/logo/favicon.svg">
+  <!-- Apple touch (iOS home screen) -->
+  <link rel="apple-touch-icon" href="assets/logo/favicon.svg">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Yapılacaklar">
   <meta name="theme-color" content="#12A3E3">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     /* ── CSS Variables (theming) ── */
@@ -230,16 +234,15 @@
 
     /* ── Sidebar ── */
     .sidebar {
-      width:200px; flex-shrink:0;
+      width:180px; flex-shrink:0;
       background:#fff;
       border-right:1px solid #e8ecf4;
       display:flex; flex-direction:column;
       overflow:hidden;
       transition:width .2s ease;
     }
-    .sidebar.compact { width:64px; overflow:visible; }
+    .sidebar.compact { width:52px; overflow:visible; }
     .sidebar.compact .sidebar-lists { overflow:visible; }
-    .sidebar.compact .sidebar-header,
     .sidebar.compact .sidebar-cal,
     .sidebar.compact .new-list-input-row { display:none; }
     .sidebar.compact .sidebar-section-label {
@@ -281,9 +284,10 @@
     .sidebar.compact .list-item .btn-list-more,
     .sidebar.compact .footer-btn-label,
     .sidebar.compact .btn-new-list-text { display:none; }
-    .sidebar.compact .list-item { justify-content:center; padding:9px 0; }
-    .sidebar.compact .btn-new-list { justify-content:center; padding:9px 0; order:-1; }
-    .sidebar.compact .footer-btn { justify-content:center; padding:9px 0; }
+    .sidebar.compact .list-item { justify-content:center; padding:5px 0; min-height:24px; }
+    .sidebar.compact .list-icon .mi { font-size:16px; }
+    .sidebar.compact .btn-new-list { justify-content:center; padding:5px 0; order:-1; }
+    .sidebar.compact .footer-btn { justify-content:center; padding:5px 0; }
     .sidebar.compact .footer-actions { padding:0 6px 6px; flex-direction:column; gap:2px; }
     .sidebar.compact .sidebar-footer { display:flex; flex-direction:column; }
     .sidebar-section-label {
@@ -300,12 +304,31 @@
     }
     .sidebar-title {
       font-size:.95rem; font-weight:700; color:#1a1a2e;
-      display:flex; align-items:center; justify-content:center;
-      flex:1;
+      display:flex; align-items:center; justify-content:flex-start;
+      flex:1; min-width:0;
     }
+    /* Logo varyant switch (4 logo: yatay/dikey × light/dark)
+       — sidebar açık => yatay, kapalı (compact) => dikey
+       — body.theme-dark => dark varyant, aksi takdirde light */
+    .sidebar-logo { display:none; }   /* hepsi gizli, alttaki kurallar tek bir tanesini açar */
+    body:not(.theme-dark) .sidebar:not(.compact) .sidebar-logo-yatay.logo-light { display:block; }
+    body.theme-dark        .sidebar:not(.compact) .sidebar-logo-yatay.logo-dark  { display:block; }
+    body:not(.theme-dark) .sidebar.compact         .sidebar-logo-dikey.logo-light { display:block; }
+    body.theme-dark        .sidebar.compact         .sidebar-logo-dikey.logo-dark  { display:block; }
+    .sidebar.compact .sidebar-logo-dikey { height:46px; width:auto; max-width:46px; }
+    /* Compact'te dikey logo üstte, hamburger altta (column layout) */
+    .sidebar.compact .sidebar-header {
+      flex-direction:column; height:auto; padding:8px 0; gap:6px;
+      align-items:center; justify-content:center;
+    }
+    .sidebar.compact #btnSidebarToggle { margin:0; }
+    /* Auth ekranı logosu */
+    .auth-logo { display:none; height:72px; max-width:80%; margin:0 auto 16px; }
+    body:not(.theme-dark) .auth-logo.logo-light { display:block; }
+    body.theme-dark        .auth-logo.logo-dark  { display:block; }
     .sidebar-logo {
-      height:120px; width:auto; max-width:100%; display:block;
-      margin:0 auto; user-select:none;
+      height:110px; width:auto; max-width:100%;
+      margin:0; user-select:none;
     }
     .btn-logout {
       font-size:.72rem; color:#aaa; background:none; border:none;
@@ -405,11 +428,11 @@
     .sidebar-lists::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
 
     .list-item {
-      display:flex; align-items:center; gap:7px;
-      padding:6px 5px 6px 8px; border-radius:8px;
+      display:flex; align-items:center; gap:5px;
+      padding:2px 5px 2px 8px; border-radius:8px;
       cursor:pointer; transition:background .12s;
       position:relative; group: list;
-      min-height:30px;
+      min-height:22px;
     }
     .list-item:hover { background:#f4f5f9; }
     .list-item.active { background:#eef1fd; }
@@ -418,9 +441,9 @@
 
     .list-icon { font-size:.85rem; flex-shrink:0; color:var(--text3); display:inline-flex; align-items:center; }
     .list-item.active .list-icon { color:var(--accent); }
-    .list-icon .mi { font-size:18px; }
+    .list-icon .mi { font-size:15px; }
     .list-name {
-      flex:1; font-size:.76rem; color:#333; font-weight:500;
+      flex:1; font-size:.68rem; color:#333; font-weight:500;
       line-height:1.2;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
       cursor:pointer; border:none; outline:none; background:transparent;
@@ -545,6 +568,7 @@
       width:36px; height:36px; border:none; background:transparent;
       color:var(--text3); border-radius:8px; cursor:pointer;
       flex-shrink:0; transition:background .15s, color .15s;
+      margin-left:auto;   /* sidebar-header içinde sağa yasla */
     }
     #btnSidebarToggle:hover { background:var(--surface2); color:var(--text); }
     .sidebar-collapsed .sidebar { display:none !important; }
@@ -635,6 +659,7 @@
       transition:background .15s, color .15s;
       flex-shrink:0;
     }
+    .lc-nav .mi { font-variation-settings:'FILL' 0,'wght' 700,'GRAD' 0,'opsz' 20; }   /* sadece nav ikonları kalın */
     .lc-nav:hover { background:var(--surface2); color:var(--text); }
     .lc-week-label {
       font-size:.92rem; font-weight:600; color:var(--text);
@@ -1494,6 +1519,40 @@
     .lc-add-popover-head .lc-edit-title {
       flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     }
+    .lc-add-popover-head .lc-head-left {
+      display:inline-flex; align-items:center; gap:6px;
+      min-width:0; flex:1;
+    }
+    /* Header sol ikonu (yeni görev / düzenle) — yuvarlak outline (her iki mod) */
+    .lc-add-popover-head .lc-head-mode-icon {
+      position:relative;
+      width:28px; height:28px; border-radius:50%;
+      display:inline-flex; align-items:center; justify-content:center;
+      flex-shrink:0; box-sizing:border-box;
+      background:transparent; color:var(--accent);
+      border:1.5px solid var(--accent);
+    }
+    .lc-add-popover-head .lc-head-mode-icon .mi { font-size:18px; }
+    /* Liste seçici (klasör) ikonu — mod ikonu ile aynı boyut */
+    .lc-add-popover-head .lc-head-list .mi { font-size:18px; }
+    /* Hover tooltip — anında alttan açılır balon, sol kenara hizalı (popover sığsın) */
+    .lc-add-popover-head .lc-head-mode-icon[data-tooltip]:hover::after {
+      content:attr(data-tooltip);
+      position:absolute; left:0; top:calc(100% + 8px);
+      background:var(--text); color:#fff;
+      padding:5px 10px; border-radius:6px;
+      font-size:.72rem; font-weight:500;
+      white-space:nowrap; z-index:9300;
+      pointer-events:none;
+      box-shadow:0 4px 14px rgba(0,0,0,.18);
+    }
+    .lc-add-popover-head .lc-head-mode-icon[data-tooltip]:hover::before {
+      content:''; position:absolute;
+      left:8px; top:calc(100% + 2px);
+      border:5px solid transparent;
+      border-bottom-color:var(--text);
+      z-index:9300; pointer-events:none;
+    }
     .lc-add-popover-head .lc-head-actions {
       display:inline-flex; gap:4px; align-items:center; flex-shrink:0;
     }
@@ -1619,7 +1678,7 @@
 
     /* Snap önizleme: çizgi + saat etiketi, hücre kenarından dışarı taşar (ghost'un üstünde kalır) */
     .lc-drop-snap-line {
-      position:absolute; left:-4px; right:-12px; height:0;
+      position:absolute; left:-4px; right:-30px; height:0;
       border-top:1.5px solid var(--accent);
       pointer-events:none; z-index:10000;
     }
@@ -1853,12 +1912,16 @@
     .add-due-label-row .mi { color:var(--accent); }
     /* Genel etiket satırı (tarih/liste seçim sonrası altta gözüken) */
     .add-label-row {
-      align-items:center; gap:6px;
+      display:none; align-items:center; gap:6px;
       padding:4px 4px 0; font-size:.78rem; color:var(--accent);
     }
+    .add-label-row.show { display:flex; }
     .add-label-row .mi { color:var(--accent); }
     .add-label-row .add-label-name { cursor:pointer; font-weight:500; }
-    .add-label-row .add-label-rm { cursor:pointer; opacity:.55; padding:0 4px; user-select:none; }
+    .add-label-row .add-label-rm {
+      cursor:pointer; opacity:.55; padding:2px 6px; user-select:none;
+      touch-action:manipulation;
+    }
     .add-label-row .add-label-rm:hover { opacity:1; color:#dc2626; }
     /* Liste collapse host */
     .add-list-row {
@@ -2477,18 +2540,48 @@
     .dtp-day.today    { font-weight:700; color:#12A3E3; }
     .dtp-day.selected { background:#12A3E3 !important; color:#fff !important; font-weight:700; }
     .dtp-day.empty    { visibility:hidden; pointer-events:none; }
-    .dtp-time-row {
-      display:flex; align-items:center; justify-content:center; gap:6px;
-      padding:8px 14px; border-top:1px solid #f2f3f8;
+    /* Saat/dakika range slider'lar — kaydırarak seçim */
+    .dtp-slider-row {
+      display:flex; flex-direction:column; gap:8px;
+      padding:10px 14px; border-top:1px solid #f2f3f8;
     }
-    .dtp-time-label { font-size:.75rem; color:#aaa; font-weight:500; }
-    .dtp-sel {
-      padding:5px 6px; border:1.5px solid #e0e4ef; border-radius:8px;
-      font-size:.95rem; font-weight:600; color:#1a1a2e;
-      background:#fafbff; cursor:pointer; outline:none; text-align:center; width:52px;
+    .dtp-slider-line {
+      display:flex; align-items:center; gap:10px;
     }
-    .dtp-sel:focus { border-color:#12A3E3; background:#fff; }
-    .dtp-time-sep { font-size:1rem; font-weight:700; color:#bbb; }
+    .dtp-slider-label {
+      font-size:.7rem; color:#94a3b8; font-weight:700; min-width:20px;
+      text-transform:uppercase; letter-spacing:.04em;
+    }
+    .dtp-slider-value {
+      font-size:.95rem; font-weight:700; color:#12A3E3;
+      min-width:36px; text-align:right; font-variant-numeric:tabular-nums;
+    }
+    .dtp-slider {
+      flex:1; -webkit-appearance:none; appearance:none;
+      height:6px; background:#e6e9f1; border-radius:3px; outline:none;
+      cursor:pointer; touch-action:manipulation; padding:0; margin:0;
+      --thumb-color:#12A3E3;
+    }
+    /* Saat slider'a özel: track 0-12 mavi tonu, 12-23 turuncu tonu */
+    .dtp-slider#dtpHourSlider {
+      background: linear-gradient(
+        to right,
+        #c7e6f5 0%, #c7e6f5 52.17%,
+        #fbd9b8 52.17%, #fbd9b8 100%
+      );
+    }
+    .dtp-slider::-webkit-slider-thumb {
+      -webkit-appearance:none; appearance:none;
+      width:18px; height:18px; background:var(--thumb-color); border-radius:50%;
+      cursor:grab; border:2px solid #fff;
+      box-shadow:0 1px 4px rgba(0,0,0,.18); transition:background .12s;
+    }
+    .dtp-slider::-webkit-slider-thumb:active { cursor:grabbing; }
+    .dtp-slider::-moz-range-thumb {
+      width:18px; height:18px; background:var(--thumb-color); border-radius:50%;
+      cursor:grab; border:2px solid #fff;
+      box-shadow:0 1px 4px rgba(0,0,0,.18); transition:background .12s;
+    }
     .dtp-footer {
       display:flex; justify-content:space-between; align-items:center;
       padding:8px 14px 12px;
@@ -3340,7 +3433,8 @@
 <!-- Auth -->
 <div id="authBox">
   <div class="auth-card">
-    <h1>Yapılacaklar</h1>
+    <img src="assets/logo/disiplan-yatay-light.svg" alt="Disiplan" class="auth-logo logo-light">
+    <img src="assets/logo/disiplan-yatay-dark.svg"  alt="Disiplan" class="auth-logo logo-dark">
     <p class="auth-subtitle">Görevlerini yıldızla. Haftanı planla. Gününü uygula.</p>
     <h2 id="authTitle">Giriş Yap</h2>
     <div id="authMsg" class="msg"></div>
@@ -3382,7 +3476,15 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-title"><img src="landing/assets/disiplan-yatay.svg" alt="Disiplan" class="sidebar-logo"></div>
+        <div class="sidebar-title">
+          <img src="assets/logo/disiplan-yatay-light.svg" alt="Disiplan" class="sidebar-logo sidebar-logo-yatay logo-light">
+          <img src="assets/logo/disiplan-yatay-dark.svg"  alt="Disiplan" class="sidebar-logo sidebar-logo-yatay logo-dark">
+          <img src="assets/logo/disiplan-dikey-light.svg" alt="Disiplan" class="sidebar-logo sidebar-logo-dikey logo-light">
+          <img src="assets/logo/disiplan-dikey-dark.svg"  alt="Disiplan" class="sidebar-logo sidebar-logo-dikey logo-dark">
+        </div>
+        <button id="btnSidebarToggle" onclick="toggleSidebar()" title="Menü">
+          <span class="mi s20">menu</span>
+        </button>
       </div>
 
       <div class="sidebar-cal">
@@ -3424,12 +3526,7 @@
 
     <!-- Main -->
     <div class="main-area">
-      <div class="main-header">
-        <button id="btnSidebarToggle" onclick="toggleSidebar()" title="Menü">
-          <span class="mi s20">menu</span>
-        </button>
-        <span class="main-list-title" id="mainListTitle"></span>
-      </div>
+      <!-- main-header (Takvim Görünümü başlığı) kaldırıldı -->
 
       <div class="main-content" id="mainContent">
       <div class="main-body" id="mainBody">
@@ -3495,7 +3592,7 @@
             <div class="add-label-row" id="addDueLabelRow">
               <span class="mi s14">schedule</span>
               <span class="add-label-name" id="addDueLabel" onclick="document.getElementById('addDueBtn').click()"></span>
-              <span class="add-label-rm" onclick="addDueValue=''; renderAddDueLabel();" title="Tarihi kaldır">×</span>
+              <span class="add-label-rm" onpointerdown="event.preventDefault();event.stopPropagation();addDueValue='';renderAddDueLabel();" title="Tarihi kaldır">×</span>
             </div>
             <!-- Liste seçimi: chips header'da; gizli select API geriye dönük uyumluluk için -->
             <div class="add-list-row" id="addListRow" style="display:none">
@@ -3544,11 +3641,11 @@
       <!-- Sağ pano: özel liste haftalık takvim (Faz B/C) -->
       <div class="list-cal" id="listCalendar" style="display:none">
         <div class="lc-toolbar">
-          <button class="lc-nav" id="lcPrevWeek" title="Önceki"><span class="mi s18">chevron_left</span></button>
           <span class="lc-week-label" id="lcWeekLabel" onclick="openYearMonthPopover(this, 'week')" title="Hafta seçici"></span>
+          <button class="lc-nav" id="lcPrevWeek" title="Önceki"><span class="mi s18">chevron_left</span></button>
           <button class="lc-nav" id="lcNextWeek" title="Sonraki"><span class="mi s18">chevron_right</span></button>
-          <button class="lc-today-btn" id="lcBackToWeek" title="Hafta görünümüne dön" style="display:none">‹ Hafta</button>
           <button class="lc-today-btn" id="lcTodayBtn" title="Bugüne dön">Bugün</button>
+          <button class="lc-today-btn" id="lcBackToWeek" title="Hafta görünümüne dön" style="display:none">‹ Hafta</button>
         </div>
         <div class="lc-grid-row">
           <div class="lc-grid-wrap" id="lcGridWrap">
@@ -3655,11 +3752,17 @@
     </div>
     <div class="dtp-grid" id="dtpGrid"></div>
   </div>
-  <div class="dtp-time-row">
-    <span class="dtp-time-label">Saat</span>
-    <select class="dtp-sel" id="dtpHourSel"></select>
-    <span class="dtp-time-sep">:</span>
-    <select class="dtp-sel" id="dtpMinSel"></select>
+  <div class="dtp-slider-row">
+    <div class="dtp-slider-line">
+      <span class="dtp-slider-label">SA</span>
+      <input type="range" class="dtp-slider" id="dtpHourSlider" min="0" max="23" step="1" value="0">
+      <span class="dtp-slider-value" id="dtpHourVal">--</span>
+    </div>
+    <div class="dtp-slider-line">
+      <span class="dtp-slider-label">DK</span>
+      <input type="range" class="dtp-slider" id="dtpMinSlider" min="0" max="55" step="5" value="0">
+      <span class="dtp-slider-value" id="dtpMinVal">--</span>
+    </div>
   </div>
   <div class="dtp-footer">
     <button class="dtp-btn-clear" onclick="dtpClear()" title="Tarihi temizle">Temizle</button>
@@ -5130,7 +5233,7 @@ function selectList(id) {
     [ALL_LISTS_ID]:     'Takvim Görünümü',
     [STARRED_LIST_ID]:  'Günün Odağı',
   };
-  document.getElementById('mainListTitle').textContent = titleMap[id] || (list?.name || '');
+  { const _t = document.getElementById('mainListTitle'); if (_t) _t.textContent = titleMap[id] || (list?.name || ''); }
   // Ana panel düzeni
   document.getElementById('addWrap').style.display      = 'none';  // form artık popover'la açılır
   const newBtn = document.getElementById('newTaskBtn');
@@ -6306,7 +6409,7 @@ function selectCalDay(iso) {
   lcWeekStart   = lcStartOfWeek(new Date(iso + 'T00:00:00'));
   lcPendingScrollToNow = true;
   doneOpen = false;
-  document.getElementById('mainListTitle').textContent = `${fmtLongDate(iso)} Görevleri`;
+  { const _t = document.getElementById('mainListTitle'); if (_t) _t.textContent = `${fmtLongDate(iso)} Görevleri`; }
   document.getElementById('addWrap').style.display   = 'none';
   const _nb = document.getElementById('newTaskBtn');
   if (_nb) _nb.style.display = '';
@@ -7404,7 +7507,7 @@ function lcShiftWeek(delta) {
     lcWeekStart = lcStartOfWeek(d);
     if (activeListId === DAY_LIST_ID) {
       activeDayDate = lcSingleDate;
-      document.getElementById('mainListTitle').textContent = `${fmtLongDate(lcSingleDate)} Görevleri`;
+      { const _t = document.getElementById('mainListTitle'); if (_t) _t.textContent = `${fmtLongDate(lcSingleDate)} Görevleri`; }
       renderSidebarCalendar();
       render();
       return;
@@ -7423,7 +7526,7 @@ function lcGoToday() {
     lcSingleDate = todayKey;
     if (activeListId === DAY_LIST_ID) {
       activeDayDate = todayKey;
-      document.getElementById('mainListTitle').textContent = `${fmtLongDate(todayKey)} Görevleri`;
+      { const _t = document.getElementById('mainListTitle'); if (_t) _t.textContent = `${fmtLongDate(todayKey)} Görevleri`; }
     }
   }
   lcWeekStart = lcStartOfWeek(new Date());
@@ -7681,6 +7784,54 @@ function lcRenderNowLine(grid, days) {
   line.style.top = `${(now.getMinutes() / 60) * 100}%`;
   line.title = `Şu an: ${String(hour).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   cell.appendChild(line);
+  // Realtime ticker'ı (re)başlat — çizgi sayfa yenilenmeden de ilerlesin
+  lcStartNowLineTicker();
+}
+
+/* Realtime now-line: dakika başlarında çizgiyi günceller (sayfa yenilemeden) */
+let lcNowLineTimer = null;
+function lcUpdateNowLine() {
+  const now = new Date();
+  const todayKey = lcDateKey(now);
+  const hour = now.getHours();
+  const minPct = (now.getMinutes() / 60) * 100;
+  const targetCell = document.querySelector(`.lc-hour-cell[data-date-iso="${todayKey}"][data-hour="${hour}"]`);
+  let line = document.querySelector('.lc-now-line');
+  if (!targetCell) {
+    // Bugün/bu saat ekranda değil — varsa çizgiyi temizle
+    if (line) line.remove();
+    return;
+  }
+  if (!line) {
+    line = document.createElement('div');
+    line.className = 'lc-now-line';
+    targetCell.appendChild(line);
+  } else if (line.parentElement !== targetCell) {
+    // Saat (veya gün) değişti → çizgiyi yeni hücreye taşı
+    targetCell.appendChild(line);
+  }
+  line.style.top = `${minPct}%`;
+  line.title = `Şu an: ${String(hour).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+}
+function lcStartNowLineTicker() {
+  if (lcNowLineTimer) { clearTimeout(lcNowLineTimer); lcNowLineTimer = null; }
+  const tick = () => {
+    lcUpdateNowLine();
+    // Bir sonraki dakika başına kadar bekle (drift'siz)
+    const n = new Date();
+    const ms = (60 - n.getSeconds()) * 1000 - n.getMilliseconds();
+    lcNowLineTimer = setTimeout(tick, ms < 1000 ? ms + 60000 : ms);
+  };
+  const n = new Date();
+  const ms = (60 - n.getSeconds()) * 1000 - n.getMilliseconds();
+  lcNowLineTimer = setTimeout(tick, Math.max(1000, ms));
+}
+// Sekme arka planda iken setTimeout yavaşlar/durur — tekrar görünür olunca yeniden hizala
+if (typeof window !== 'undefined' && !window._lcNowLineVisHooked) {
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { lcUpdateNowLine(); lcStartNowLineTicker(); }
+  });
+  window._lcNowLineVisHooked = true;
 }
 
 function lcMaybeScrollToNow() {
@@ -7691,13 +7842,20 @@ function lcMaybeScrollToNow() {
   const hour = now.getHours();
   const wrap = document.getElementById('lcGridWrap');
   if (!wrap) return;
-  requestAnimationFrame(() => {
+  // Çift RAF: ilk frame'de layout henüz oturmuyor olabilir; ikinci frame'de offsetTop güvenilir
+  requestAnimationFrame(() => requestAnimationFrame(() => {
     const cell = wrap.querySelector(`.lc-hour-cell[data-date-iso="${lcDateKey(now)}"][data-hour="${hour}"]`);
     if (!cell) return;
     const cellTop = cell.offsetTop;
-    wrap.scrollTop = Math.max(0, cellTop - wrap.clientHeight / 3);
+    const cellH   = cell.offsetHeight || 1;
+    // Kırmızı çizginin GERÇEK pozisyonu: hücre üst + dakika oranı
+    const lineTop = cellTop + (cellH * now.getMinutes() / 60);
+    // Çizgi viewport'un ortasına gelsin; alt/üst sınırları aşmayacak şekilde clamp
+    const target = lineTop - wrap.clientHeight / 2;
+    const maxScroll = Math.max(0, wrap.scrollHeight - wrap.clientHeight);
+    wrap.scrollTop = Math.max(0, Math.min(target, maxScroll));
     lcPendingScrollToNow = false;
-  });
+  }));
 }
 
 /* ── Calendar quick-add popover ── */
@@ -8081,15 +8239,16 @@ function isAddWrapEmpty() {
 
 /* ── Otomatik draft: yeni mod → edit mod geçişi ── */
 let _draftTimer = null;
+let _draftCreating = false;   // race guard: POST in-flight iken ikinci POST'u önle
 function scheduleDraftCreation() {
-  if (addEditingTaskId) return;
+  if (addEditingTaskId || _draftCreating) return;
   if (!lcAddPopoverState) return;  // popover açık değilse anlamsız
   clearTimeout(_draftTimer);
   _draftTimer = setTimeout(createDraftAndSwitchToEdit, 400);
 }
 
 async function createDraftAndSwitchToEdit() {
-  if (addEditingTaskId) return;
+  if (addEditingTaskId || _draftCreating) return;
   if (!lcAddPopoverState) return;
   if (isAddWrapEmpty()) return;
   const text = (document.getElementById('taskInput')?.value || '').trim();
@@ -8109,6 +8268,13 @@ async function createDraftAndSwitchToEdit() {
     sort_order: Date.now(),
     done: false,
   };
+  // Anchor cell'in tanımlayıcısını render ÖNCESİ sakla — render sonrası eski DOM kalkar,
+  // selector ile yeni cell'i bulup popover'ı yeniden konumlamamız lazım.
+  const anchorEl = lcAddPopoverState && (lcAddPopoverState.anchor || lcAddPopoverState.target);
+  const anchorData = (anchorEl && anchorEl.dataset)
+    ? { dateIso: anchorEl.dataset.dateIso, hour: anchorEl.dataset.hour }
+    : null;
+  _draftCreating = true;
   try {
     const [t] = await db('/todos', { method:'POST', body: JSON.stringify(payload) });
     tasks.unshift(t);
@@ -8129,20 +8295,45 @@ async function createDraftAndSwitchToEdit() {
     attachEditListeners();
     if (typeof renderEditSubtasksList === 'function') renderEditSubtasksList(t.id);
     render(); renderSidebar();
+    // Render sonrası: takvim yeniden çizildi, anchor DOM referansı geçersiz.
+    // Aynı dataset ile yeni cell'i bul ve popover'ı orada konumla — sol-üste düşmeyi engeller.
+    if (lcAddPopoverState && anchorData && anchorData.dateIso && anchorData.hour != null) {
+      const newCell = document.querySelector(
+        `.lc-hour-cell[data-date-iso="${anchorData.dateIso}"][data-hour="${anchorData.hour}"]`
+      );
+      if (newCell) {
+        lcAddPopoverState.anchor = newCell;
+        lcAddPopoverState.target = newCell;
+        if (typeof lcPositionAddPopover === 'function') lcPositionAddPopover(newCell);
+      }
+    }
+    // Render sırasında taskInput.value korunur (popover ayrı subtree) ama input event'lerin
+    // bazı handler'ları (lcUpdateGhostBlock vb.) yenilenmemiş olabilir — focus'u geri ver.
+    const ti = document.getElementById('taskInput');
+    if (ti && document.activeElement !== ti) {
+      const pos = ti.value.length;
+      ti.focus();
+      try { ti.setSelectionRange(pos, pos); } catch {}
+    }
   } catch(e) {
     console.warn('Draft create error:', e.message);
+  } finally {
+    _draftCreating = false;
   }
 }
 
 // Görev popover'ı header HTML üretici (sol başlık + sağ aksiyonlar: yıldız, liste)
 function buildPopoverHeadHTML(titleText, listName) {
   const safeName = escapeHtml(listName || 'Liste');
+  // Mod ikonu: 'düzenle' içeriyorsa kalem, aksi takdirde +
+  const isEdit = (titleText || '').toLowerCase().includes('düzenle');
+  const iconName = isEdit ? 'edit' : 'add';
+  const mode = isEdit ? 'edit' : 'add';
   return `
-    <span class="lc-edit-title">${escapeHtml(titleText)}</span>
-    <div class="lc-head-actions">
-      <button class="lc-head-btn" id="addStarBtn" onclick="toggleAddStar()" title="Günün Odağı">
-        <span class="mi s14">star</span>
-      </button>
+    <div class="lc-head-left">
+      <span class="lc-head-mode-icon" data-mode="${mode}" data-tooltip="${escapeHtml(titleText)}" aria-label="${escapeHtml(titleText)}">
+        <span class="mi">${iconName}</span>
+      </span>
       <div class="lc-head-list-wrap">
         <button class="lc-head-btn lc-head-list" id="addListMainBtn" type="button" onclick="toggleListPicker(event)" title="Liste">
           <span class="mi s14">folder</span>
@@ -8150,6 +8341,12 @@ function buildPopoverHeadHTML(titleText, listName) {
         </button>
         <div class="add-list-chips" id="addListChips" style="display:none"></div>
       </div>
+      <span class="lc-edit-title" style="display:none">${escapeHtml(titleText)}</span>
+    </div>
+    <div class="lc-head-actions">
+      <button class="lc-head-btn" id="addStarBtn" onclick="toggleAddStar()" title="Günün Odağı">
+        <span class="mi s14">star</span>
+      </button>
     </div>
   `;
 }
@@ -8426,6 +8623,22 @@ function lcPositionAddPopover(anchor) {
   // Anchor'u state'te tut — ResizeObserver tarafından reposition için
   if (anchor) lcAddPopoverState.anchor = anchor;
   anchor = anchor || lcAddPopoverState.anchor;
+  // SELF-HEAL: render() vb. anchor'ı DOM'dan kaldırdıysa, data-date-iso/hour ile
+  // yeni hücreyi bul. Bu sayede her render çağıran fonksiyona "anchor'ı yenile"
+  // hatırlatması yapmaya gerek kalmaz; popover sol-üste düşmez.
+  if (anchor && !document.body.contains(anchor) && anchor.dataset) {
+    const { dateIso, hour } = anchor.dataset;
+    if (dateIso && hour != null) {
+      const fresh = document.querySelector(
+        `.lc-hour-cell[data-date-iso="${dateIso}"][data-hour="${hour}"]`
+      );
+      if (fresh) {
+        anchor = fresh;
+        lcAddPopoverState.anchor = fresh;
+        lcAddPopoverState.target = fresh;
+      }
+    }
+  }
   // Mobil: bottom-sheet konumu (full-width, alttan)
   if (window.innerWidth < 600) {
     pop.classList.add('lc-add-popover-mobile');
@@ -9974,12 +10187,15 @@ function initLcDrag(el, task) {
       }
       ghost.style.left = (ev.clientX - parseFloat(ghost.style.width)/2) + 'px';
       ghost.style.top  = (ev.clientY - 16) + 'px';
+      // Snap noktası ghost'un ÜST KENARI olsun → görev üst kenarı saat hizasına otursun
+      const snapY = parseFloat(ghost.style.top);
 
       ghost.style.visibility = 'hidden';
       const elAt = document.elementFromPoint(ev.clientX, ev.clientY);
+      const elAtSnap = document.elementFromPoint(ev.clientX, snapY);
       ghost.style.visibility = '';
 
-      // Pomodoro queue üstündeyse highlight + takvim drop'unu pas geç
+      // Pomodoro queue üstündeyse highlight + takvim drop'unu pas geç (cursor Y ile kontrol)
       const queueEl = document.getElementById('pomoQueue');
       if (queueEl && elAt && elAt.closest('#pomoQueue')) {
         queueEl.classList.add('drag-over');
@@ -9987,7 +10203,8 @@ function initLcDrag(el, task) {
         return;
       }
       if (queueEl) queueEl.classList.remove('drag-over');
-      const target = lcParseDropTarget(elAt, ev.clientX, ev.clientY);
+      // Calendar drop için snap noktası: ghost üst kenarı (görev üstü = saat hizası)
+      const target = lcParseDropTarget(elAtSnap || elAt, ev.clientX, snapY);
       clearTarget();
       if (target) {
         target.cell.classList.add('lc-drop-active');
@@ -10212,20 +10429,52 @@ function fmtTime(iso) {
 const MINS=[0,5,10,15,20,25,30,35,40,45,50,55];
 const TR_MONTHS=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 let dtp={year:0,month:0,day:0,cb:null};
+const DTP_MIN_STEPS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 function dtpOpen(anchor,currentISO,cb) {
   dtp.cb=cb;
   const now=currentISO?new Date(currentISO):new Date();
   dtp.year=now.getFullYear(); dtp.month=now.getMonth();
   dtp.day=currentISO?now.getDate():0;
   const hadTime = currentISO ? hasTime(currentISO) : false;
-  const hSel=document.getElementById('dtpHourSel'); hSel.innerHTML='';
-  hSel.appendChild(Object.assign(document.createElement('option'),{value:'',textContent:'--'}));
-  for(let h=0;h<24;h++){const o=document.createElement('option');o.value=h;o.textContent=String(h).padStart(2,'0');hSel.appendChild(o);}
-  hSel.value=hadTime?String(now.getHours()):'';
-  const mSel=document.getElementById('dtpMinSel'); mSel.innerHTML='';
-  mSel.appendChild(Object.assign(document.createElement('option'),{value:'',textContent:'--'}));
-  MINS.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=String(m).padStart(2,'0');mSel.appendChild(o);});
-  mSel.value=hadTime?String(MINS.reduce((a,b)=>Math.abs(b-now.getMinutes())<Math.abs(a-now.getMinutes())?b:a)):'';
+  // Slider'ları kur
+  const hSlider = document.getElementById('dtpHourSlider');
+  const mSlider = document.getElementById('dtpMinSlider');
+  const hVal    = document.getElementById('dtpHourVal');
+  const mVal    = document.getElementById('dtpMinVal');
+  // hadTime varsa mevcut saati, yoksa 0 (UI'da "--" göstereceğiz)
+  hSlider.value = String(hadTime ? now.getHours() : 0);
+  mSlider.value = String(hadTime
+    ? DTP_MIN_STEPS.reduce((a,b) => Math.abs(b - now.getMinutes()) < Math.abs(a - now.getMinutes()) ? b : a)
+    : 0);
+  // dtp.timeSet flag — kullanıcı slider'ı henüz hareket ettirmediyse "tüm gün" davranışı
+  dtp.timeSet = hadTime;
+  const updLabels = () => {
+    if (dtp.timeSet) {
+      const hv = parseInt(hSlider.value);
+      hVal.textContent = String(hv).padStart(2, '0');
+      mVal.textContent = ':' + String(mSlider.value).padStart(2, '0');
+      // Öğleden sonra (>=12): sayı + thumb turuncu (B); track gradient (C) zaten CSS'te
+      const c = (hv >= 12) ? '#E9731C' : '#12A3E3';
+      hVal.style.color = c;
+      hSlider.style.setProperty('--thumb-color', c);
+    } else {
+      hVal.textContent = '--';
+      mVal.textContent = '--';
+      hVal.style.color = '';
+      hSlider.style.setProperty('--thumb-color', '#12A3E3');
+    }
+  };
+  updLabels();
+  // Slider input'a basıldığında / hareket ettirildiğinde timeSet = true
+  if (!hSlider._bound) {
+    const onInput = () => { dtp.timeSet = true; updLabels(); };
+    hSlider.addEventListener('input', onInput);
+    mSlider.addEventListener('input', onInput);
+    hSlider._bound = true;
+  }
+  // Re-bind label updater (her açılışta lambda farklı)
+  hSlider.oninput = () => { dtp.timeSet = true; updLabels(); };
+  mSlider.oninput = () => { dtp.timeSet = true; updLabels(); };
   dtpRenderCal();
   const box=document.getElementById('dtpBox');
   box.classList.add('open');
@@ -10249,10 +10498,9 @@ function dtpClose() {
 function dtpClear()   { dtp.cb&&dtp.cb(''); dtpClose(); }
 function dtpConfirm() {
   if(!dtp.day){showToast('Bir gün seçin');return;}
-  const hRaw=document.getElementById('dtpHourSel').value;
-  const mRaw=document.getElementById('dtpMinSel').value;
-  const h = hRaw === '' ? 0 : parseInt(hRaw);
-  const m = (hRaw === '' || mRaw === '') ? 0 : parseInt(mRaw);
+  // timeSet false ise "tüm gün" → 00:00; true ise slider değerleri
+  const h = dtp.timeSet ? parseInt(document.getElementById('dtpHourSlider').value) : 0;
+  const m = dtp.timeSet ? parseInt(document.getElementById('dtpMinSlider').value) : 0;
   dtp.cb&&dtp.cb(new Date(dtp.year,dtp.month,dtp.day,h,m).toISOString());
   dtpClose();
 }
