@@ -1,0 +1,58 @@
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Aynı anda birden fazla deploy çalışmasın
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Prepare site directory
+        run: |
+          mkdir -p _site
+
+          # Sadece kullanıcı-facing dosyaları deploy et
+          # admin/, mobile/, supabase/, docs/ vs. dahil edilmiyor
+          cp index.html _site/
+          cp manifest.json _site/ 2>/dev/null || true
+          cp sw.js _site/ 2>/dev/null || true
+
+          # Asset klasörleri (logo, görseller, vs.)
+          [ -d assets ] && cp -r assets _site/
+          [ -d landing ] && cp -r landing _site/
+
+          # Jekyll'i devre dışı bırak (file naming farklılıkları için savunma)
+          touch _site/.nojekyll
+
+          echo "Deploy edilecek dosyalar:"
+          ls -la _site/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
