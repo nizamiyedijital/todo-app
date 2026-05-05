@@ -1,0 +1,80 @@
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../theme/ThemeProvider';
+import { signUp } from '../lib/auth';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { AuthStackParamList } from '../navigation/types';
+
+type Props = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
+
+export default function SignupScreen({ navigation }: Props) {
+  const { colors } = useTheme();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+
+  async function submit() {
+    setErr(null); setInfo(null); setLoading(true);
+    try {
+      await signUp(email.trim(), password);
+      setInfo('Kayıt başarılı! E-postanı kontrol et ve hesabını onayla.');
+    } catch (e: any) {
+      setErr(e?.message || 'Kayıt başarısız');
+    } finally { setLoading(false); }
+  }
+
+  return (
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.bg }]}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={styles.card}>
+          <Text style={[styles.title, { color: colors.text }]}>Yapılacaklar</Text>
+          <Text style={[styles.heading, { color: colors.text }]}>Kayıt Ol</Text>
+
+          {err && <Text style={[styles.msg, { color: colors.danger }]}>{err}</Text>}
+          {info && <Text style={[styles.msg, { color: colors.success }]}>{info}</Text>}
+
+          <Text style={[styles.label, { color: colors.text2 }]}>E-posta</Text>
+          <TextInput
+            value={email} onChangeText={setEmail}
+            placeholder="ornek@mail.com" placeholderTextColor={colors.text4}
+            autoCapitalize="none" autoComplete="email" keyboardType="email-address"
+            style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+          />
+
+          <Text style={[styles.label, { color: colors.text2 }]}>Şifre</Text>
+          <TextInput
+            value={password} onChangeText={setPassword}
+            placeholder="••••••••" placeholderTextColor={colors.text4}
+            secureTextEntry autoComplete="new-password"
+            style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+          />
+
+          <TouchableOpacity onPress={submit} disabled={loading}
+            style={[styles.btn, { backgroundColor: colors.accent, opacity: loading ? 0.7 : 1 }]}>
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Kayıt Ol</Text>}
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.switch}>
+            <Text style={{ color: colors.accent }}>Zaten hesabın var mı? Giriş yap</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+  card: { flex: 1, padding: 24, justifyContent: 'center' },
+  title: { fontSize: 28, fontWeight: '700', textAlign: 'center', marginBottom: 24 },
+  heading: { fontSize: 18, fontWeight: '600', marginBottom: 16 },
+  label: { fontSize: 13, fontWeight: '500', marginBottom: 6, marginTop: 10 },
+  input: { borderWidth: 1.5, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
+  btn: { marginTop: 20, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  btnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  msg: { fontSize: 13, marginBottom: 8 },
+  switch: { marginTop: 16, alignItems: 'center' },
+});

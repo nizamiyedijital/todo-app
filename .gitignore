@@ -1,5 +1,6 @@
 .DS_Store
-mobile/
 .claude/settings.local.json
 .playwright-mcp/
-*.png
+# Repo root'taki geliştirme screenshot'larını ignore et
+# (mobile/assets/ ve admin/public/ altındakiler git'te kalır)
+/*.png
