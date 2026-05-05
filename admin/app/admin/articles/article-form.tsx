@@ -3,7 +3,7 @@
 import { useActionState } from 'react';
 import Link from 'next/link';
 import { saveArticle, type ArticleFormState } from './actions';
-import { slugify, type Article } from '@/lib/articles';
+import { slugify, type Article } from '@/lib/articles-shared';
 
 const initial: ArticleFormState = { ok: false };
 

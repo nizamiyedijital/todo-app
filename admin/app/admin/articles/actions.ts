@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { logAudit } from '@/lib/audit';
-import { slugify, type ArticleStatus } from '@/lib/articles';
+import { slugify, type ArticleStatus } from '@/lib/articles-shared';
 
 const ArticleSchema = z.object({
   id: z.string().uuid().optional(),

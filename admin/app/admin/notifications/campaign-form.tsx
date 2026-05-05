@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react';
 import Link from 'next/link';
 import { saveCampaign, type CampaignFormState } from './actions';
-import type { NotificationCampaign } from '@/lib/notifications';
+import type { NotificationCampaign } from '@/lib/notifications-shared';
 
 const initial: CampaignFormState = { ok: false };
 
