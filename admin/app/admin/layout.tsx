@@ -3,6 +3,7 @@ import { getAdminUser } from '@/lib/auth';
 import { ThemeProvider } from '@/components/admin/theme-provider';
 import { Sidebar } from '@/components/admin/sidebar';
 import { Topbar } from '@/components/admin/topbar';
+import { PostHogProvider } from '@/components/admin/posthog-provider';
 
 /**
  * Admin layout — tüm /admin/** sayfaları bu layout'u kullanır.
@@ -20,14 +21,18 @@ export default async function AdminLayout({
   }
 
   return (
-    <ThemeProvider>
-      <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-        <Sidebar roles={admin.roles} />
-        <div className="flex-1 flex flex-col min-w-0">
-          <Topbar email={admin.email} roles={admin.roles} />
-          <main className="flex-1 p-6 overflow-x-auto">{children}</main>
+    <PostHogProvider
+      user={{ id: admin.userId, email: admin.email, roles: admin.roles }}
+    >
+      <ThemeProvider>
+        <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+          <Sidebar roles={admin.roles} />
+          <div className="flex-1 flex flex-col min-w-0">
+            <Topbar email={admin.email} roles={admin.roles} />
+            <main className="flex-1 p-6 overflow-x-auto">{children}</main>
+          </div>
         </div>
-      </div>
-    </ThemeProvider>
+      </ThemeProvider>
+    </PostHogProvider>
   );
 }

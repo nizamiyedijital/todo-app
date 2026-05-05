@@ -4116,6 +4116,43 @@
     /* Board column title */
     body.theme-dark .board-col-title { color:var(--text); }
   </style>
+
+  <!-- ============================================================ -->
+  <!-- PostHog Analytics — event taxonomy: docs/admin/EVENT_TAXONOMY.md -->
+  <!-- ============================================================ -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture identify alias reset register register_once unregister get_distinct_id setPersonProperties group resetGroups onFeatureFlags getFeatureFlag isFeatureEnabled reloadFeatureFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_qPC4MNPJD9b49YGCfjJAKd23RRRQjkWaeXVySYXsCsnR', {
+      api_host: 'https://eu.i.posthog.com',
+      person_profiles: 'identified_only',
+      capture_pageview: 'history_change',
+      capture_pageleave: true,
+      autocapture: false,
+      disable_session_recording: true
+    });
+
+    // ---- Disiplan event helper'ları (global) ----
+    // Her event'e otomatik platform + app_version ekler.
+    window.dpEvent = function(name, properties) {
+      try {
+        if (!window.posthog) return;
+        window.posthog.capture(name, Object.assign({
+          platform: 'web',
+          app_version: '1.0.0',
+          surface: 'main_app'
+        }, properties || {}));
+      } catch (_) {}
+    };
+    window.dpIdentify = function(userId, properties) {
+      try {
+        if (!window.posthog || !userId) return;
+        window.posthog.identify(userId, properties || {});
+      } catch (_) {}
+    };
+    window.dpReset = function() {
+      try { if (window.posthog) window.posthog.reset(); } catch (_) {}
+    };
+  </script>
 </head>
 <body>
 <div id="splashBox"><div class="splash-spinner"></div></div>
@@ -5065,7 +5102,12 @@ function saveSession(s) {
   session = s;
   localStorage.setItem('sb_session', JSON.stringify(s));
 }
-function clearSession() { session=null; localStorage.removeItem('sb_session'); }
+function clearSession() {
+  session=null;
+  localStorage.removeItem('sb_session');
+  if (window.dpEvent) window.dpEvent('user_logged_out');
+  if (window.dpReset) window.dpReset();
+}
 
 async function refreshSession() {
   if (!session?.refresh_token) return false;
@@ -5139,6 +5181,7 @@ async function submitAuth() {
       await authPost(`/signup?redirect_to=${encodeURIComponent(APP_URL)}`,{email,password:pass});
       setMsg('Kayıt başarılı! E-postanıza gelen onay bağlantısına tıklayın.','success');
       document.getElementById('authPassword').value='';
+      if (window.dpEvent) window.dpEvent('user_signed_up', { method: 'email' });
     } else {
       const s = await authPost('/token?grant_type=password',{email,password:pass});
       const needsMfa = await checkMfaRequired(s);
@@ -5147,6 +5190,10 @@ async function submitAuth() {
         showMfaScreen();
       } else {
         saveSession(s);
+        if (window.dpIdentify && s.user) {
+          window.dpIdentify(s.user.id, { email: s.user.email });
+        }
+        if (window.dpEvent) window.dpEvent('user_logged_in', { method: 'email' });
         await initApp();
       }
     }
@@ -5160,6 +5207,10 @@ function showAuth() { hideSplash(); document.getElementById('authBox').style.dis
 /* ── Init ── */
 async function initApp() {
   document.getElementById('authBox').style.display='none';
+  // PostHog identify — refresh sonrası da kullanıcıyı tanı
+  if (window.dpIdentify && session?.user) {
+    window.dpIdentify(session.user.id, { email: session.user.email });
+  }
   loadSettings();
   scheduleTokenRefresh();
   await Promise.all([loadLists(), loadTasks()]);
@@ -6215,10 +6266,22 @@ async function addTask() {
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
     tasks.unshift(t); recentlyAddedId = t.id;
+    if (window.dpEvent) window.dpEvent('task_created', {
+      task_id: t.id,
+      list_id: t.category,
+      has_due_date: !!payload.due_at,
+      has_duration: !!payload.estimated_minutes,
+      is_subtask: false,
+      starred: !!payload.starred,
+      priority: payload.priority || null,
+    });
     for (const subText of subs) {
       try {
         const [s] = await db('/todos', { method:'POST', body: JSON.stringify({ text: subText, done:false, category: t.category, parent_id: t.id, sort_order: Date.now() }) });
-        if (s) tasks.push(s);
+        if (s) {
+          tasks.push(s);
+          if (window.dpEvent) window.dpEvent('subtask_added', { parent_task_id: t.id });
+        }
       } catch(_) {}
     }
     render(); renderSidebar();
@@ -6739,10 +6802,22 @@ async function addTaskKeepFocus() {
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
     tasks.unshift(t); recentlyAddedId = t.id;
+    if (window.dpEvent) window.dpEvent('task_created', {
+      task_id: t.id,
+      list_id: t.category,
+      has_due_date: !!payload.due_at,
+      has_duration: !!payload.estimated_minutes,
+      is_subtask: false,
+      starred: !!payload.starred,
+      priority: payload.priority || null,
+    });
     for (const subText of subs) {
       try {
         const [s] = await db('/todos', { method:'POST', body: JSON.stringify({ text: subText, done:false, category: t.category, parent_id: t.id, sort_order: Date.now() }) });
-        if (s) tasks.push(s);
+        if (s) {
+          tasks.push(s);
+          if (window.dpEvent) window.dpEvent('subtask_added', { parent_task_id: t.id });
+        }
       } catch(_) {}
     }
     render(); renderSidebar();
