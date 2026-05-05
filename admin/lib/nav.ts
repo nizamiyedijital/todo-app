@@ -94,8 +94,8 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Analitik',
         iconName: 'BarChart3',
         requires: 'analytics',
-        faz: 2,
-        badge: 'Faz 2',
+        faz: 1, // placeholder sayfası Faz 1C.4'te eklendi, gerçek içerik Faz 2'de
+        badge: 'Hazırlık',
       },
       {
         href: '/admin/system-health',
