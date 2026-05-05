@@ -18,7 +18,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Yapılacaklar">
   <meta name="theme-color" content="#12A3E3">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght@20..48,400..600&display=block">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     /* ── CSS Variables (theming) ── */
@@ -451,21 +453,28 @@
     }
     .list-name:focus { color:#12A3E3; }
     .list-count {
+      position:relative;
       font-size:.62rem; font-weight:600; color:#999;
       line-height:1;
       background:#f0f2f8; border-radius:9px; padding:1px 6px;
-      flex-shrink:0;
+      flex-shrink:0; min-width:14px; text-align:center;
+      transition:background .12s;
     }
-
-    .btn-list-more {
-      position:absolute; right:6px; top:50%; transform:translateY(-50%);
-      width:22px; height:22px; border:none; background:transparent;
-      cursor:pointer; color:#bbb; font-size:1rem; border-radius:5px;
+    .list-count.empty { background:transparent; }
+    .list-count .lc-num,
+    .list-count .lc-more {
+      display:inline-block; transition:opacity .12s;
+    }
+    .list-count .lc-more {
+      position:absolute; inset:0;
       display:flex; align-items:center; justify-content:center;
-      opacity:0; transition:all .15s; flex-shrink:0; line-height:1;
+      opacity:0; cursor:pointer; font-size:.85rem; line-height:1;
+      border-radius:9px;
     }
-    .list-item:hover .btn-list-more { opacity:1; }
-    .btn-list-more:hover { background:#e8ecf4; color:#555; opacity:1; }
+    .list-item:hover .list-count .lc-num  { opacity:0; }
+    .list-item:hover .list-count .lc-more { opacity:1; }
+    .list-item:hover .list-count.empty    { background:#f0f2f8; }
+    .list-count .lc-more:hover { background:#e8ecf4; color:#555; }
     .list-item.dragging { opacity:.25; pointer-events:none; }
     .list-drop-line {
       height:2px; background:#12A3E3; border-radius:2px;
@@ -497,19 +506,640 @@
       border-top:1px solid #f0f2f8;
       display:flex; flex-direction:column;
     }
-    .sidebar-footer .footer-actions { order:1; }
+    .sidebar-footer .profile-btn { order:1; }
     .sidebar-footer .btn-new-list,
     .sidebar-footer .new-list-input-row { order:0; }
-    .footer-actions {
-      display:flex; gap:4px; padding:0 0 6px;
+
+    /* Profile button */
+    .profile-btn {
+      position:relative; display:flex; align-items:center; gap:10px;
+      padding:6px 8px; margin-top:6px;
+      background:transparent; border:none; border-radius:10px;
+      cursor:pointer; font-family:inherit; width:100%;
+      transition:background .15s;
     }
-    .footer-btn {
-      flex:1; display:flex; align-items:center; gap:6px;
-      padding:5px 8px; border:none; background:transparent;
-      border-radius:8px; cursor:pointer; font-size:.72rem; color:#888;
-      font-family:inherit; transition:background .12s, color .12s;
+    .profile-btn:hover { background:#f4f5f9; }
+    .profile-avatar {
+      position:relative; width:30px; height:30px; border-radius:50%;
+      background:linear-gradient(135deg,#12A3E3,#7c3aed);
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; overflow:hidden;
     }
-    .footer-btn:hover { background:#f4f5f9; color:var(--accent); }
+    .profile-initials { color:#fff; font-size:.7rem; font-weight:700; line-height:1; }
+    .profile-img { width:100%; height:100%; object-fit:cover; }
+    .profile-meta { flex:1; text-align:left; min-width:0; line-height:1.2; }
+    .profile-name {
+      display:block; font-size:.7rem; font-weight:600; color:var(--text);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .profile-email {
+      display:block; font-size:.6rem; color:var(--text3);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .profile-badge {
+      position:absolute; top:2px; left:26px;
+      min-width:14px; height:14px; padding:0 3px;
+      background:#E96B6B; color:#fff; border-radius:7px;
+      font-size:.55rem; font-weight:700; line-height:14px; text-align:center;
+      border:2px solid var(--surface); box-sizing:content-box;
+    }
+    .sidebar.compact .profile-meta { display:none; }
+    .sidebar.compact .profile-btn { justify-content:center; }
+
+    /* Profile dropdown menu */
+    .profile-menu-overlay { position:fixed; inset:0; z-index:9300; display:none; }
+    .profile-menu-overlay.open { display:block; }
+    .profile-menu {
+      position:fixed; z-index:9301; display:none;
+      width:240px; background:var(--surface);
+      border:1px solid var(--border); border-radius:12px;
+      box-shadow:0 10px 30px rgba(0,0,0,.12);
+      padding:6px; flex-direction:column;
+    }
+    .profile-menu.open { display:flex; }
+    .pm-header { display:flex; gap:10px; padding:10px; align-items:center; }
+    .pm-avatar-lg {
+      width:40px; height:40px; border-radius:50%;
+      background:linear-gradient(135deg,#12A3E3,#7c3aed);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .pm-initials-lg { color:#fff; font-size:.95rem; font-weight:700; }
+    .pm-info { min-width:0; flex:1; }
+    .pm-name { font-size:.78rem; font-weight:600; color:var(--text); }
+    .pm-email { font-size:.66rem; color:var(--text3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .pm-sep { height:1px; background:var(--border); margin:4px 0; }
+    .pm-item {
+      display:flex; align-items:center; gap:10px;
+      padding:8px 10px; background:transparent; border:none;
+      border-radius:8px; cursor:pointer; font-family:inherit;
+      font-size:.74rem; color:var(--text); text-align:left;
+      transition:background .12s; width:100%;
+    }
+    .pm-item:hover { background:#f4f5f9; }
+    .pm-item-label { flex:1; }
+    .pm-item-badge {
+      background:#E96B6B; color:#fff; border-radius:8px;
+      padding:1px 6px; font-size:.6rem; font-weight:700;
+    }
+    .pm-item-soon { color:var(--text4); font-size:.6rem; font-style:italic; }
+    .pm-danger { color:#dc2626; }
+    .pm-danger:hover { background:#fef2f2; }
+    .pm-theme-row { display:flex; align-items:center; gap:10px; padding:8px 10px; }
+    .pm-theme-segment {
+      display:flex; gap:2px; padding:2px;
+      background:var(--surface2); border-radius:6px;
+    }
+    .pm-theme-segment button {
+      border:none; background:transparent; padding:3px 8px;
+      font-size:.62rem; color:var(--text2); cursor:pointer;
+      border-radius:4px; font-family:inherit;
+    }
+    .pm-theme-segment button.active {
+      background:var(--surface); color:var(--accent); font-weight:600;
+    }
+
+    /* Stats modal (FAZ 2.C.2) */
+    .stats-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.4);
+      z-index:9400; display:none;
+    }
+    .stats-overlay.open { display:block; }
+    .stats-modal {
+      position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+      width:min(900px, 92vw); max-height:88vh;
+      background:var(--surface); border-radius:14px;
+      box-shadow:0 20px 50px rgba(0,0,0,.18);
+      z-index:9401; display:none; flex-direction:column;
+      overflow:hidden;
+    }
+    .stats-modal.open { display:flex; }
+    .stats-hdr {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 20px; border-bottom:1px solid var(--border);
+    }
+    .stats-hdr h2 { margin:0; font-size:1rem; font-weight:600; color:var(--text); flex:1; }
+    .stats-range {
+      display:flex; gap:2px; padding:3px;
+      background:var(--surface2); border-radius:8px; margin-right:10px;
+    }
+    .stats-range button {
+      border:none; background:transparent; padding:5px 12px;
+      font-size:.7rem; color:var(--text2); cursor:pointer;
+      border-radius:6px; font-family:inherit; font-weight:600;
+    }
+    .stats-range button.active {
+      background:var(--surface); color:var(--accent);
+      box-shadow:0 1px 3px rgba(0,0,0,.06);
+    }
+    .stats-hdr-close {
+      width:32px; height:32px; border:none; background:transparent;
+      cursor:pointer; color:var(--text3); border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .stats-hdr-close:hover { background:var(--surface2); color:var(--text); }
+    .stats-body { padding:20px; overflow-y:auto; flex:1; }
+    .stats-cards {
+      display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+      gap:10px; margin-bottom:20px;
+    }
+    .stats-card {
+      background:var(--surface2); border-radius:10px; padding:12px 14px;
+    }
+    .stats-card-label {
+      font-size:.66rem; color:var(--text3); text-transform:uppercase; letter-spacing:.04em;
+      display:flex; align-items:center; justify-content:space-between; gap:6px;
+    }
+    .stats-delta {
+      font-size:.6rem; font-weight:700; padding:1px 5px; border-radius:4px;
+      text-transform:none; letter-spacing:0;
+    }
+    .stats-delta.sd-up   { background:#dcfce7; color:#16a34a; }
+    .stats-delta.sd-down { background:#fee2e2; color:#dc2626; }
+    .stats-card-value { font-size:1.4rem; font-weight:700; color:var(--text); margin-top:4px; }
+    .stats-card-sub { font-size:.66rem; color:var(--text3); margin-top:2px; }
+    .stats-section { margin-bottom:24px; }
+    .stats-section h3 {
+      margin:0 0 12px; font-size:.78rem; font-weight:600;
+      color:var(--text2); text-transform:uppercase; letter-spacing:.04em;
+    }
+    .stats-row2 {
+      display:grid; grid-template-columns:1fr 1fr; gap:20px;
+    }
+    @media (max-width:600px) { .stats-row2 { grid-template-columns:1fr; } }
+    .stats-soon { font-size:.78rem; color:var(--text3); font-style:italic; padding:14px; background:var(--surface2); border-radius:8px; }
+
+    /* Heatmap */
+    .stats-heatmap {
+      display:grid; grid-template-columns:repeat(53, 11px); grid-auto-rows:11px;
+      grid-auto-flow:column; gap:2px;
+      overflow-x:auto; padding-bottom:4px;
+    }
+    .sh-cell {
+      width:11px; height:11px; border-radius:2px;
+      background:#e8eaef;
+      transition:background .15s;
+    }
+    .sh-cell.l1 { background:#c1e0f2; }
+    .sh-cell.l2 { background:#7fc6ec; }
+    .sh-cell.l3 { background:#3fa8e0; }
+    .sh-cell.l4 { background:#12A3E3; }
+    .sh-cell:hover { outline:1px solid var(--accent); }
+    .stats-heatmap-summary { margin-top:10px; font-size:.74rem; color:var(--text2); }
+
+    /* Donut + Bar */
+    .stats-donut-wrap { display:flex; gap:14px; align-items:center; }
+    .stats-donut-svg { width:120px; height:120px; flex-shrink:0; }
+    .stats-donut-legend { display:flex; flex-direction:column; gap:6px; font-size:.72rem; }
+    .stats-donut-legend-item { display:flex; align-items:center; gap:8px; }
+    .stats-donut-legend-swatch { width:10px; height:10px; border-radius:50%; }
+    .stats-bar-list { display:flex; flex-direction:column; gap:8px; }
+    .stats-bar-row {
+      display:grid; grid-template-columns:80px 1fr 40px;
+      gap:8px; align-items:center; font-size:.72rem;
+    }
+    .stats-bar-name { color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .stats-bar-track { height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+    .stats-bar-fill { height:100%; background:var(--accent); border-radius:4px; }
+    .stats-bar-val { font-weight:600; color:var(--text); text-align:right; }
+
+    /* Pomo saat dağılımı */
+    .ph-section { margin-top:8px; }
+    .ph-bars {
+      display:grid; grid-template-columns:repeat(24, 1fr); gap:3px;
+      align-items:end; height:80px;
+    }
+    .ph-bar-col {
+      display:flex; flex-direction:column; align-items:center; gap:3px; height:100%;
+    }
+    .ph-bar-fill {
+      width:100%; min-height:2px; background:#c1e0f2; border-radius:2px;
+      align-self:flex-end; flex:0 0 auto; max-height:64px;
+    }
+    .ph-bar-fill.peak { background:var(--accent); }
+    .ph-bar-label { font-size:.55rem; color:var(--text3); }
+
+    /* Bildirim Sayfası modal */
+    .notif-page-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.4);
+      z-index:9400; display:none;
+    }
+    .notif-page-overlay.open { display:block; }
+    .notif-page {
+      position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+      width:min(840px, 92vw); height:min(640px, 88vh);
+      background:var(--surface); border-radius:14px;
+      box-shadow:0 20px 50px rgba(0,0,0,.18);
+      z-index:9401; display:none; flex-direction:column;
+      overflow:hidden;
+    }
+    .notif-page.open { display:flex; }
+    .np-hdr {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 20px; border-bottom:1px solid var(--border);
+    }
+    .np-hdr h2 { margin:0; font-size:1rem; font-weight:600; color:var(--text); }
+    .np-actions { display:flex; gap:4px; }
+    .np-icon-btn {
+      width:32px; height:32px; border:none; background:transparent;
+      cursor:pointer; color:var(--text3); border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .np-icon-btn:hover { background:var(--surface2); color:var(--text); }
+    .np-body { display:flex; flex:1; min-height:0; }
+    .np-side {
+      width:260px; flex-shrink:0; border-right:1px solid var(--border);
+      display:flex; flex-direction:column;
+    }
+    .np-tabs {
+      display:flex; gap:0; padding:6px 6px 0;
+      border-bottom:1px solid var(--border); flex-shrink:0;
+    }
+    .np-tabs button {
+      flex:1; border:none; background:transparent; padding:10px 6px;
+      font-size:.74rem; color:var(--text3); cursor:pointer;
+      font-weight:600; font-family:inherit;
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      border-bottom:2px solid transparent; margin-bottom:-1px;
+      transition:color .12s, border-color .12s;
+    }
+    .np-tabs button:hover { color:var(--text2); }
+    .np-tabs button.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .np-tab-count {
+      background:var(--surface2); color:var(--text3);
+      padding:1px 7px; border-radius:9px; font-size:.6rem; font-weight:700;
+    }
+    .np-tabs button.active .np-tab-count { background:var(--accent-bg); color:var(--accent); }
+    .np-list {
+      flex:1; overflow-y:auto; padding:6px;
+    }
+    .np-detail { flex:1; min-width:0; overflow-y:auto; padding:24px; }
+    .np-detail-empty {
+      display:flex; align-items:center; justify-content:center;
+      height:100%; color:var(--text3); font-size:.86rem; font-style:italic;
+    }
+    .np-list-item {
+      display:flex; gap:10px; padding:12px 14px; border-radius:8px;
+      cursor:pointer; margin-bottom:2px; transition:background .12s;
+    }
+    .np-list-item:hover { background:var(--surface2); }
+    .np-list-item.unread { background:var(--accent-bg); }
+    .np-list-item.unread:hover { background:#D6EDFA; }
+    .np-list-item.selected { background:var(--accent-bg); box-shadow:inset 3px 0 0 var(--accent); }
+    .np-list-icon {
+      width:32px; height:32px; border-radius:50%;
+      background:var(--accent-bg); color:var(--accent);
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+    }
+    .np-list-item.warn .np-list-icon { background:#fef2f2; color:#dc2626; }
+    .np-list-item.info .np-list-icon { background:#fefce8; color:#ca8a04; }
+    .np-list-body { flex:1; min-width:0; }
+    .np-list-title { font-size:.78rem; font-weight:600; color:var(--text); line-height:1.3; }
+    .np-list-desc { font-size:.66rem; color:var(--text3); margin-top:2px; line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .np-list-time { font-size:.6rem; color:var(--text4); margin-top:3px; }
+    .np-list-empty { padding:40px 16px; text-align:center; color:var(--text3); font-size:.78rem; }
+
+    /* Detay paneli */
+    .np-detail-head {
+      display:flex; align-items:center; gap:12px; margin-bottom:18px;
+    }
+    .np-detail-icon {
+      width:48px; height:48px; border-radius:50%;
+      background:var(--accent-bg); color:var(--accent);
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+    }
+    .np-detail-head.warn .np-detail-icon { background:#fef2f2; color:#dc2626; }
+    .np-detail-head.info .np-detail-icon { background:#fefce8; color:#ca8a04; }
+    .np-detail-title { font-size:1.05rem; font-weight:700; color:var(--text); }
+    .np-detail-time  { font-size:.72rem; color:var(--text3); margin-top:2px; }
+    .np-detail-body  { font-size:.85rem; line-height:1.55; color:var(--text2); }
+    .np-detail-meta {
+      margin-top:18px; padding-top:14px; border-top:1px solid var(--border);
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .np-detail-meta-row {
+      display:flex; gap:10px; font-size:.74rem;
+    }
+    .np-detail-meta-key { color:var(--text3); width:90px; flex-shrink:0; }
+    .np-detail-meta-val { color:var(--text); }
+    .np-detail-actions {
+      display:flex; gap:8px; margin-top:20px;
+    }
+    .np-action-btn {
+      padding:8px 14px; border:none; border-radius:8px;
+      background:var(--accent); color:#fff; font-size:.78rem; font-weight:600;
+      cursor:pointer; font-family:inherit;
+    }
+    .np-action-btn.secondary {
+      background:var(--surface2); color:var(--text2);
+    }
+    .np-action-btn:hover { opacity:.9; }
+
+    /* Mobile: tek sütun */
+    @media (max-width:640px) {
+      .np-body { flex-direction:column; }
+      .np-list { width:100%; max-height:50%; border-right:none; border-bottom:1px solid var(--border); }
+      .np-detail { padding:16px; }
+    }
+
+    /* Sistem makale içeriği */
+    .np-article { font-size:.86rem; line-height:1.65; color:var(--text); max-width:680px; }
+    .np-article h2 {
+      font-size:1.1rem; font-weight:700; color:var(--text);
+      margin:24px 0 10px; padding-top:6px;
+    }
+    .np-article h3 {
+      font-size:.92rem; font-weight:700; color:var(--text);
+      margin:18px 0 6px;
+    }
+    .np-article p { margin:0 0 10px; color:var(--text2); }
+    .np-article strong { color:var(--text); font-weight:700; }
+    .np-article em { font-style:italic; color:var(--text2); }
+    .np-article small { font-size:.78em; color:var(--text3); }
+    .np-article cite { font-style:italic; color:var(--text3); font-size:.85em; }
+    .np-article blockquote {
+      margin:12px 0; padding:10px 14px;
+      border-left:3px solid var(--accent);
+      background:var(--accent-bg);
+      border-radius:0 8px 8px 0;
+      font-style:italic; color:var(--text2);
+    }
+    .np-article blockquote.art-motto {
+      border-left-color:#E96B6B; background:#fef2f2;
+      font-size:.95rem; font-weight:600; color:var(--text);
+      text-align:center; padding:14px 18px;
+    }
+    .np-article ol, .np-article ul { margin:8px 0 12px; padding-left:24px; color:var(--text2); }
+    .np-article li { margin-bottom:6px; }
+    .np-article .art-steps li { padding-left:4px; }
+    .np-article .art-refs { font-size:.78rem; color:var(--text3); }
+    .np-article .art-refs li { margin-bottom:8px; line-height:1.5; }
+    .np-article .art-tip {
+      margin:14px 0; padding:12px 14px;
+      background:#fefce8; border:1px solid #fde68a;
+      border-radius:8px; font-size:.82rem; color:#78350f;
+    }
+    .np-article .art-hero {
+      display:flex; align-items:center; gap:14px;
+      margin-bottom:18px; padding-bottom:18px;
+      border-bottom:1px solid var(--border);
+    }
+    .np-article .art-hero-icon {
+      font-size:2rem; width:56px; height:56px;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--accent-bg); border-radius:14px; flex-shrink:0;
+    }
+    .np-article .art-hero-tag {
+      font-size:.66rem; font-weight:700; color:var(--accent);
+      text-transform:uppercase; letter-spacing:.04em;
+    }
+    .np-article .art-hero-sub {
+      font-size:.74rem; color:var(--text3); margin-top:2px;
+    }
+
+    /* HERO görsel container (artık SVG için) */
+    .np-article .art-hero-img {
+      margin:-4px -4px 0; border-radius:14px; overflow:hidden;
+    }
+    .np-article .art-hero-img svg { display:block; width:100%; height:auto; }
+    .np-article .art-hero-meta-bar {
+      display:flex; justify-content:space-between; align-items:baseline;
+      padding:10px 4px 18px; border-bottom:1px solid var(--border);
+      margin-bottom:8px; gap:10px;
+    }
+    .np-article .art-hero-meta-bar .art-hero-tag {
+      font-size:.68rem; font-weight:700; color:var(--accent);
+      letter-spacing:.06em;
+    }
+    .np-article .art-hero-meta-bar .art-hero-sub { font-size:.72rem; color:var(--text3); }
+
+    /* Genel görsel (SVG) container'ı */
+    .np-article .art-fig {
+      margin:14px 0; padding:12px;
+      background:var(--surface2); border-radius:10px;
+    }
+    .np-article .art-fig svg { display:block; width:100%; height:auto; }
+
+    /* Adım kartı (Disiplan'da nasıl uygulanır) */
+    .np-article .art-step-fig {
+      display:flex; gap:14px; margin:16px 0; padding:14px;
+      background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    }
+    .np-article .art-step-num {
+      flex-shrink:0; width:32px; height:32px; border-radius:50%;
+      background:var(--accent); color:#fff; font-weight:700;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .np-article .art-step-content { flex:1; min-width:0; }
+    .np-article .art-step-content h4 {
+      margin:2px 0 4px; font-size:.92rem; font-weight:700; color:var(--text);
+    }
+    .np-article .art-step-content p { margin:0 0 10px; font-size:.82rem; }
+    .np-article .art-mock {
+      width:100%; height:auto; max-width:380px;
+      filter: drop-shadow(0 1px 3px rgba(0,0,0,.06));
+    }
+
+    /* Bildirim listesi: sistem makale thumbnail (gerçek görsel — kitap kapağı) */
+    .np-list-thumb {
+      width:54px; height:72px; border-radius:6px; overflow:hidden;
+      flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,.18);
+      background:#f1f5f9;
+    }
+    .np-list-thumb svg, .np-list-thumb img {
+      display:block; width:100%; height:100%; object-fit:cover;
+    }
+    .np-list-tag {
+      font-size:.55rem; font-weight:700; color:var(--accent);
+      letter-spacing:.06em; margin-bottom:2px;
+    }
+    .np-list-item.article { padding:14px; }
+    .np-list-item.article .np-list-title { font-size:.84rem; line-height:1.3; }
+
+    /* Kitap rafı (3 kapak hero) */
+    .np-article .art-book-shelf {
+      display:flex; gap:14px; justify-content:center;
+      padding:24px; margin:-4px -4px 0;
+      background:linear-gradient(135deg, #f8fafc, #e2e8f0);
+      border-radius:14px;
+    }
+    .np-article .art-book-shelf img {
+      width:110px; height:auto; border-radius:4px;
+      box-shadow:0 6px 20px rgba(0,0,0,.18), 0 2px 4px rgba(0,0,0,.08);
+      transform:rotate(-2deg); transition:transform .2s ease;
+    }
+    .np-article .art-book-shelf img:nth-child(2) { transform:rotate(0); }
+    .np-article .art-book-shelf img:nth-child(3) { transform:rotate(2deg); }
+    .np-article .art-book-shelf img:hover { transform:rotate(0) scale(1.05); }
+    .np-article .art-shelf-caption {
+      text-align:center; font-size:.7rem; color:var(--text3);
+      margin-top:8px; font-style:italic;
+    }
+
+    /* Tarih kartı (Türk kültürü) */
+    .np-article .art-history-card {
+      display:flex; gap:14px; padding:14px;
+      background:linear-gradient(135deg, #fefce8, #fef9c3);
+      border:1px solid #fde68a; border-radius:12px;
+      margin:12px 0;
+    }
+    .np-article .art-history-emoji {
+      font-size:2.4rem; line-height:1; flex-shrink:0;
+      width:56px; height:56px;
+      display:flex; align-items:center; justify-content:center;
+      background:#fff; border-radius:14px;
+      box-shadow:0 2px 6px rgba(0,0,0,.06);
+    }
+    .np-article .art-history-card h4 {
+      margin:0 0 4px; font-size:.92rem; font-weight:700; color:#78350f;
+    }
+    .np-article .art-history-card p { margin:0; font-size:.82rem; color:#451a03; }
+
+    /* Bilim kitap kartı (kapak + meta) */
+    .np-article .art-book-card {
+      display:flex; gap:16px; padding:16px;
+      background:var(--surface); border:1px solid var(--border); border-radius:12px;
+      margin:14px 0;
+    }
+    .np-article .art-book-card img {
+      width:84px; height:auto; flex-shrink:0;
+      border-radius:4px;
+      box-shadow:0 4px 12px rgba(0,0,0,.15);
+      align-self:flex-start;
+    }
+    .np-article .art-book-card .art-book-placeholder {
+      width:84px; height:120px; flex-shrink:0;
+      border-radius:4px;
+      background:linear-gradient(135deg, #94a3b8, #64748b);
+      display:flex; align-items:center; justify-content:center;
+      font-size:2.4rem; color:#fff;
+      box-shadow:0 4px 12px rgba(0,0,0,.15);
+    }
+    .np-article .art-book-card .art-book-title {
+      font-size:.95rem; font-weight:700; color:var(--text); margin-bottom:2px;
+    }
+    .np-article .art-book-card .art-book-author {
+      font-size:.74rem; color:var(--text3); margin-bottom:8px;
+    }
+    .np-article .art-book-card p { margin:6px 0; font-size:.82rem; }
+    .np-article .art-fake-svg svg { width:100%; height:auto; }
+
+    /* Kitap kapağı fallback (görsel yoksa şık placeholder) */
+    .np-article .art-book-fb {
+      width:110px; height:165px; flex-shrink:0;
+      border-radius:4px;
+      display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+      text-align:center; padding:18px 12px; color:#fff;
+      box-shadow:0 6px 20px rgba(0,0,0,.18), 0 2px 4px rgba(0,0,0,.08);
+      transform:rotate(-2deg);
+    }
+    .np-article .art-book-shelf .art-book-fb:nth-child(2) { transform:rotate(0); }
+    .np-article .art-book-shelf .art-book-fb:nth-child(3) { transform:rotate(2deg); }
+    .np-article .art-book-fb strong {
+      font-size:.95rem; font-weight:700; line-height:1.25;
+      display:block;
+    }
+    .np-article .art-book-fb small {
+      font-size:.62rem; opacity:.85; line-height:1.3;
+    }
+    .np-article .art-book-fb-red    { background:linear-gradient(135deg, #E96B6B, #b91c1c); }
+    .np-article .art-book-fb-tomato { background:linear-gradient(135deg, #F39C4A, #c2410c); }
+    .np-article .art-book-fb-blue   { background:linear-gradient(135deg, #5B9BD5, #1e3a8a); }
+
+    /* Bilim kart fallback (küçük) */
+    .np-article .art-book-fb-sm {
+      width:84px; height:120px; flex-shrink:0;
+      border-radius:4px; display:flex; align-items:center; justify-content:center;
+      text-align:center; padding:10px; color:#fff;
+      box-shadow:0 4px 12px rgba(0,0,0,.15);
+      align-self:flex-start;
+    }
+    .np-article .art-book-fb-sm strong {
+      font-size:.78rem; font-weight:700; line-height:1.25;
+    }
+    .np-article .art-book-fb-sm.art-book-fb-red    { background:linear-gradient(135deg, #E96B6B, #b91c1c); }
+    .np-article .art-book-fb-sm.art-book-fb-tomato { background:linear-gradient(135deg, #F39C4A, #c2410c); }
+
+    /* Bildirim Merkezi popover */
+    .notif-center-overlay { position:fixed; inset:0; z-index:9300; display:none; }
+    .notif-center-overlay.open { display:block; }
+    .notif-center {
+      position:fixed; z-index:9301; display:none;
+      width:320px; max-height:480px; background:var(--surface);
+      border:1px solid var(--border); border-radius:12px;
+      box-shadow:0 10px 30px rgba(0,0,0,.12);
+      flex-direction:column; overflow:hidden;
+    }
+    .notif-center.open { display:flex; }
+    .nc-hdr {
+      display:flex; align-items:center; gap:6px;
+      padding:10px 12px; border-bottom:1px solid var(--border);
+    }
+    .nc-title { font-size:.86rem; font-weight:600; color:var(--text); flex:1; }
+    .nc-settings, .nc-close, .nc-mark-all {
+      width:28px; height:28px; border:none; background:transparent;
+      cursor:pointer; color:var(--text3); border-radius:6px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .nc-settings:hover, .nc-close:hover, .nc-mark-all:hover { background:var(--surface2); color:var(--text); }
+    .nc-item.unread { background:var(--accent-bg); }
+    .nc-item.unread:hover { background:#D6EDFA; }
+    .nc-item-time { font-size:.6rem; color:var(--text4); margin-top:2px; }
+    .nc-section-label {
+      font-size:.6rem; font-weight:700; color:var(--text3);
+      text-transform:uppercase; letter-spacing:.04em;
+      padding:8px 12px 4px;
+    }
+    .nc-body { padding:6px; overflow-y:auto; max-height:420px; }
+    .nc-empty { padding:30px 12px; text-align:center; color:var(--text3); font-size:.78rem; }
+    .nc-item {
+      display:flex; align-items:flex-start; gap:10px;
+      padding:10px 12px; border-radius:8px; cursor:pointer;
+      transition:background .12s; margin-bottom:2px;
+    }
+    .nc-item:hover { background:var(--surface2); }
+    .nc-item-icon {
+      width:28px; height:28px; border-radius:50%;
+      background:var(--accent-bg); color:var(--accent);
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+    }
+    .nc-item.warn .nc-item-icon { background:#fef2f2; color:#dc2626; }
+    .nc-item.info .nc-item-icon { background:#fefce8; color:#ca8a04; }
+    .nc-item-body { flex:1; min-width:0; }
+    .nc-item-title { font-size:.78rem; font-weight:600; color:var(--text); line-height:1.3; }
+    .nc-item-desc { font-size:.66rem; color:var(--text3); margin-top:2px; line-height:1.3; }
+    .nc-item-action {
+      font-size:.66rem; font-weight:600; color:var(--accent);
+      padding:3px 8px; background:var(--accent-bg); border-radius:6px;
+      align-self:center; flex-shrink:0;
+    }
+
+    /* Avatar uploader (Settings) */
+    .avatar-uploader { display:flex; align-items:center; gap:10px; }
+    .avatar-preview {
+      width:48px; height:48px; border-radius:50%;
+      background:linear-gradient(135deg,#12A3E3,#7c3aed);
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; overflow:hidden;
+      color:#fff; font-size:.95rem; font-weight:700;
+    }
+    .avatar-preview img { width:100%; height:100%; object-fit:cover; }
+    .sbtn-danger { color:#dc2626 !important; }
+    .sbtn-danger:hover { background:#fef2f2 !important; }
+
+    /* Profile menu avatar - hover overlay (resmi değiştir) */
+    .pm-avatar-lg { position:relative; cursor:pointer; overflow:hidden; }
+    .pm-avatar-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .pm-avatar-overlay {
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.5); color:#fff;
+      font-size:.55rem; font-weight:600;
+      opacity:0; transition:opacity .15s; border-radius:50%;
+    }
+    .pm-avatar-lg:hover .pm-avatar-overlay { opacity:1; }
     .footer-btn .mi { color:#aaa; transition:color .12s; }
     .footer-btn:hover .mi { color:var(--accent); }
     .footer-btn.danger:hover { color:#e53e3e; }
@@ -595,49 +1225,47 @@
     .main-body::-webkit-scrollbar { width:5px; }
     .main-body::-webkit-scrollbar-thumb { background:#e0e4ef; border-radius:4px; }
     /* Board kolonu inline ekleme butonu */
-    /* Board (sütun) "Yeni Görev" butonu — Lifted stil (.new-task-btn ile tutarlı) */
+    /* Board (sütun) "Yeni Görev" butonu — Accent açık ton (.new-task-btn ile tutarlı) */
     .board-col-add-btn {
       display:flex; align-items:center; justify-content:center; gap:8px;
-      padding:11px 12px; border:1.5px solid var(--border2);
-      border-radius:12px; background:#fff;
-      color:var(--text2); font-size:.86rem; font-weight:600;
+      padding:11px 12px; border:1.5px solid var(--accent-bg);
+      border-radius:12px; background:var(--accent-bg);
+      color:var(--accent); font-size:.86rem; font-weight:600;
       cursor:pointer; width:100%; font-family:inherit;
-      box-shadow: 0 2px 6px rgba(18, 163, 227, 0.06), 0 1px 2px rgba(0,0,0,.03);
+      box-shadow: 0 2px 6px rgba(18, 163, 227, 0.10), 0 1px 2px rgba(0,0,0,.03);
       transition: all .15s ease;
     }
     .board-col-add-btn:hover {
       border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-bg);
-      box-shadow: 0 4px 12px rgba(18, 163, 227, 0.18), 0 2px 4px rgba(0,0,0,.04);
+      background: #D6EDFA;
+      box-shadow: 0 4px 12px rgba(18, 163, 227, 0.22), 0 2px 4px rgba(0,0,0,.04);
       transform: translateY(-1px);
     }
     .board-col-add-btn:active {
       transform: translateY(0);
-      box-shadow: 0 1px 3px rgba(18, 163, 227, 0.10);
+      box-shadow: 0 1px 3px rgba(18, 163, 227, 0.12);
     }
     .board-col-add-btn .mi { font-size:18px; }
-    /* mainBody üstündeki "+ Yeni görev" butonu (Custom/DAY/Yıldızlı/Tüm Listeler) — Lifted stil */
+    /* mainBody üstündeki "+ Yeni görev" butonu (Custom/DAY/Yıldızlı/Tüm Listeler) — Accent açık ton */
     .new-task-btn {
       display:flex; align-items:center; justify-content:center; gap:8px;
       width:100%; padding:13px 14px; margin-bottom:6px;
-      border:1.5px solid var(--border2); border-radius:12px;
-      background:#fff; color:var(--text2);
+      border:1.5px solid var(--accent-bg); border-radius:12px;
+      background:var(--accent-bg); color:var(--accent);
       font-size:.9rem; font-weight:600; font-family:inherit;
       cursor:pointer;
-      box-shadow: 0 2px 6px rgba(18, 163, 227, 0.06), 0 1px 2px rgba(0,0,0,.03);
+      box-shadow: 0 2px 6px rgba(18, 163, 227, 0.10), 0 1px 2px rgba(0,0,0,.03);
       transition: all .15s ease;
     }
     .new-task-btn:hover {
       border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-bg);
-      box-shadow: 0 4px 12px rgba(18, 163, 227, 0.18), 0 2px 4px rgba(0,0,0,.04);
+      background: #D6EDFA;
+      box-shadow: 0 4px 12px rgba(18, 163, 227, 0.22), 0 2px 4px rgba(0,0,0,.04);
       transform: translateY(-1px);
     }
     .new-task-btn:active {
       transform: translateY(0);
-      box-shadow: 0 1px 3px rgba(18, 163, 227, 0.10);
+      box-shadow: 0 1px 3px rgba(18, 163, 227, 0.12);
     }
     .new-task-btn .mi { font-size:20px; line-height:1; }
 
@@ -767,7 +1395,8 @@
     }
     .ym-mini-day.today:hover { background:var(--accent); color:#fff; }
     .ym-mini-day.selected:not(.today) {
-      background:var(--accent-bg); color:var(--accent); font-weight:600;
+      background:transparent; color:var(--accent); font-weight:700;
+      box-shadow:inset 0 0 0 2px var(--accent);
     }
     /* Hafta seçici (ctx='week') modunda mevcut haftanın günleri vurgulu */
     .ym-mini-day.in-week:not(.today):not(.has-star):not(.adjacent) {
@@ -1875,8 +2504,6 @@
     }
     .add-icon-btn .bi-icon { width:18px; height:18px; }
     .add-icon-btn .bi-icon svg { width:100%; height:100%; }
-    /* Süre ana butonu seçili durumda ikon yerine değer yazısı (genişleyebilir) */
-    #addMinsMainBtn.has-selection { width:auto; min-width:32px; padding:0 8px; background:var(--accent-bg); color:var(--accent); }
     .add-icon-btn:hover { background:var(--accent-bg); color:var(--accent); }
     .add-icon-btn.active { background:var(--accent-bg); color:var(--accent); }
     .add-icon-btn.active .mi { color:var(--accent); }
@@ -1973,9 +2600,8 @@
       display:inline-flex; align-items:center; gap:4px;
     }
     .add-balance-chip .bi-icon { width:14px; height:14px; }
-    /* Denge / Süre ana ikon butonları seçili durumda accent renge düşer */
-    #addBalanceMainBtn.has-selection,
-    #addMinsMainBtn.has-selection {
+    /* Denge ana ikon butonu seçili durumda accent renge düşer */
+    #addBalanceMainBtn.has-selection {
       color:var(--accent);
     }
     #addBalanceMainBtn.has-selection[data-cat="mental"]    { color:#1f5b8c; }
@@ -2537,8 +3163,12 @@
       border-radius:50%; cursor:pointer; transition:background .12s,color .12s; padding:0;
     }
     .dtp-day:hover    { background:#eef1fd; color:#12A3E3; }
-    .dtp-day.today    { font-weight:700; color:#12A3E3; }
-    .dtp-day.selected { background:#12A3E3 !important; color:#fff !important; font-weight:700; }
+    .dtp-day.today    { background:#12A3E3; color:#fff; font-weight:700; }
+    .dtp-day.selected:not(.today) {
+      background:transparent; color:#12A3E3; font-weight:700;
+      box-shadow:inset 0 0 0 2px #12A3E3;
+    }
+    .dtp-day.today.selected { background:#12A3E3; color:#fff; box-shadow:none; }
     .dtp-day.empty    { visibility:hidden; pointer-events:none; }
     /* Saat/dakika range slider'lar — kaydırarak seçim */
     .dtp-slider-row {
@@ -2566,8 +3196,10 @@
     .dtp-slider#dtpHourSlider {
       background: linear-gradient(
         to right,
-        #c7e6f5 0%, #c7e6f5 52.17%,
-        #fbd9b8 52.17%, #fbd9b8 100%
+        #F4B8B8 0%,      #F4B8B8 19.565%,   /* 0-4 kırmızı (geç gece) */
+        #c7e6f5 19.565%, #c7e6f5 50%,       /* 5-11 mavi (sabah) */
+        #ECF1B8 50%,     #ECF1B8 93.478%,   /* 12-21 chartreuse (öğleden sonra) */
+        #F4B8B8 93.478%, #F4B8B8 100%       /* 22-23 kırmızı (geç gece) */
       );
     }
     .dtp-slider::-webkit-slider-thumb {
@@ -2582,6 +3214,53 @@
       cursor:grab; border:2px solid #fff;
       box-shadow:0 1px 4px rgba(0,0,0,.18); transition:background .12s;
     }
+    /* Süre slider'ı + snap marker'ları */
+    .dtp-mins-row {
+      display:flex; flex-direction:column; gap:8px;
+      padding:10px 14px 6px; border-top:1px solid #f2f3f8;
+    }
+    .dtp-mins-head { display:flex; align-items:center; gap:8px; }
+    .dtp-mins-tag {
+      flex:1; min-width:0; font-size:.68rem; font-weight:600; color:#fff;
+      background:#12A3E3; padding:4px 8px; border-radius:10px;
+      text-align:center; white-space:pre-line; line-height:1.15;
+      opacity:0; transform:translateY(-2px);
+      transition:opacity .14s ease, transform .14s ease;
+    }
+    .dtp-mins-tag.show { opacity:1; transform:translateY(0); }
+    .dtp-mins-tag.limit { background:#E9731C; }
+    .dtp-mins-track { position:relative; padding:6px 0 14px; }
+    .dtp-mins-slider { width:100%; }
+    .dtp-mins-marks {
+      position:absolute; left:9px; right:9px; bottom:0; height:12px;
+      pointer-events:none;
+    }
+    .dtp-mins-mark {
+      position:absolute; top:0; width:2px; height:6px;
+      background:#cbd5e1; border-radius:1px; transform:translateX(-50%);
+      transition:background .12s, height .12s, box-shadow .12s;
+    }
+    .dtp-mins-mark::after {
+      content:attr(data-mins); position:absolute; top:8px; left:50%;
+      transform:translateX(-50%); font-size:.58rem; color:#94a3b8;
+      font-weight:600; line-height:1;
+    }
+    .dtp-mins-mark.near {
+      background:#5fb4dd; height:8px;
+      box-shadow:0 0 0 2px rgba(18,163,227,.14);
+      animation:dtpMinsPulse 1.1s ease-in-out infinite;
+    }
+    .dtp-mins-mark.near::after { color:#12A3E3; }
+    @keyframes dtpMinsPulse {
+      0%, 100% { box-shadow:0 0 0 2px rgba(18,163,227,.14); }
+      50%      { box-shadow:0 0 0 5px rgba(18,163,227,.28); }
+    }
+    .dtp-mins-mark.hit {
+      background:#12A3E3; height:9px;
+      box-shadow:0 0 0 3px rgba(18,163,227,.18);
+      animation:none;
+    }
+    .dtp-mins-mark.hit::after { color:#12A3E3; }
     .dtp-footer {
       display:flex; justify-content:space-between; align-items:center;
       padding:8px 14px 12px;
@@ -2594,8 +3273,10 @@
     .dtp-btn-ok {
       font-size:.8rem; color:#fff; background:#12A3E3; border:none; border-radius:8px;
       padding:6px 20px; cursor:pointer; font-weight:600;
+      transition:background .15s, opacity .15s;
     }
-    .dtp-btn-ok:hover { background:#3a58e2; }
+    .dtp-btn-ok:hover:not(:disabled) { background:#3a58e2; }
+    .dtp-btn-ok:disabled { background:#cbd5e1; cursor:not-allowed; opacity:.7; }
 
     /* Toast */
     .toast {
@@ -3347,6 +4028,15 @@
       transition:border-color .15s; font-family:inherit;
     }
     .sinput:focus { border-color:var(--accent); }
+    .stime {
+      padding:5px 8px; border:1.5px solid var(--input-border);
+      border-radius:8px; font-size:.78rem; color:var(--text);
+      background:var(--input-bg); outline:none;
+      font-family:inherit; transition:border-color .15s;
+    }
+    .stime:focus { border-color:var(--accent); }
+    .stime:disabled { opacity:.5; cursor:not-allowed; }
+    .reminder-ctrl { display:flex; align-items:center; gap:10px; }
     /* Button */
     .sbtn {
       padding:7px 14px; border:1.5px solid var(--border);
@@ -3503,14 +4193,17 @@
       <div class="sidebar-lists" id="sidebarLists"></div>
 
       <div class="sidebar-footer">
-        <div class="footer-actions">
-          <button class="footer-btn" onclick="openSettings()" title="Ayarlar" data-tooltip="Ayarlar">
-            <span class="mi s18">settings</span><span class="footer-btn-label">Ayarlar</span>
-          </button>
-          <button class="footer-btn danger" onclick="logout()" title="Çıkış" data-tooltip="Çık">
-            <span class="mi s18">logout</span><span class="footer-btn-label">Çık</span>
-          </button>
-        </div>
+        <button class="profile-btn" id="profileBtn" onclick="toggleProfileMenu(event)" title="Profil" data-tooltip="Profil">
+          <span class="profile-avatar" id="profileAvatar">
+            <img class="profile-img" id="profileImg" style="display:none">
+            <span class="profile-initials" id="profileInitials">?</span>
+          </span>
+          <span class="profile-meta">
+            <span class="profile-name" id="profileName">Kullanıcı</span>
+            <span class="profile-email" id="profileEmail">—</span>
+          </span>
+          <span class="profile-badge" id="profileBadge" style="display:none">0</span>
+        </button>
         <button class="btn-new-list" id="btnNewList" onclick="openNewList()" title="Yeni liste oluştur" data-tooltip="Yeni liste">
           <span class="mi s18">add</span><span class="btn-new-list-text">Yeni liste</span>
         </button>
@@ -3539,13 +4232,13 @@
           <input style="display:none" type="password" name="prevent-autofill-pass">
           <div class="add-main-row">
             <span class="add-plus">+</span>
-            <textarea id="taskInput" rows="1" placeholder="Yeni görev..." autocomplete="off" data-form-type="other" data-lpignore="true" maxlength="1071"></textarea>
+            <textarea id="taskInput" rows="1" placeholder="Yeni görev…" autocomplete="off" data-form-type="other" data-lpignore="true" maxlength="1071"></textarea>
           </div>
           <div class="add-detail" id="addDetail">
             <!-- Notlar -->
             <div class="add-notes-row">
               <span class="mi s16 add-notes-icon">notes</span>
-              <textarea id="addNotesInput" placeholder="Notlar..." rows="2" autocomplete="off" data-form-type="other"></textarea>
+              <textarea id="addNotesInput" placeholder="Notlar…" rows="2" autocomplete="off" data-form-type="other"></textarea>
             </div>
             <!-- Tek satır: ! 📅 ⊕ ⏱ 🔗 ☑ (yıldız ve liste header'a taşındı) -->
             <div class="add-icon-row">
@@ -3557,8 +4250,8 @@
                 <div class="add-prio-picker" id="addPrioPicker" style="display:none"></div>
               </div>
               <button class="add-icon-btn" id="addDueBtn"
-                onclick="dtpOpen(this, addDueValue||null, v=>{addDueValue=v; renderAddDueLabel();})"
-                title="Tarih ekle"><span class="mi s14">calendar_month</span></button>
+                onclick="dtpOpen(this, addDueValue||null, (v,m)=>{addDueValue=v; addEstimatedMinutes=m; renderAddDueLabel(); if(typeof renderAddMinsChips==='function') renderAddMinsChips(); if(addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation();}, addEstimatedMinutes)"
+                title="Tarih & süre"><span class="mi s14">calendar_month</span></button>
               <div class="add-balance-wrap">
                 <button class="add-icon-btn" id="addBalanceMainBtn" type="button" onclick="toggleBalancePicker(event)" title="Denge">
                   <span class="bi-icon" id="addBalanceMainIcon"></span>
@@ -3567,17 +4260,6 @@
                   <span class="add-balance-chip" data-cat="spiritual" onclick="toggleAddBalance('spiritual')"></span>
                   <span class="add-balance-chip" data-cat="physical"  onclick="toggleAddBalance('physical')"></span>
                   <span class="add-balance-chip" data-cat="mental"    onclick="toggleAddBalance('mental')"></span>
-                </div>
-              </div>
-              <div class="add-mins-wrap">
-                <button class="add-icon-btn" id="addMinsMainBtn" type="button" onclick="toggleMinsPicker(event)" title="Süre">
-                  <span id="addMinsMainContent"><span class="mi s14">timer</span></span>
-                </button>
-                <div class="add-mins-chips" id="addMinsChips" style="display:none">
-                  <span class="add-mins-chip" data-mins="5"  onclick="toggleAddMins(5)"  title="Çok kısa">5dk</span>
-                  <span class="add-mins-chip" data-mins="25" onclick="toggleAddMins(25)" title="Pomodoro">25dk</span>
-                  <span class="add-mins-chip" data-mins="60" onclick="toggleAddMins(60)" title="Yüksek Konsantrasyon">60dk</span>
-                  <span class="add-mins-chip" data-mins="90" onclick="toggleAddMins(90)" title="Derin Çalışma">90dk</span>
                 </div>
               </div>
               <button class="add-icon-btn" id="addLinkBtn" onclick="toggleAddLinkInput()" title="Bağlantı ekle">
@@ -3610,7 +4292,7 @@
             <div class="add-subtasks-popup" id="addSubtasksPopup" style="display:none">
               <div id="addSubtasksList"></div>
               <div class="add-subtask-input-row">
-                <input class="add-subtask-input" id="addSubtaskInput" placeholder="Alt görev ekle..." autocomplete="off">
+                <input class="add-subtask-input" id="addSubtaskInput" placeholder="Alt görev ekle…" autocomplete="off">
               </div>
             </div>
             <!-- Action row -->
@@ -3764,6 +4446,22 @@
       <span class="dtp-slider-value" id="dtpMinVal">--</span>
     </div>
   </div>
+  <div class="dtp-mins-row">
+    <div class="dtp-mins-head">
+      <span class="dtp-slider-label">SÜRE</span>
+      <span class="dtp-mins-tag" id="dtpMinsTag"></span>
+      <span class="dtp-slider-value" id="dtpMinsVal">--</span>
+    </div>
+    <div class="dtp-mins-track">
+      <input type="range" class="dtp-slider dtp-mins-slider" id="dtpMinsSlider" min="0" max="180" step="5" value="30">
+      <div class="dtp-mins-marks">
+        <span class="dtp-mins-mark" data-mins="5"  data-label="Çok Kısa"             style="left:2.78%"></span>
+        <span class="dtp-mins-mark" data-mins="25" data-label="Pomodoro"             style="left:13.89%"></span>
+        <span class="dtp-mins-mark" data-mins="60" data-label="Yüksek Konsantrasyon" style="left:33.33%"></span>
+        <span class="dtp-mins-mark" data-mins="90" data-label="Derin Çalışma"        style="left:50%"></span>
+      </div>
+    </div>
+  </div>
   <div class="dtp-footer">
     <button class="dtp-btn-clear" onclick="dtpClear()" title="Tarihi temizle">Temizle</button>
     <button class="dtp-btn-ok" onclick="dtpConfirm()" title="Tarihi onayla">Tamam</button>
@@ -3782,6 +4480,165 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Stats modal -->
+<div class="stats-overlay" id="statsOverlay" onclick="closeStats()"></div>
+<div class="stats-modal" id="statsModal">
+  <div class="stats-hdr">
+    <h2><span class="mi s18" style="vertical-align:middle;margin-right:6px;">analytics</span>İstatistikler</h2>
+    <div class="stats-range">
+      <button data-range="week"  onclick="setStatsRange('week')">Hafta</button>
+      <button data-range="month" onclick="setStatsRange('month')">Ay</button>
+      <button data-range="year"  onclick="setStatsRange('year')">Yıl</button>
+      <button data-range="all"   onclick="setStatsRange('all')">Tümü</button>
+    </div>
+    <button class="stats-hdr-close" onclick="closeStats()" title="Kapat"><span class="mi s20">close</span></button>
+  </div>
+  <div class="stats-body" id="statsBody">
+    <!-- 4 özet kartı -->
+    <div class="stats-cards" id="statsCards"></div>
+
+    <!-- Aktivite heatmap -->
+    <div class="stats-section">
+      <h3>Aktivite (son 12 ay)</h3>
+      <div class="stats-heatmap" id="statsHeatmap"></div>
+      <div class="stats-heatmap-summary" id="statsHeatmapSummary"></div>
+    </div>
+
+    <!-- Denge dağılımı + Liste üretkenliği yan yana -->
+    <div class="stats-row2">
+      <div class="stats-section">
+        <h3>Denge dağılımı</h3>
+        <div id="statsBalance"></div>
+      </div>
+      <div class="stats-section">
+        <h3>Liste başına görev</h3>
+        <div id="statsLists"></div>
+      </div>
+    </div>
+
+    <!-- Pomodoro -->
+    <div class="stats-section">
+      <h3>Pomodoro (son 30 gün)</h3>
+      <div id="statsPomo"></div>
+    </div>
+
+    <!-- Rütin (placeholder) -->
+    <div class="stats-section">
+      <h3>Rütin kullanımı</h3>
+      <div class="stats-soon">Yakında — rütinler aktive olunca burası dolacak.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Bildirim Sayfası (büyük modal: liste + detay) -->
+<div class="notif-page-overlay" id="notifPageOverlay" onclick="closeNotifPage()"></div>
+<div class="notif-page" id="notifPage">
+  <div class="np-hdr">
+    <h2><span class="mi s18" style="vertical-align:middle;margin-right:6px;">notifications</span>Bildirimler</h2>
+    <div class="np-actions">
+      <button class="np-icon-btn" onclick="markAllNotifReadInPage()" title="Hepsini okundu">
+        <span class="mi s18">done_all</span>
+      </button>
+      <button class="np-icon-btn" onclick="clearAllNotifs()" title="Hepsini temizle">
+        <span class="mi s18">clear_all</span>
+      </button>
+      <button class="np-icon-btn" onclick="closeNotifPage();openSettingsTab('s-notif')" title="Ayarlar">
+        <span class="mi s18">settings</span>
+      </button>
+      <button class="np-icon-btn" onclick="closeNotifPage()" title="Kapat">
+        <span class="mi s20">close</span>
+      </button>
+    </div>
+  </div>
+  <div class="np-body">
+    <div class="np-side">
+      <div class="np-tabs">
+        <button data-tab="new" onclick="setNpTab('new')">
+          Yeni <span class="np-tab-count" id="npCountNew">0</span>
+        </button>
+        <button data-tab="read" onclick="setNpTab('read')">
+          Okunanlar <span class="np-tab-count" id="npCountRead">0</span>
+        </button>
+      </div>
+      <div class="np-list" id="npList"></div>
+    </div>
+    <div class="np-detail" id="npDetail">
+      <div class="np-detail-empty">Detay için bir bildirim seç</div>
+    </div>
+  </div>
+</div>
+
+<!-- Bildirim Merkezi popover -->
+<div class="notif-center-overlay" id="notifCenterOverlay" onclick="closeNotifCenter()"></div>
+<div class="notif-center" id="notifCenter">
+  <div class="nc-hdr">
+    <span class="nc-title">Bildirimler</span>
+    <button class="nc-mark-all" onclick="markAllNotifRead()" title="Hepsini okundu işaretle">
+      <span class="mi s16">done_all</span>
+    </button>
+    <button class="nc-settings" onclick="closeNotifCenter();openSettingsTab('s-notif')" title="Bildirim ayarları">
+      <span class="mi s16">settings</span>
+    </button>
+    <button class="nc-close" onclick="closeNotifCenter()" title="Kapat">
+      <span class="mi s18">close</span>
+    </button>
+  </div>
+  <div class="nc-body" id="ncBody"></div>
+</div>
+
+<!-- Profile dropdown menu -->
+<div class="profile-menu-overlay" id="profileMenuOverlay" onclick="closeProfileMenu()"></div>
+<div class="profile-menu" id="profileMenu">
+  <div class="pm-header">
+    <div class="pm-avatar-lg" id="pmAvatarLg" onclick="document.getElementById('avatarInput')?.click()" title="Resmi değiştir">
+      <img class="pm-avatar-img" id="pmAvatarImg" style="display:none">
+      <span class="pm-initials-lg">?</span>
+      <span class="pm-avatar-overlay">Değiştir</span>
+    </div>
+    <div class="pm-info">
+      <div class="pm-name">Kullanıcı</div>
+      <div class="pm-email">—</div>
+    </div>
+  </div>
+  <div class="pm-sep"></div>
+  <button class="pm-item" onclick="openNotifPage(event)">
+    <span class="mi s18">notifications</span>
+    <span class="pm-item-label">Bildirimler</span>
+    <span class="pm-item-badge" id="pmNotifBadge" style="display:none">0</span>
+  </button>
+  <button class="pm-item" onclick="openStats()">
+    <span class="mi s18">analytics</span>
+    <span class="pm-item-label">İstatistikler</span>
+  </button>
+  <div class="pm-item pm-theme-row">
+    <span class="mi s18">contrast</span>
+    <span class="pm-item-label">Tema</span>
+    <div class="pm-theme-segment">
+      <button data-theme="light"  onclick="quickTheme('light')">Açık</button>
+      <button data-theme="dark"   onclick="quickTheme('dark')">Koyu</button>
+      <button data-theme="system" onclick="quickTheme('system')">Sistem</button>
+    </div>
+  </div>
+  <div class="pm-sep"></div>
+  <button class="pm-item" onclick="closeProfileMenu();openSettings()">
+    <span class="mi s18">settings</span>
+    <span class="pm-item-label">Ayarlar</span>
+  </button>
+  <button class="pm-item" onclick="closeProfileMenu();window.open('/yardim','_blank')">
+    <span class="mi s18">help_outline</span>
+    <span class="pm-item-label">Yardım</span>
+  </button>
+  <button class="pm-item" onclick="closeProfileMenu();window.open('/','_blank')">
+    <span class="mi s18">info</span>
+    <span class="pm-item-label">Hakkında</span>
+  </button>
+  <div class="pm-sep"></div>
+  <button class="pm-item pm-danger" onclick="closeProfileMenu();logout()">
+    <span class="mi s18">logout</span>
+    <span class="pm-item-label">Çıkış</span>
+  </button>
+</div>
 
 <div class="pomo-undo-toast" id="pomoUndoToast" style="display:none">
   <span class="pomo-undo-msg" id="pomoUndoMsg"></span>
@@ -3825,6 +4682,18 @@
         <div class="sgroup">
           <div class="sgroup-title">Profil</div>
           <div class="srow">
+            <div class="srow-info"><div class="srow-label">Profil Resmi</div><div class="srow-desc">JPG/PNG, en fazla 2 MB</div></div>
+            <div class="srow-ctrl avatar-uploader">
+              <div class="avatar-preview" id="sAvatarPreview">
+                <img id="sAvatarImg" style="display:none">
+                <span id="sAvatarInit">?</span>
+              </div>
+              <input type="file" id="avatarInput" accept="image/png,image/jpeg" style="display:none" onchange="onAvatarSelected(event)">
+              <button class="sbtn" onclick="document.getElementById('avatarInput').click()">Değiştir</button>
+              <button class="sbtn sbtn-danger" id="sAvatarRemove" onclick="removeAvatar()" style="display:none">Kaldır</button>
+            </div>
+          </div>
+          <div class="srow">
             <div class="srow-info"><div class="srow-label">Görünen Ad</div><div class="srow-desc">Uygulama başlığında görünür</div></div>
             <div class="srow-ctrl"><input class="sinput" id="sDisplayName" placeholder="Adınız" style="width:150px"></div>
           </div>
@@ -3842,7 +4711,7 @@
           <div class="srow">
             <div class="srow-info">
               <div class="srow-label">Durum</div>
-              <div class="srow-desc" id="tfaStatusDesc">Yükleniyor...</div>
+              <div class="srow-desc" id="tfaStatusDesc">Yükleniyor…</div>
             </div>
             <div id="tfaStatusBadge" class="tfa-status off"><span class="mi s16">shield</span><span>Kapalı</span></div>
           </div>
@@ -3886,10 +4755,6 @@
               <option value="light">Açık</option>
               <option value="dark">Koyu</option>
             </select>
-          </div>
-          <div class="srow">
-            <div class="srow-info"><div class="srow-label">Vurgu Rengi</div></div>
-            <div class="accent-chips" id="accentChips"></div>
           </div>
         </div>
         <div class="sgroup">
@@ -3960,14 +4825,51 @@
               <option value="none">Kapalı</option>
               <option value="30min">30 dk önce</option>
               <option value="1hour">1 saat önce</option>
+              <option value="3hour">3 saat önce</option>
+              <option value="12hour">12 saat önce</option>
               <option value="1day">1 gün önce</option>
             </select>
           </div>
         </div>
         <div class="sgroup">
+          <div class="sgroup-title">Hatırlatıcılar</div>
+          <div class="srow">
+            <div class="srow-info"><div class="srow-label">Geciken görevler</div><div class="srow-desc">Sayfa açıldığında geciken görev varsa uyarır</div></div>
+            <label class="stoggle"><input type="checkbox" id="sR_overdue"><span class="stoggle-slider"></span></label>
+          </div>
+          <div class="srow">
+            <div class="srow-info"><div class="srow-label">Dün tamamlanmayan görevler</div><div class="srow-desc">Her sabah seçilen saatte — dünden kalan işler</div></div>
+            <div class="srow-ctrl reminder-ctrl">
+              <input type="time" class="stime" id="sR_yesterdayIncompleteTime" value="09:00">
+              <label class="stoggle"><input type="checkbox" id="sR_yesterdayIncomplete"><span class="stoggle-slider"></span></label>
+            </div>
+          </div>
+          <div class="srow">
+            <div class="srow-info"><div class="srow-label">Geçen hafta tamamlanmayanlar</div><div class="srow-desc">Pazartesi seçilen saatte — geçtiğimiz haftadan kalanlar</div></div>
+            <div class="srow-ctrl reminder-ctrl">
+              <input type="time" class="stime" id="sR_lastWeekIncompleteTime" value="09:00">
+              <label class="stoggle"><input type="checkbox" id="sR_lastWeekIncomplete"><span class="stoggle-slider"></span></label>
+            </div>
+          </div>
+          <div class="srow">
+            <div class="srow-info"><div class="srow-label">Pazar — haftalık plan</div><div class="srow-desc">Pazar seçilen saatte — önümüzdeki haftayı planla</div></div>
+            <div class="srow-ctrl reminder-ctrl">
+              <input type="time" class="stime" id="sR_sundayWeekPlanTime" value="19:00">
+              <label class="stoggle"><input type="checkbox" id="sR_sundayWeekPlan"><span class="stoggle-slider"></span></label>
+            </div>
+          </div>
+          <div class="srow">
+            <div class="srow-info"><div class="srow-label">Yarının planını gözden geçir</div><div class="srow-desc">Her gün seçilen saatte — günü bitirmeden planla</div></div>
+            <div class="srow-ctrl reminder-ctrl">
+              <input type="time" class="stime" id="sR_dailyTomorrowPlanTime" value="21:30">
+              <label class="stoggle"><input type="checkbox" id="sR_dailyTomorrowPlan"><span class="stoggle-slider"></span></label>
+            </div>
+          </div>
+        </div>
+        <div class="sgroup">
           <div class="sgroup-title">Bildirim Durumu</div>
           <div class="srow">
-            <div class="srow-info"><div class="srow-label">İzin Durumu</div><div class="srow-desc" id="sNotifStatus">Kontrol ediliyor...</div></div>
+            <div class="srow-info"><div class="srow-label">İzin Durumu</div><div class="srow-desc" id="sNotifStatus">Kontrol ediliyor…</div></div>
             <button class="sbtn" onclick="requestNotifPermission()">İzin İste</button>
           </div>
         </div>
@@ -4275,6 +5177,9 @@ async function initApp() {
   hideSplash();
   document.getElementById('appBox').style.display='block';
   if (appSettings.notifEnabled) setTimeout(scheduleReminders, 2000);
+  startReminderScheduler();
+  // Sistem makalelerini bildirim merkezine inject et (idempotent)
+  if (typeof loadSystemArticles === 'function') loadSystemArticles();
   connectRealtime();
   pomoLoadSettings();
   pomoRestore();
@@ -4892,19 +5797,19 @@ function renderSidebar() {
     name.textContent = l.name;
 
     const badge = document.createElement('span');
-    badge.className   = 'list-count';
-    badge.textContent = count > 0 ? count : '';
+    badge.className   = 'list-count' + (count > 0 ? '' : ' empty');
+    badge.innerHTML   = `<span class="lc-num">${count > 0 ? count : ''}</span><span class="lc-more" title="Seçenekler">⋯</span>`;
+    badge.querySelector('.lc-more').onclick = (e) => {
+      e.stopPropagation();
+      openListCtxMenu(badge, l.id);
+    };
 
-    const moreBtn = document.createElement('button');
-    moreBtn.className   = 'btn-list-more';
-    moreBtn.title       = 'Seçenekler';
-    moreBtn.innerHTML = mi('more_horiz', 18);
-    moreBtn.onclick     = (e) => { e.stopPropagation(); openListCtxMenu(moreBtn, l.id); };
+    // Sağ tık (mobilde long-press) ile aynı menü
+    item.oncontextmenu = (e) => { e.preventDefault(); openListCtxMenu(item, l.id); };
 
     item.appendChild(iconEl);
     item.appendChild(name);
     item.appendChild(badge);
-    item.appendChild(moreBtn);
     container.appendChild(item);
     initListDrag(item, l.id);
   });
@@ -5623,7 +6528,6 @@ function taskInputAutoGrow() {
 // Görev düzenleme alanındaki tüm picker/popup'lar — tek liste, tek yerden yönet
 const _PICKERS = [
   { popup: 'addBalanceChips',  btn: 'addBalanceMainBtn' },
-  { popup: 'addMinsChips',     btn: 'addMinsMainBtn' },
   { popup: 'addListChips',     btn: 'addListMainBtn' },
   { popup: 'addPrioPicker',    btn: 'addPrioBtn' },
   { popup: 'addLinkPopup',     btn: 'addLinkBtn' },
@@ -5781,57 +6685,15 @@ function renderAddBalanceChips() {
   }
   if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation(); pushUndoSnapshot("chip");
 }
+// Süre seçimi artık DTP popover'ı içinde slider ile yapılıyor.
+// Bu fonksiyonlar geriye uyumluluk için no-op tutuluyor (eski çağrı noktaları kırılmasın diye).
 function toggleAddMins(mins) {
   addEstimatedMinutes = (addEstimatedMinutes === mins) ? null : mins;
-  renderAddMinsChips();
-  // Seçim sonrası picker'ı otomatik kapat
-  if (addEstimatedMinutes != null) {
-    const chips = document.getElementById('addMinsChips');
-    if (chips) chips.style.display = 'none';
-  }
-  if (typeof lcUpdateGhostBlock === 'function') lcUpdateGhostBlock();
+  if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation();
 }
-function toggleMinsPicker(e) {
-  if (e) e.stopPropagation();
-  const chips = document.getElementById('addMinsChips');
-  if (!chips) return;
-  const open = chips.style.display !== 'none' && chips.style.display !== '';
-  if (open) {
-    chips.style.display = 'none';
-  } else {
-    _closeOtherPickers('addMinsChips');
-    chips.style.display = 'flex';
-    clampChipPopupToPopover(chips, document.getElementById('addMinsMainBtn'));
-  }
-}
-function renderAddMinsChips() {
-  document.querySelectorAll('#addMinsChips .add-mins-chip').forEach(el => {
-    const m = parseInt(el.dataset.mins, 10);
-    el.classList.toggle('active', addEstimatedMinutes === m);
-  });
-  // Ana butonun içeriği: seçili ise "Xdk" yazısı, değilse kronometre ikonu
-  const mainContent = document.getElementById('addMinsMainContent');
-  const mainBtn     = document.getElementById('addMinsMainBtn');
-  if (mainContent) {
-    if (addEstimatedMinutes != null && addEstimatedMinutes > 0) {
-      mainContent.innerHTML = `<span class="add-mins-value">${addEstimatedMinutes}dk</span>`;
-      mainBtn?.classList.add('has-selection');
-    } else {
-      mainContent.innerHTML = '<span class="mi s14">timer</span>';
-      mainBtn?.classList.remove('has-selection');
-    }
-  }
-  const inp = document.getElementById('addMinsCustomInp');
-  if (inp) inp.style.display = 'none';
-  if (addEditingTaskId) scheduleUpdateFromAddWrap(); else scheduleDraftCreation(); pushUndoSnapshot("chip");
-}
-function openAddMinsCustom() {
-  const inp = document.getElementById('addMinsCustomInp');
-  if (!inp) return;
-  inp.style.display = '';
-  inp.value = (addEstimatedMinutes != null && ![5,25,60,90].includes(addEstimatedMinutes)) ? addEstimatedMinutes : '';
-  inp.focus();
-}
+function toggleMinsPicker() {}
+function renderAddMinsChips() {}
+function openAddMinsCustom() {}
 
 function isAddFormDirty() {
   const title = document.getElementById('taskInput')?.value.trim();
@@ -5957,10 +6819,14 @@ function scheduleUpdate(task, patch) {
   }, 700);
 }
 
-async function updateDue(task, val) {
+async function updateDue(task, val, mins) {
   const due_at = val ? new Date(val).toISOString() : null;
-  await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify({due_at})});
-  task.due_at = due_at; render();
+  const patch = { due_at };
+  if (mins !== undefined) patch.estimated_minutes = mins;
+  await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify(patch)});
+  task.due_at = due_at;
+  if (mins !== undefined) task.estimated_minutes = mins;
+  render();
 }
 
 /* ── Add form helpers ── */
@@ -6540,6 +7406,7 @@ function renderAllListsPage() {
 
 function render() {
   try { renderSidebarCalendar(); } catch(e) { console.error('renderSidebarCalendar:', e); }
+  try { renderProfileButton(); } catch(e) {}
   if (!activeListId) return;
   if (activeListId === BOARD_LIST_ID)     { renderBoard();              return; }
   if (activeListId === ROUTINES_LIST_ID)  { renderRoutinesPlaceholder(); return; }
@@ -6630,7 +7497,7 @@ function buildTaskCard(task, isDone) {
 
   const chk = document.createElement('div');
   chk.className = `task-check${task.done?' checked':''}`;
-  chk.title     = task.done ? 'Tamamlandıyı geri al' : 'Tamamlandı yap';
+  chk.title     = task.done ? 'Geri al' : 'Tamamlandı yap';
   chk.onclick   = (e) => {
     e.stopPropagation();   // kart click handler'ı (popover açma vs.) çalışmasın → animasyon yarıda kalmasın
     e.preventDefault();
@@ -6717,7 +7584,7 @@ function buildTaskCard(task, isDone) {
   if (due && !isCompletedWithStamp) {
     const chip = mkChip(`tib-due ${due.cls}`, 'calendar_today', due.label, e => {
       e.stopPropagation();
-      dtpOpen(chip, task.due_at, async v => { await updateDue(task, v); });
+      dtpOpen(chip, task.due_at, async (v, m) => { await updateDue(task, v, m); }, task.estimated_minutes);
     });
     chip.title = due.label;
     infoBar.appendChild(chip);
@@ -6756,8 +7623,11 @@ function buildTaskCard(task, isDone) {
     chip.title = `${cat.label}${task.estimated_minutes ? ' · ' + fmtBalanceMinutes(task.estimated_minutes) : ''}`;
     infoBar.appendChild(chip);
   } else if (task.estimated_minutes) {
-    // Kategori yok ama süre var → sadece süre chip'i
-    const chip = mkChip('tib-mins', 'schedule', fmtBalanceMinutes(task.estimated_minutes));
+    // Kategori yok ama süre var → sadece süre chip'i (tıklayınca tarih+süre popover'ı açılır)
+    const chip = mkChip('tib-mins', 'schedule', fmtBalanceMinutes(task.estimated_minutes), e => {
+      e.stopPropagation();
+      dtpOpen(chip, task.due_at, async (v, m) => { await updateDue(task, v, m); }, task.estimated_minutes);
+    });
     infoBar.appendChild(chip);
   }
 
@@ -6907,7 +7777,7 @@ function buildSubRow(sub,container) {
   const row=document.createElement('div'); row.className='subtask-row';
   const chk=document.createElement('div');
   chk.className=`sub-check${sub.done?' checked':''}`;
-  chk.title=sub.done ? 'Tamamlandıyı geri al' : 'Tamamlandı yap';
+  chk.title=sub.done ? 'Geri al' : 'Tamamlandı yap';
   chk.onclick=()=>toggleTask(sub);
   const txt=document.createElement('div');
   txt.contentEditable = sub.done ? 'false' : 'true';
@@ -7017,7 +7887,7 @@ const BALANCE_STATUS = {
 };
 const BALANCE_MESSAGES = {
   no_data: {
-    message: 'Bugün için henüz Zihin–Beden–Kalp kategorisinde görev yok.',
+    message: 'Bugün için henüz Zihin-Beden-Kalp kategorisinde görev yok.',
     suggestion:'Bir görevin kategorisini seçtiğinde dengen burada görünecek.',
   },
   balanced: {
@@ -7151,9 +8021,9 @@ function calculateDailyActiveLifeBalance(allTasks, dateISO) {
 }
 
 function fmtBalanceMinutes(mins) {
-  if (mins < 60) return `${mins} dk`;
+  if (mins < 60) return `${mins}d`;
   const h = Math.floor(mins/60), m = mins%60;
-  return m === 0 ? `${h} sa` : `${h} sa ${m} dk`;
+  return m === 0 ? `${h}s` : `${h}s${m}d`;
 }
 
 function fmtBalanceMinutesShort(mins) {
@@ -7216,17 +8086,17 @@ function calculateListStats(listId) {
     description = 'Bu listeye henüz görev eklenmemiş.';
     suggestion  = 'Bir görev ekleyerek başlayabilirsin.';
   } else if (status === 'no_category') {
-    description = 'Görevlere henüz Zihin–Beden–Kalp kategorisi atanmamış.';
+    description = 'Görevlere henüz Zihin-Beden-Kalp kategorisi atanmamış.';
     suggestion  = 'Görevlere kategori atadığında dağılım burada görünür.';
   } else if (status === 'balanced') {
-    description = 'Bu liste Zihin–Beden–Kalp kategorileri arasında dengeli dağılmış.';
+    description = 'Bu liste Zihin-Beden-Kalp kategorileri arasında dengeli dağılmış.';
     suggestion  = 'Bu dengeyi koruyarak devam edebilirsin.';
   } else {
     const dom = status.replace('_heavy','');
     const others = ['mental','physical','spiritual'].filter(k => k !== dom);
     const otherLabels = others.map(k => BALANCE_CATEGORIES[k].label.toLowerCase()).join(' ve ');
-    description = `Bu liste ağırlıklı olarak ${BALANCE_CATEGORIES[dom].label.toLowerCase()} görevlerden oluşuyor.`;
-    suggestion  = `${otherLabels} kategorilerinde de görev ekleyerek dengeleyebilirsin.`;
+    description = `Bu liste ağırlıklı olarak ${BALANCE_CATEGORIES[dom].label.toLowerCase()} görevlerinden oluşuyor.`;
+    suggestion  = `Bu dengeyi sağlamak için ${otherLabels} kategorilerine de görev ekleyebilirsin.`;
   }
   const comment = `${description} ${suggestion}`;   // backward compat
 
@@ -9392,6 +10262,8 @@ function pomoNextPhase() {
     const finishedTaskId = pomoQueue[pomoActiveIndex];
     const finishedTask = tasks.find(t => t.id === finishedTaskId);
     pomoAutoDoneTask(finishedTaskId);
+    // Pomodoro session log (FAZ 2.C.1) — sessiz arka plan
+    pomoLogSession(finishedTask, 'work').catch(() => {});
     pomoTickAudioStop();
     // Mola tamamen kapalıysa → direkt sonraki work
     if (pomoSettings.breakDisabled) {
@@ -9511,6 +10383,30 @@ function pomoNotify(title, body) {
 
 /* ──── Faz 7: auto-done + 5sn geri al toast ──── */
 let _pomoUndoTimer = null;
+/* ── Pomodoro session log (FAZ 2.C.1) ── */
+async function pomoLogSession(task, phase) {
+  if (!session?.user?.id) return;
+  const durationMin = (phase === 'long_break') ? (pomoSettings.longBreakMin || 15)
+                    : (phase === 'break')      ? (pomoSettings.breakMin || 5)
+                    : (pomoSettings.workMin || 25);
+  const payload = {
+    user_id: session.user.id,
+    task_id: task?.id || null,
+    task_text: task?.text || null,
+    category: task?.category || null,
+    balance_category: task?.balance_category || null,
+    duration_min: durationMin,
+    break_min: pomoSettings.breakMin || 5,
+    phase: phase || 'work',
+    completed_at: new Date().toISOString(),
+  };
+  try {
+    await db('/pomo_sessions', { method:'POST', body: JSON.stringify(payload) });
+  } catch (e) {
+    console.warn('pomoLogSession failed:', e?.message || e);
+  }
+}
+
 async function pomoAutoDoneTask(taskId) {
   if (!taskId) return;
   const task = tasks.find(t => t.id === taskId);
@@ -10430,19 +11326,58 @@ const MINS=[0,5,10,15,20,25,30,35,40,45,50,55];
 const TR_MONTHS=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 let dtp={year:0,month:0,day:0,cb:null};
 const DTP_MIN_STEPS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-function dtpOpen(anchor,currentISO,cb) {
+const DTP_SNAP_LABELS = { 5:'Çok Kısa', 25:'Pomodoro', 60:'Yüksek\nKonsantrasyon', 90:'Derin\nÇalışma', 180:'Daha uzun ise\nparçala ve mola ver' };
+function dtpOpen(anchor,currentISO,cb,currentMinutes) {
   dtp.cb=cb;
   const now=currentISO?new Date(currentISO):new Date();
   dtp.year=now.getFullYear(); dtp.month=now.getMonth();
   dtp.day=currentISO?now.getDate():0;
   const hadTime = currentISO ? hasTime(currentISO) : false;
+  // Süre slider'ı: 0–180 dk, 5'er adım. Mevcut estimated_minutes varsa onu yükle, yoksa 30.
+  const mSliderEl = document.getElementById('dtpMinsSlider');
+  const mTagEl    = document.getElementById('dtpMinsTag');
+  const mValEl    = document.getElementById('dtpMinsVal');
+  const initMins = (currentMinutes != null && currentMinutes >= 0)
+    ? Math.min(180, Math.max(0, Math.round(currentMinutes/5)*5))
+    : 30;
+  mSliderEl.value = String(initMins);
+  // Süre kullanıcı tarafından bilinçli olarak set edildi mi? (mevcut görevde değer varsa true)
+  dtp.minsSet = (currentMinutes != null && currentMinutes >= 0);
+  // Tamam butonu durumu — tarih + saat + süre üçü de set edilmeli
+  const okBtn = document.querySelector('.dtp-btn-ok');
+  const updOk = () => {
+    if (okBtn) okBtn.disabled = !(dtp.day && dtp.timeSet && dtp.minsSet);
+  };
+  dtp.updOk = updOk;
+  const updMins = () => {
+    const v = parseInt(mSliderEl.value, 10);
+    mValEl.textContent = (!dtp.minsSet || v === 0) ? '--' : (v + ' dk');
+    let lbl = DTP_SNAP_LABELS[v];
+    if (!lbl && v > 90 && v < 180) lbl = 'Özel Zaman\nBloğu';
+    if (lbl) {
+      mTagEl.textContent = lbl;
+      mTagEl.classList.add('show');
+      mTagEl.classList.toggle('limit', v === 180);
+    } else {
+      mTagEl.classList.remove('show');
+      mTagEl.classList.remove('limit');
+    }
+    document.querySelectorAll('.dtp-mins-mark').forEach(el => {
+      const mv = parseInt(el.dataset.mins, 10);
+      const diff = Math.abs(mv - v);
+      el.classList.toggle('hit',  diff === 0);
+      el.classList.toggle('near', diff > 0 && diff <= 5);
+    });
+  };
+  updMins();
+  mSliderEl.oninput = () => { dtp.minsSet = true; updMins(); updOk(); };
   // Slider'ları kur
   const hSlider = document.getElementById('dtpHourSlider');
   const mSlider = document.getElementById('dtpMinSlider');
   const hVal    = document.getElementById('dtpHourVal');
   const mVal    = document.getElementById('dtpMinVal');
-  // hadTime varsa mevcut saati, yoksa 0 (UI'da "--" göstereceğiz)
-  hSlider.value = String(hadTime ? now.getHours() : 0);
+  // hadTime varsa mevcut saati, yoksa 8 (08:00 default — kullanıcı dokununca onaylanır)
+  hSlider.value = String(hadTime ? now.getHours() : 8);
   mSlider.value = String(hadTime
     ? DTP_MIN_STEPS.reduce((a,b) => Math.abs(b - now.getMinutes()) < Math.abs(a - now.getMinutes()) ? b : a)
     : 0);
@@ -10453,8 +11388,11 @@ function dtpOpen(anchor,currentISO,cb) {
       const hv = parseInt(hSlider.value);
       hVal.textContent = String(hv).padStart(2, '0');
       mVal.textContent = ':' + String(mSlider.value).padStart(2, '0');
-      // Öğleden sonra (>=12): sayı + thumb turuncu (B); track gradient (C) zaten CSS'te
-      const c = (hv >= 12) ? '#E9731C' : '#12A3E3';
+      // 5-11 sabah mavi, 12-21 öğleden sonra chartreuse, 22-4 geç gece kırmızı (track gradient CSS'te)
+      let c;
+      if (hv >= 5 && hv <= 11)       c = '#12A3E3';
+      else if (hv >= 12 && hv <= 21) c = '#B5C235';
+      else                            c = '#E96B6B';
       hVal.style.color = c;
       hSlider.style.setProperty('--thumb-color', c);
     } else {
@@ -10473,35 +11411,44 @@ function dtpOpen(anchor,currentISO,cb) {
     hSlider._bound = true;
   }
   // Re-bind label updater (her açılışta lambda farklı)
-  hSlider.oninput = () => { dtp.timeSet = true; updLabels(); };
-  mSlider.oninput = () => { dtp.timeSet = true; updLabels(); };
+  hSlider.oninput = () => { dtp.timeSet = true; updLabels(); updOk(); };
+  mSlider.oninput = () => { dtp.timeSet = true; updLabels(); updOk(); };
   dtpRenderCal();
   const box=document.getElementById('dtpBox');
   box.classList.add('open');
   document.getElementById('dtpOverlay').classList.add('open');
-  const vw=window.innerWidth,vh=window.innerHeight,bw=250,bh=340;
+  // Pozisyondan önce gerçek boyutu oku (popover içeriği duruma göre değişir)
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const bw=box.offsetWidth || 250;
+  const bh=box.offsetHeight || 340;
   if(vw<=600){
     box.style.left=Math.round((vw-bw)/2)+'px';
-    box.style.top =Math.round((vh-bh)/2)+'px';
+    box.style.top =Math.max(8, Math.round((vh-bh)/2))+'px';
   } else {
     const rect=anchor.getBoundingClientRect();
     let left=rect.left, top=rect.bottom+6;
     if(left+bw>vw-8) left=Math.max(8,vw-bw-8);
     if(top+bh>vh-8)  top=Math.max(8,rect.top-bh-6);
+    // Hâlâ taşıyorsa (popover ekrandan büyükse) en üste yasla
+    if(top+bh>vh-8)  top=8;
     box.style.left=left+'px'; box.style.top=top+'px';
   }
+  // Initial Tamam butonu durumu
+  updOk();
 }
 function dtpClose() {
   document.getElementById('dtpBox').classList.remove('open');
   document.getElementById('dtpOverlay').classList.remove('open');
 }
-function dtpClear()   { dtp.cb&&dtp.cb(''); dtpClose(); }
+function dtpClear()   { dtp.cb&&dtp.cb('', null); dtpClose(); }
 function dtpConfirm() {
   if(!dtp.day){showToast('Bir gün seçin');return;}
   // timeSet false ise "tüm gün" → 00:00; true ise slider değerleri
   const h = dtp.timeSet ? parseInt(document.getElementById('dtpHourSlider').value) : 0;
   const m = dtp.timeSet ? parseInt(document.getElementById('dtpMinSlider').value) : 0;
-  dtp.cb&&dtp.cb(new Date(dtp.year,dtp.month,dtp.day,h,m).toISOString());
+  const minsRaw = parseInt(document.getElementById('dtpMinsSlider').value, 10);
+  const mins = (minsRaw > 0) ? minsRaw : null;
+  dtp.cb&&dtp.cb(new Date(dtp.year,dtp.month,dtp.day,h,m).toISOString(), mins);
   dtpClose();
 }
 function dtpPrev(){dtp.month--;if(dtp.month<0){dtp.month=11;dtp.year--;}dtpRenderCal();}
@@ -10518,7 +11465,7 @@ function dtpRenderCal() {
     const btn=document.createElement('button'); btn.className='dtp-day'; btn.textContent=d;
     if(d===today.getDate()&&dtp.month===today.getMonth()&&dtp.year===today.getFullYear()) btn.classList.add('today');
     if(d===dtp.day) btn.classList.add('selected');
-    btn.onclick=()=>{dtp.day=d;dtpRenderCal();};
+    btn.onclick=()=>{dtp.day=d;dtpRenderCal();dtp.updOk&&dtp.updOk();};
     grid.appendChild(btn);
   }
 }
@@ -10799,12 +11746,24 @@ const DEFAULT_SETTINGS = {
   theme:'system', accentColor:'#12A3E3', fontSize:'medium', compact:false,
   autoHide:false, defaultSort:null, defaultPriority:null,
   completionAnim:true, notifEnabled:false, dueReminder:'none',
-  dateFormat:'DD/MM', timeFormat:'24h', weekStart:'monday', displayName:''
+  dateFormat:'DD/MM', timeFormat:'24h', weekStart:'monday', displayName:'',
+  reminders: {
+    overdue:true,
+    yesterdayIncomplete:true,    yesterdayIncompleteTime:'09:00',
+    lastWeekIncomplete:true,     lastWeekIncompleteTime:'09:00',
+    sundayWeekPlan:true,         sundayWeekPlanTime:'19:00',
+    dailyTomorrowPlan:true,      dailyTomorrowPlanTime:'21:30',
+  }
 };
 let appSettings = { ...DEFAULT_SETTINGS };
 
 function loadSettings() {
   try { const s = localStorage.getItem('app_settings'); if (s) appSettings = { ...DEFAULT_SETTINGS, ...JSON.parse(s) }; } catch {}
+  // Geçmiş kullanıcı temizliği: özelleştirilmiş accent rengi varsa sil, marka rengine zorla
+  if (appSettings.accentColor !== DEFAULT_SETTINGS.accentColor) {
+    appSettings.accentColor = DEFAULT_SETTINGS.accentColor;
+    try { localStorage.setItem('app_settings', JSON.stringify(appSettings)); } catch {}
+  }
   applyAllSettings();
 }
 
@@ -10819,8 +11778,932 @@ function applyAllSettings() {
   applyTheme(appSettings.theme, true);
   applyFontSize(appSettings.fontSize, true);
   applyCompact(appSettings.compact, true);
-  applyAccent(appSettings.accentColor, true);
+  applyAccent(); // eski inline style'ı temizler — accent her zaman CSS değişkenlerinden gelir
   if (appSettings.notifEnabled) scheduleReminders();
+  if (typeof renderProfileButton === 'function') renderProfileButton();
+}
+
+/* ── Profile Button + Dropdown Menu (FAZ 1) ── */
+function _getInitials() {
+  const dn = (appSettings.displayName || '').trim();
+  if (dn) {
+    // Görünen ad varsa → ilk iki kelimenin baş harfi (tek kelimeyse ilk 2 harf)
+    const parts = dn.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  // E-posta varsa → @ öncesinin ilk 2 harfi
+  const email = session?.user?.email || '';
+  const local = email.split('@')[0];
+  if (local) return local.slice(0, 2).toUpperCase();
+  return '?';
+}
+function _getNotifCount() {
+  let count = 0;
+  if ('Notification' in window && Notification.permission === 'default') count += 1;
+  const now = Date.now();
+  const overdue = (typeof tasks !== 'undefined' ? tasks : []).filter(t =>
+    !t.done && t.due_at && new Date(t.due_at).getTime() < now
+  ).length;
+  count += overdue;
+  // FAZ B: tetiklenmiş ama okunmamış reminder log'ları
+  if (typeof _notifLogUnreadCount === 'function') count += _notifLogUnreadCount();
+  return count;
+}
+function _getAvatarUrl() {
+  return session?.user?.user_metadata?.avatar_url || '';
+}
+function renderProfileButton() {
+  const initialsEl = document.getElementById('profileInitials');
+  if (!initialsEl) return;
+  const initials = _getInitials();
+  initialsEl.textContent = initials;
+  const nameEl  = document.getElementById('profileName');
+  const emailEl = document.getElementById('profileEmail');
+  if (nameEl)  nameEl.textContent  = appSettings.displayName || 'Kullanıcı';
+  if (emailEl) emailEl.textContent = session?.user?.email || '—';
+  // Avatar img / initials swap
+  const url = _getAvatarUrl();
+  const img = document.getElementById('profileImg');
+  if (img) {
+    if (url) { img.src = url; img.style.display = ''; initialsEl.style.display = 'none'; }
+    else     { img.style.display = 'none'; initialsEl.style.display = ''; }
+  }
+  const badge = document.getElementById('profileBadge');
+  if (badge) {
+    const count = _getNotifCount();
+    if (count > 0) {
+      badge.textContent = count > 99 ? '99+' : String(count);
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+function toggleProfileMenu(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('profileMenu');
+  const overlay = document.getElementById('profileMenuOverlay');
+  if (!menu) return;
+  if (menu.classList.contains('open')) { closeProfileMenu(); return; }
+  // Header bilgisini doldur
+  const initials = _getInitials();
+  const lgInit = menu.querySelector('.pm-initials-lg');
+  const lgName = menu.querySelector('.pm-name');
+  const lgMail = menu.querySelector('.pm-email');
+  const lgImg  = menu.querySelector('.pm-avatar-img');
+  if (lgInit) lgInit.textContent = initials;
+  if (lgName) lgName.textContent = appSettings.displayName || 'Kullanıcı';
+  if (lgMail) lgMail.textContent = session?.user?.email || '—';
+  // Header avatar img/initials swap
+  const url = _getAvatarUrl();
+  if (lgImg) {
+    if (url) { lgImg.src = url; lgImg.style.display = ''; if (lgInit) lgInit.style.display = 'none'; }
+    else     { lgImg.style.display = 'none'; if (lgInit) lgInit.style.display = ''; }
+  }
+  // Tema active işaretle
+  document.querySelectorAll('.pm-theme-segment button').forEach(b =>
+    b.classList.toggle('active', b.dataset.theme === appSettings.theme)
+  );
+  // Notif badge
+  const c = _getNotifCount();
+  const pmBadge = document.getElementById('pmNotifBadge');
+  if (pmBadge) {
+    if (c > 0) { pmBadge.textContent = c; pmBadge.style.display = ''; }
+    else       { pmBadge.style.display = 'none'; }
+  }
+  // Pozisyon: profil butonunun ÜSTÜNDE aç
+  const btn = document.getElementById('profileBtn');
+  const r = btn.getBoundingClientRect();
+  // Önce class ile göster (CSS .open → display:flex), sonra ölç
+  menu.classList.add('open');
+  overlay.classList.add('open');
+  const mh = menu.offsetHeight || 360;
+  const mw = menu.offsetWidth  || 240;
+  let left = r.left;
+  let top  = r.top - mh - 6;
+  if (top < 8) top = 8;                          // ekran üstünden çıkmasın
+  if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
+  if (left < 8) left = 8;
+  menu.style.left = left + 'px';
+  menu.style.top  = top  + 'px';
+}
+function closeProfileMenu() {
+  const menu = document.getElementById('profileMenu');
+  const overlay = document.getElementById('profileMenuOverlay');
+  if (menu) menu.classList.remove('open');
+  if (overlay) overlay.classList.remove('open');
+}
+// Dış tıklama (boşluğa basınca) ve ESC ile kapat
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('profileMenu');
+  if (!menu || !menu.classList.contains('open')) return;
+  const btn = document.getElementById('profileBtn');
+  // Menünün içine veya butonun kendisine tıklandıysa kapatma
+  if (menu.contains(e.target) || btn?.contains(e.target)) return;
+  closeProfileMenu();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const menu = document.getElementById('profileMenu');
+    if (menu?.classList.contains('open')) closeProfileMenu();
+  }
+});
+
+/* ── Bildirim Merkezi (Notif Center) ── */
+function openNotifCenter(e) {
+  if (e) e.stopPropagation();
+  closeProfileMenu();
+  // setTimeout(0) ile mevcut click bubble tamamlansın — document listener'ları erken kapatamasın
+  setTimeout(() => {
+    renderNotifCenter();
+    const overlay = document.getElementById('notifCenterOverlay');
+    const center  = document.getElementById('notifCenter');
+    if (!center || !overlay) return;
+    center.classList.add('open');
+    overlay.classList.add('open');
+    const btn = document.getElementById('profileBtn');
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    const ch = center.offsetHeight || 360;
+    const cw = center.offsetWidth  || 320;
+    let left = r.left;
+    let top  = r.top - ch - 6;
+    if (top < 8) top = 8;
+    if (left + cw > window.innerWidth - 8) left = window.innerWidth - cw - 8;
+    if (left < 8) left = 8;
+    center.style.left = left + 'px';
+    center.style.top  = top  + 'px';
+  }, 0);
+}
+function closeNotifCenter() {
+  document.getElementById('notifCenter')?.classList.remove('open');
+  document.getElementById('notifCenterOverlay')?.classList.remove('open');
+}
+document.addEventListener('click', (e) => {
+  const c = document.getElementById('notifCenter');
+  if (!c || !c.classList.contains('open')) return;
+  const btn = document.getElementById('profileBtn');
+  if (c.contains(e.target) || btn?.contains(e.target)) return;
+  closeNotifCenter();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const c = document.getElementById('notifCenter');
+  if (c?.classList.contains('open')) closeNotifCenter();
+});
+
+function _buildNotifItems() {
+  const items = [];
+  const now = new Date();
+  if ('Notification' in window && Notification.permission === 'default') {
+    items.push({
+      kind: 'info', icon: 'notifications_off',
+      title: 'Bildirim izni eksik',
+      desc: 'Hatırlatıcıların masaüstünde görünmesi için izin gerekir',
+      actionLabel: 'İzin Ver',
+      onAction: async () => {
+        if (typeof requestNotifPermission !== 'function') return;
+        const perm = await requestNotifPermission();
+        if (perm === 'granted') closeNotifCenter();
+      },
+    });
+  }
+  const overdue = (window.tasks || []).filter(t =>
+    !t.done && t.due_at && new Date(t.due_at).getTime() < now.getTime()
+  );
+  if (overdue.length > 0) {
+    items.push({
+      kind: 'warn', icon: 'schedule',
+      title: `${overdue.length} geciken görev`,
+      desc: 'Bitiş tarihi geçmiş, henüz tamamlanmadı',
+      actionLabel: 'Aç',
+      onAction: () => { closeNotifCenter(); if (typeof selectList === 'function') selectList(ALL_LISTS_ID); },
+    });
+  }
+  const yest = new Date(now); yest.setDate(yest.getDate() - 1);
+  const ydk = `${yest.getFullYear()}-${String(yest.getMonth()+1).padStart(2,'0')}-${String(yest.getDate()).padStart(2,'0')}`;
+  const ydTasks = (window.tasks || []).filter(t => !t.done && t.due_at && t.due_at.slice(0,10) === ydk);
+  if (ydTasks.length > 0) {
+    items.push({
+      kind: 'warn', icon: 'history',
+      title: `Dün tamamlanmayan ${ydTasks.length} görev`,
+      desc: 'Dünden kalan işleri kontrol et',
+      actionLabel: 'Aç',
+      onAction: () => { closeNotifCenter(); if (typeof selectList === 'function') selectList(ALL_LISTS_ID); },
+    });
+  }
+  const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+  const lwTasks = (window.tasks || []).filter(t => {
+    if (t.done || !t.due_at) return false;
+    const due = new Date(t.due_at).getTime();
+    return due >= weekAgo.getTime() && due < now.getTime();
+  });
+  if (lwTasks.length > 0 && lwTasks.length !== overdue.length) {
+    items.push({
+      kind: 'info', icon: 'date_range',
+      title: `Geçen hafta ${lwTasks.length} tamamlanmayan`,
+      desc: 'Son 7 gün içinde geçmiş görevler',
+      actionLabel: 'Aç',
+      onAction: () => { closeNotifCenter(); if (typeof selectList === 'function') selectList(ALL_LISTS_ID); },
+    });
+  }
+  return items;
+}
+
+function _fmtRelativeTime(ts) {
+  const diffMs = Date.now() - ts;
+  const m = Math.round(diffMs / 60000);
+  if (m < 1)   return 'az önce';
+  if (m < 60)  return `${m} dk önce`;
+  const h = Math.floor(m / 60);
+  if (h < 24)  return `${h} sa önce`;
+  const d = Math.floor(h / 24);
+  return `${d} gün önce`;
+}
+function markAllNotifRead() {
+  _notifLogMarkAllRead();
+  renderNotifCenter();
+}
+/* ── Bildirim Sayfası (FAZ B+) ── */
+const NOTIF_PAGE_LIMIT = 15;
+let _npSelectedId = null;
+let _npTab = 'new'; // 'new' | 'read'
+function setNpTab(tab) {
+  if (_npTab === tab) return;
+  _npTab = tab;
+  _npSelectedId = null;
+  renderNotifPage();
+}
+
+function openNotifPage(e) {
+  if (e) e.stopPropagation();
+  closeProfileMenu();
+  setTimeout(() => {
+    document.getElementById('notifPageOverlay')?.classList.add('open');
+    document.getElementById('notifPage')?.classList.add('open');
+    _npSelectedId = null;
+    renderNotifPage();
+  }, 0);
+}
+function closeNotifPage() {
+  document.getElementById('notifPageOverlay')?.classList.remove('open');
+  document.getElementById('notifPage')?.classList.remove('open');
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const p = document.getElementById('notifPage');
+  if (p?.classList.contains('open')) closeNotifPage();
+});
+
+function _npAllItems(tab) {
+  tab = tab || _npTab;
+  // Dinamik (aktif) öğeler sadece "Yeni" sekmesinde — okundu kavramı yok
+  const dynRaw = (tab === 'new' && typeof _buildNotifItems === 'function') ? _buildNotifItems() : [];
+  const dynAsEntries = dynRaw.map((it, i) => ({
+    id: 'dyn_' + i,
+    type: 'dynamic',
+    title: it.title,
+    desc: it.desc,
+    kind: it.kind || 'info',
+    icon: it.icon || 'notifications',
+    ts: Date.now(),
+    read: false,
+    isDynamic: true,
+    onAction: it.onAction,
+    actionLabel: it.actionLabel,
+  }));
+  // Log entry'leri tab'a göre filtrele
+  const log = (typeof _notifLogPrune === 'function') ? _notifLogPrune(_notifLogRead()) : [];
+  const filteredLog = log.filter(e => tab === 'read' ? e.read : !e.read);
+  const logAsEntries = filteredLog.map(e => ({
+    ...e,
+    kind: 'info',
+    icon: e.icon || 'notifications',
+  }));
+  return [...dynAsEntries, ...logAsEntries].slice(0, NOTIF_PAGE_LIMIT);
+}
+function _npUpdateTabCounts() {
+  const log = (typeof _notifLogPrune === 'function') ? _notifLogPrune(_notifLogRead()) : [];
+  const dynCount = (typeof _buildNotifItems === 'function' ? _buildNotifItems().length : 0);
+  const newCount  = log.filter(e => !e.read).length + dynCount;
+  const readCount = log.filter(e =>  e.read).length;
+  const newEl  = document.getElementById('npCountNew');
+  const readEl = document.getElementById('npCountRead');
+  if (newEl)  newEl.textContent  = newCount;
+  if (readEl) readEl.textContent = readCount;
+  document.querySelectorAll('.np-tabs button').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === _npTab)
+  );
+}
+
+function renderNotifPage() {
+  _npUpdateTabCounts();
+  renderNotifPageList();
+  renderNotifPageDetail();
+}
+function renderNotifPageList() {
+  const list = document.getElementById('npList');
+  if (!list) return;
+  const items = _npAllItems();
+  if (items.length === 0) {
+    const msg = _npTab === 'read'
+      ? 'Henüz okunmuş bildirim yok'
+      : '🎉 Yeni bildirim yok';
+    list.innerHTML = `<div class="np-list-empty">${msg}</div>`;
+    return;
+  }
+  list.innerHTML = '';
+  items.forEach(it => {
+    const row = document.createElement('div');
+    const isArticle = it.type === 'system_article';
+    row.className = 'np-list-item ' + (it.kind || '') + (it.read ? '' : ' unread') + (it.id === _npSelectedId ? ' selected' : '') + (isArticle ? ' article' : '');
+    const safeTitle = String(it.title || '').replace(/</g, '&lt;');
+    const safeDesc  = String(it.desc  || '').replace(/</g, '&lt;');
+    const timeStr = it.isDynamic ? 'Aktif' : _fmtRelativeTime(it.ts);
+    // Sistem makale: SVG thumbnail; diğer: ikon
+    let thumbHtml;
+    if (isArticle && it._articleId) {
+      const art = SYSTEM_ARTICLES.find(a => a.id === it._articleId);
+      thumbHtml = art?.thumbnail
+        ? `<div class="np-list-thumb">${art.thumbnail}</div>`
+        : `<span class="np-list-icon"><span class="mi s16">${it.icon}</span></span>`;
+    } else {
+      thumbHtml = `<span class="np-list-icon"><span class="mi s16">${it.icon}</span></span>`;
+    }
+    row.innerHTML = `
+      ${thumbHtml}
+      <div class="np-list-body">
+        ${isArticle ? '<div class="np-list-tag">HAFTALIK DİSİPLAN</div>' : ''}
+        <div class="np-list-title">${safeTitle}</div>
+        <div class="np-list-desc">${safeDesc}</div>
+        <div class="np-list-time">${timeStr}</div>
+      </div>
+    `;
+    row.onclick = () => selectNotif(it.id);
+    list.appendChild(row);
+  });
+}
+function selectNotif(id) {
+  _npSelectedId = id;
+  // Eğer log entry ise okundu işaretle
+  const log = _notifLogRead();
+  const e = log.find(x => x.id === id);
+  if (e && !e.read) { e.read = true; _notifLogWrite(log); if (typeof renderProfileButton === 'function') renderProfileButton(); }
+  renderNotifPage();
+  // Detay paneli her seçimde en üstten başlasın
+  const d = document.getElementById('npDetail');
+  if (d) d.scrollTop = 0;
+}
+function renderNotifPageDetail() {
+  const detail = document.getElementById('npDetail');
+  if (!detail) return;
+  if (!_npSelectedId) {
+    detail.innerHTML = '<div class="np-detail-empty">Detay için bir bildirim seç</div>';
+    return;
+  }
+  const items = _npAllItems();
+  const it = items.find(x => x.id === _npSelectedId);
+  if (!it) {
+    detail.innerHTML = '<div class="np-detail-empty">Bildirim bulunamadı</div>';
+    return;
+  }
+  // Sistem makale ise zengin HTML render et
+  if (it._articleId) {
+    const art = SYSTEM_ARTICLES.find(a => a.id === it._articleId);
+    if (art) {
+      detail.innerHTML = `<div class="np-article">${art.contentHTML}</div>`;
+      return;
+    }
+  }
+  const safeTitle = String(it.title || '').replace(/</g, '&lt;');
+  const safeDesc  = String(it.desc  || '').replace(/</g, '&lt;');
+  const tsAbs = it.isDynamic ? 'Şu an aktif' : new Date(it.ts).toLocaleString('tr-TR');
+  const tsRel = it.isDynamic ? '' : ` (${_fmtRelativeTime(it.ts)})`;
+  const typeLabels = {
+    overdue: 'Geciken görev',
+    yesterdayIncomplete: 'Dün tamamlanmayan',
+    lastWeekIncomplete: 'Geçen hafta tamamlanmayan',
+    sundayWeekPlan: 'Pazar haftalık plan',
+    dailyTomorrowPlan: 'Yarının planı',
+    dynamic: 'Aktif uyarı',
+  };
+  const typeLbl = typeLabels[it.type] || it.type || '—';
+  let actionsHtml = '';
+  if (it.isDynamic && it.onAction) {
+    actionsHtml = `<div class="np-detail-actions">
+      <button class="np-action-btn" id="npDetailAction">${it.actionLabel || 'Aç'}</button>
+    </div>`;
+  } else {
+    actionsHtml = `<div class="np-detail-actions">
+      <button class="np-action-btn secondary" onclick="_notifLogMarkRead('${it.id}'); renderNotifPage();">Okundu işaretle</button>
+    </div>`;
+  }
+  detail.innerHTML = `
+    <div class="np-detail-head ${it.kind || ''}">
+      <div class="np-detail-icon"><span class="mi s24">${it.icon}</span></div>
+      <div>
+        <div class="np-detail-title">${safeTitle}</div>
+        <div class="np-detail-time">${tsAbs}${tsRel}</div>
+      </div>
+    </div>
+    <div class="np-detail-body">${safeDesc}</div>
+    <div class="np-detail-meta">
+      <div class="np-detail-meta-row"><span class="np-detail-meta-key">Tür</span><span class="np-detail-meta-val">${typeLbl}</span></div>
+      <div class="np-detail-meta-row"><span class="np-detail-meta-key">Durum</span><span class="np-detail-meta-val">${it.read ? 'Okundu' : 'Okunmadı'}</span></div>
+    </div>
+    ${actionsHtml}
+  `;
+  // Aktif aksiyon button'unu bağla
+  if (it.isDynamic && it.onAction) {
+    const btn = document.getElementById('npDetailAction');
+    if (btn) btn.onclick = () => { closeNotifPage(); it.onAction(); };
+  }
+}
+function markAllNotifReadInPage() {
+  if (typeof _notifLogMarkAllRead === 'function') _notifLogMarkAllRead();
+  renderNotifPage();
+}
+function clearAllNotifs() {
+  try { localStorage.removeItem('notifLog'); } catch {}
+  if (typeof renderProfileButton === 'function') renderProfileButton();
+  _npSelectedId = null;
+  renderNotifPage();
+}
+
+function renderNotifCenter() {
+  const body = document.getElementById('ncBody');
+  if (!body) return;
+  const dynItems = _buildNotifItems();
+  const logEntries = _notifLogPrune(_notifLogRead());
+  if (dynItems.length === 0 && logEntries.length === 0) {
+    body.innerHTML = '<div class="nc-empty">🎉 Tüm bildirimler okundu</div>';
+    return;
+  }
+  body.innerHTML = '';
+  // ── Aktif (dinamik) bildirimler ──
+  if (dynItems.length > 0) {
+    const lbl = document.createElement('div');
+    lbl.className = 'nc-section-label';
+    lbl.textContent = 'Aktif';
+    body.appendChild(lbl);
+    dynItems.forEach(it => {
+      const row = document.createElement('div');
+      row.className = 'nc-item ' + (it.kind || '');
+      const safeTitle = String(it.title).replace(/</g, '&lt;');
+      const safeDesc  = String(it.desc).replace(/</g, '&lt;');
+      row.innerHTML = `
+        <span class="nc-item-icon"><span class="mi s16">${it.icon}</span></span>
+        <div class="nc-item-body">
+          <div class="nc-item-title">${safeTitle}</div>
+          <div class="nc-item-desc">${safeDesc}</div>
+        </div>
+        <span class="nc-item-action">${it.actionLabel}</span>
+      `;
+      row.onclick = it.onAction;
+      body.appendChild(row);
+    });
+  }
+  // ── Tetiklenen reminder log'ları ──
+  if (logEntries.length > 0) {
+    const lbl = document.createElement('div');
+    lbl.className = 'nc-section-label';
+    lbl.textContent = 'Geçmiş hatırlatıcılar';
+    body.appendChild(lbl);
+    logEntries.forEach(e => {
+      const row = document.createElement('div');
+      row.className = 'nc-item info' + (e.read ? '' : ' unread');
+      const safeTitle = String(e.title || '').replace(/</g, '&lt;');
+      const safeDesc  = String(e.desc  || '').replace(/</g, '&lt;');
+      row.innerHTML = `
+        <span class="nc-item-icon"><span class="mi s16">notifications</span></span>
+        <div class="nc-item-body">
+          <div class="nc-item-title">${safeTitle}</div>
+          <div class="nc-item-desc">${safeDesc}</div>
+          <div class="nc-item-time">${_fmtRelativeTime(e.ts)}</div>
+        </div>
+      `;
+      row.onclick = () => { _notifLogMarkRead(e.id); renderNotifCenter(); };
+      body.appendChild(row);
+    });
+  }
+}
+
+function quickTheme(val) {
+  applyTheme(val, true);
+  document.querySelectorAll('.pm-theme-segment button').forEach(b =>
+    b.classList.toggle('active', b.dataset.theme === val)
+  );
+}
+function openSettingsTab(tabId) {
+  closeProfileMenu();
+  openSettings();
+  setTimeout(() => {
+    const tabBtn = document.querySelector(`.stab[onclick*="${tabId}"]`);
+    if (tabBtn) switchStab(tabBtn, tabId);
+  }, 50);
+}
+/* ── İstatistikler (FAZ 2.C.2 + 2.C.3) ── */
+let statsRange = 'month'; // 'week' | 'month' | 'year' | 'all'
+
+function openStats() {
+  closeProfileMenu();
+  document.getElementById('statsOverlay').classList.add('open');
+  document.getElementById('statsModal').classList.add('open');
+  setStatsRange(statsRange); // active button + render
+}
+function closeStats() {
+  document.getElementById('statsOverlay').classList.remove('open');
+  document.getElementById('statsModal').classList.remove('open');
+}
+function setStatsRange(r) {
+  statsRange = r;
+  document.querySelectorAll('.stats-range button').forEach(b =>
+    b.classList.toggle('active', b.dataset.range === r)
+  );
+  renderStats();
+}
+function _statsRangeMs() {
+  const now = Date.now();
+  if (statsRange === 'week')  return { from: now - 7   * 86400000, days: 7,   label: 'son 7 gün' };
+  if (statsRange === 'month') return { from: now - 30  * 86400000, days: 30,  label: 'son 30 gün' };
+  if (statsRange === 'year')  return { from: now - 365 * 86400000, days: 365, label: 'son 12 ay' };
+  return { from: 0, days: null, label: 'tüm zamanlar' };
+}
+
+async function renderStats() {
+  renderStatsSummary();
+  renderStatsHeatmap();
+  renderStatsBalance();
+  renderStatsLists();
+  await renderStatsPomo();
+}
+
+function _statsAllTasks() {
+  return (typeof tasks !== 'undefined') ? (tasks || []) : [];
+}
+function _statsRangedTasks() {
+  // Görevler completed_at'a göre filtrelenir (range içinde tamamlananlar)
+  const { from } = _statsRangeMs();
+  if (!from) return _statsAllTasks();
+  return _statsAllTasks().filter(t => {
+    if (!t.completed_at) return false;
+    return new Date(t.completed_at).getTime() >= from;
+  });
+}
+
+function _delta(now, prev) {
+  if (!prev) return null;
+  const d = now - prev;
+  if (d === 0) return null;
+  const pct = Math.round(d / prev * 100);
+  return { d, pct, sign: d > 0 ? '+' : '' };
+}
+function _deltaHtml(d) {
+  if (!d) return '';
+  const cls = d.d > 0 ? 'sd-up' : 'sd-down';
+  return `<span class="stats-delta ${cls}">${d.sign}${d.pct}%</span>`;
+}
+
+function renderStatsSummary() {
+  const all = _statsAllTasks();
+  const { from, label, days } = _statsRangeMs();
+  const now = Date.now();
+  const completedInRange = all.filter(t => t.done && t.completed_at && new Date(t.completed_at).getTime() >= from).length;
+  // Önceki aynı uzunluk dönemi (karşılaştırma için)
+  const prevFrom = days ? (from - days * 86400000) : null;
+  const completedPrev = (prevFrom != null) ? all.filter(t => {
+    if (!t.done || !t.completed_at) return false;
+    const ts = new Date(t.completed_at).getTime();
+    return ts >= prevFrom && ts < from;
+  }).length : null;
+  const minsInRange  = all.filter(t => t.done && t.completed_at && new Date(t.completed_at).getTime() >= from)
+                          .reduce((s,t) => s + (t.estimated_minutes || 0), 0);
+  const minsPrev = (prevFrom != null) ? all.filter(t => {
+    if (!t.done || !t.completed_at) return false;
+    const ts = new Date(t.completed_at).getTime();
+    return ts >= prevFrom && ts < from;
+  }).reduce((s,t) => s + (t.estimated_minutes || 0), 0) : null;
+  const total      = all.length;
+  const overdue    = all.filter(t => !t.done && t.due_at && new Date(t.due_at).getTime() < now).length;
+  const cards = [
+    { label:'Toplam görev',     value: total,                                 sub: 'tüm zamanlar' },
+    { label:'Tamamlanan',       value: completedInRange,                      sub: label, delta: _delta(completedInRange, completedPrev) },
+    { label:'Çalışılan süre',   value: fmtBalanceMinutes(minsInRange) || '0d',sub: label + ' (tahmini)', delta: _delta(minsInRange, minsPrev) },
+    { label:'Geciken',          value: overdue,                               sub: 'şu an' },
+  ];
+  const c = document.getElementById('statsCards');
+  c.innerHTML = cards.map(k => `
+    <div class="stats-card">
+      <div class="stats-card-label">${k.label}${_deltaHtml(k.delta)}</div>
+      <div class="stats-card-value">${k.value}</div>
+      ${k.sub ? `<div class="stats-card-sub">${k.sub}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderStatsHeatmap() {
+  const all = _statsAllTasks();
+  const today = new Date(); today.setHours(0,0,0,0);
+  // Heatmap her zaman 365 gün gösterir (yıllık panorama). Range bilgisi sayaçta.
+  const days = 365;
+  const buckets = {};
+  for (const t of all) {
+    if (!t.done || !t.completed_at) continue;
+    const k = t.completed_at.slice(0, 10);
+    buckets[k] = (buckets[k] || 0) + 1;
+  }
+  const cells = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    const k = d.toISOString().slice(0,10);
+    const n = buckets[k] || 0;
+    let lvl = '';
+    if (n > 0)  lvl = 'l1';
+    if (n >= 3) lvl = 'l2';
+    if (n >= 6) lvl = 'l3';
+    if (n >= 10)lvl = 'l4';
+    const tip = `${k}: ${n} tamamlandı`;
+    cells.push(`<div class="sh-cell ${lvl}" title="${tip}"></div>`);
+  }
+  document.getElementById('statsHeatmap').innerHTML = cells.join('');
+
+  // Aktif/pasif gün sayacı — seçili range içinde
+  const { from, days: rangeDays, label } = _statsRangeMs();
+  const sumEl = document.getElementById('statsHeatmapSummary');
+  if (sumEl) {
+    if (!rangeDays) {
+      // Tüm zamanlar: kayıtlı en eski tamamlamadan bugüne
+      const ks = Object.keys(buckets).sort();
+      if (!ks.length) { sumEl.textContent = ''; return; }
+      const first = new Date(ks[0]);
+      const total = Math.max(1, Math.round((today - first) / 86400000) + 1);
+      const active = ks.length;
+      sumEl.innerHTML = `<b>${active}</b> gün aktif · <b>${total - active}</b> boş gün <span style="color:var(--text3)">(toplam ${total} gün)</span>`;
+    } else {
+      let active = 0;
+      for (let i = 0; i < rangeDays; i++) {
+        const d = new Date(today); d.setDate(d.getDate() - i);
+        const k = d.toISOString().slice(0,10);
+        if (buckets[k]) active++;
+      }
+      sumEl.innerHTML = `<b>${active}</b> gün aktif · <b>${rangeDays - active}</b> boş gün <span style="color:var(--text3)">(${label})</span>`;
+    }
+  }
+}
+
+function renderStatsBalance() {
+  const { from } = _statsRangeMs();
+  const all = _statsAllTasks().filter(t => {
+    if (!from) return true;
+    if (!t.completed_at) return false;
+    return new Date(t.completed_at).getTime() >= from;
+  });
+  const sums = { mental:0, physical:0, spiritual:0 };
+  for (const t of all) {
+    if (!t.balance_category || !sums.hasOwnProperty(t.balance_category)) continue;
+    const m = (t.estimated_minutes != null && t.estimated_minutes >= 0) ? t.estimated_minutes : 30;
+    sums[t.balance_category] += m;
+  }
+  const total = sums.mental + sums.physical + sums.spiritual;
+  const colors = { mental:'#5B9BD5', physical:'#22c55e', spiritual:'#a855f7' };
+  const labels = { mental:'Zihin', physical:'Beden', spiritual:'Kalp' };
+  if (!total) {
+    document.getElementById('statsBalance').innerHTML = '<div class="stats-soon">Henüz denge kategorisi atanmış görev yok.</div>';
+    return;
+  }
+  // SVG donut
+  let cum = 0;
+  const r = 38, cx = 50, cy = 50;
+  const segs = ['mental','physical','spiritual'].map(k => {
+    const frac = sums[k] / total;
+    if (frac === 0) return '';
+    const a0 = cum * 2 * Math.PI;
+    cum += frac;
+    const a1 = cum * 2 * Math.PI;
+    const x0 = cx + r * Math.sin(a0), y0 = cy - r * Math.cos(a0);
+    const x1 = cx + r * Math.sin(a1), y1 = cy - r * Math.cos(a1);
+    const large = frac > 0.5 ? 1 : 0;
+    return `<path d="M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} Z" fill="${colors[k]}"/>`;
+  }).join('');
+  const inner = `<circle cx="${cx}" cy="${cy}" r="22" fill="var(--surface)"/>`;
+  const legend = ['mental','physical','spiritual'].map(k => `
+    <div class="stats-donut-legend-item">
+      <span class="stats-donut-legend-swatch" style="background:${colors[k]}"></span>
+      <span>${labels[k]}: ${fmtBalanceMinutes(sums[k])} (${Math.round(sums[k]/total*100)}%)</span>
+    </div>
+  `).join('');
+  document.getElementById('statsBalance').innerHTML = `
+    <div class="stats-donut-wrap">
+      <svg class="stats-donut-svg" viewBox="0 0 100 100">${segs}${inner}</svg>
+      <div class="stats-donut-legend">${legend}</div>
+    </div>
+  `;
+}
+
+function renderStatsLists() {
+  const { from } = _statsRangeMs();
+  const all = _statsAllTasks().filter(t => {
+    if (!from) return true;
+    const created = t.created_at ? new Date(t.created_at).getTime() : 0;
+    const done    = t.completed_at ? new Date(t.completed_at).getTime() : 0;
+    return created >= from || done >= from;
+  });
+  if (typeof lists === 'undefined' || !lists?.length) {
+    document.getElementById('statsLists').innerHTML = '<div class="stats-soon">Liste yok.</div>';
+    return;
+  }
+  const counts = lists.map(l => ({
+    name: l.name,
+    total: all.filter(t => t.category === l.id && !t.parent_id).length,
+    done:  all.filter(t => t.category === l.id && !t.parent_id && t.done).length,
+  })).filter(x => x.total > 0).sort((a,b) => b.total - a.total).slice(0, 8);
+  if (!counts.length) {
+    document.getElementById('statsLists').innerHTML = '<div class="stats-soon">Henüz görev yok.</div>';
+    return;
+  }
+  const max = Math.max(...counts.map(c => c.total));
+  const html = counts.map(c => {
+    const pct = (c.total / max) * 100;
+    return `
+      <div class="stats-bar-row">
+        <span class="stats-bar-name" title="${c.name}">${c.name}</span>
+        <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${pct}%"></div></div>
+        <span class="stats-bar-val">${c.done}/${c.total}</span>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('statsLists').innerHTML = `<div class="stats-bar-list">${html}</div>`;
+}
+
+async function renderStatsPomo() {
+  const el = document.getElementById('statsPomo');
+  if (!session?.user?.id) {
+    el.innerHTML = '<div class="stats-soon">Giriş yapın.</div>';
+    return;
+  }
+  const { from, label } = _statsRangeMs();
+  let rows = [];
+  try {
+    const sinceClause = from ? `&completed_at=gte.${new Date(from).toISOString()}` : '';
+    rows = await db(`/pomo_sessions?user_id=eq.${session.user.id}${sinceClause}&phase=eq.work&select=duration_min,completed_at,balance_category`) || [];
+  } catch {
+    el.innerHTML = '<div class="stats-soon">Pomodoro tablosu henüz hazır değil. Supabase\'de pomo_sessions tablosunu oluşturun (FAZ 2.C.1 talimatları).</div>';
+    return;
+  }
+  if (!rows.length) {
+    el.innerHTML = `<div class="stats-soon">${label} içinde tamamlanmış pomodoro yok.</div>`;
+    return;
+  }
+  const totalSessions = rows.length;
+  const totalMin = rows.reduce((s,r) => s + (r.duration_min || 25), 0);
+  // Kategori dağılımı
+  const byCat = { mental:0, physical:0, spiritual:0, other:0 };
+  for (const r of rows) {
+    const k = r.balance_category && byCat.hasOwnProperty(r.balance_category) ? r.balance_category : 'other';
+    byCat[k] += (r.duration_min || 25);
+  }
+  const colors = { mental:'#5B9BD5', physical:'#22c55e', spiritual:'#a855f7', other:'#94a3b8' };
+  const labels = { mental:'Zihin', physical:'Beden', spiritual:'Kalp', other:'Diğer' };
+  const legend = Object.keys(byCat).filter(k => byCat[k] > 0).map(k => `
+    <div class="stats-donut-legend-item">
+      <span class="stats-donut-legend-swatch" style="background:${colors[k]}"></span>
+      <span>${labels[k]}: ${fmtBalanceMinutes(byCat[k])}</span>
+    </div>
+  `).join('');
+  // Saat dağılımı (0-23)
+  const hours = Array(24).fill(0);
+  for (const r of rows) {
+    const h = new Date(r.completed_at).getHours();
+    hours[h] += 1;
+  }
+  const maxH = Math.max(...hours);
+  const peakH = hours.indexOf(maxH);
+  const hourBars = hours.map((n, h) => {
+    const pct = maxH ? (n / maxH * 100) : 0;
+    const isPeak = (n === maxH && maxH > 0);
+    return `<div class="ph-bar-col" title="${String(h).padStart(2,'0')}:00 — ${n} pomo">
+      <div class="ph-bar-fill ${isPeak?'peak':''}" style="height:${pct}%"></div>
+      <div class="ph-bar-label">${h}</div>
+    </div>`;
+  }).join('');
+  el.innerHTML = `
+    <div class="stats-cards" style="margin-bottom:12px;">
+      <div class="stats-card"><div class="stats-card-label">Pomodoro</div><div class="stats-card-value">${totalSessions}</div><div class="stats-card-sub">${label}</div></div>
+      <div class="stats-card"><div class="stats-card-label">Toplam süre</div><div class="stats-card-value">${fmtBalanceMinutes(totalMin)}</div></div>
+      ${maxH > 0 ? `<div class="stats-card"><div class="stats-card-label">En verimli saat</div><div class="stats-card-value">${String(peakH).padStart(2,'0')}:00</div><div class="stats-card-sub">${maxH} pomo</div></div>` : ''}
+    </div>
+    <div class="stats-donut-legend" style="margin-bottom:14px;">${legend || ''}</div>
+    <div class="ph-section">
+      <div style="font-size:.7rem; color:var(--text3); margin-bottom:6px;">Saat dağılımı (0–23)</div>
+      <div class="ph-bars">${hourBars}</div>
+    </div>
+  `;
+}
+
+/* ── Avatar Upload (FAZ 2.A) ── */
+function _resizeImage(file, maxSize) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => blob ? resolve(blob) : reject('toBlob fail'), 'image/jpeg', 0.85);
+    };
+    img.onerror = () => reject('image load fail');
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function onAvatarSelected(e) {
+  const file = e.target?.files?.[0];
+  e.target.value = ''; // reset
+  if (!file) return;
+  if (!/^image\/(png|jpe?g)$/i.test(file.type)) { showToast('Sadece JPG/PNG'); return; }
+  if (file.size > 2 * 1024 * 1024) { showToast('En fazla 2 MB'); return; }
+  await uploadAvatar(file);
+}
+
+async function uploadAvatar(file) {
+  const userId = session?.user?.id;
+  if (!userId) { showToast('Önce giriş yap'); return; }
+  showToast('Resim yükleniyor…');
+  let blob;
+  try { blob = await _resizeImage(file, 256); }
+  catch { showToast('Resim okunamadı'); return; }
+  const filename = `${userId}.jpg`;
+  const r = await fetch(`${SB}/storage/v1/object/avatars/${filename}`, {
+    method: 'POST',
+    headers: {
+      ...authHdr(),
+      'x-upsert': 'true',
+      'Content-Type': 'image/jpeg',
+    },
+    body: blob,
+  });
+  if (!r.ok) {
+    const errText = await r.text().catch(() => '');
+    showToast('Yükleme hatası: ' + (errText.slice(0,80) || r.status));
+    return;
+  }
+  const url = `${SB}/storage/v1/object/public/avatars/${filename}?t=${Date.now()}`;
+  // user_metadata güncelle (auth API)
+  const ur = await fetch(`${SB}/auth/v1${'/user'}`, {
+    method: 'PUT',
+    headers: { ...authHdr(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: { avatar_url: url } }),
+  });
+  if (!ur.ok) {
+    const t = await ur.text().catch(()=> '');
+    showToast('Profil güncellenemedi: ' + (t.slice(0,80) || ur.status));
+    return;
+  }
+  if (!session.user.user_metadata) session.user.user_metadata = {};
+  session.user.user_metadata.avatar_url = url;
+  saveSession(session);
+  renderProfileButton();
+  renderSettingsAvatar();
+  showToast('Profil resmi güncellendi');
+}
+
+async function removeAvatar() {
+  const userId = session?.user?.id;
+  if (!userId) return;
+  // Storage'dan sil (hata yutulur — dosya yoksa da metadata temizlenir)
+  await fetch(`${SB}/storage/v1/object/avatars/${userId}.jpg`, {
+    method: 'DELETE',
+    headers: authHdr(),
+  }).catch(() => {});
+  // user_metadata.avatar_url null
+  await fetch(`${SB}/auth/v1/user`, {
+    method: 'PUT',
+    headers: { ...authHdr(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: { avatar_url: null } }),
+  });
+  if (session.user.user_metadata) delete session.user.user_metadata.avatar_url;
+  saveSession(session);
+  renderProfileButton();
+  renderSettingsAvatar();
+  showToast('Profil resmi kaldırıldı');
+}
+
+function renderSettingsAvatar() {
+  const img    = document.getElementById('sAvatarImg');
+  const init   = document.getElementById('sAvatarInit');
+  const remove = document.getElementById('sAvatarRemove');
+  if (!img || !init) return;
+  const url = _getAvatarUrl();
+  if (url) {
+    img.src = url; img.style.display = ''; init.style.display = 'none';
+    if (remove) remove.style.display = '';
+  } else {
+    img.style.display = 'none'; init.style.display = '';
+    init.textContent = _getInitials();
+    if (remove) remove.style.display = 'none';
+  }
 }
 
 function applyTheme(val, persist) {
@@ -10840,11 +12723,11 @@ function applyCompact(val, persist) {
   document.body.classList.toggle('compact', !!val);
 }
 
-function applyAccent(val, persist) {
-  if (persist) saveSetting('accentColor', val);
-  document.documentElement.style.setProperty('--accent', val);
-  document.documentElement.style.setProperty('--accent-bg', val+'22');
-  document.querySelectorAll('.accent-chip').forEach(c => c.classList.toggle('active', c.dataset.color === val));
+// Accent color artık değiştirilemez — marka rengi (#12A3E3) her zaman CSS değişkenlerinden gelir.
+// Bu fonksiyon geriye uyumluluk için duruyor (eski kullanıcıların inline style'ını temizler).
+function applyAccent() {
+  document.documentElement.style.removeProperty('--accent');
+  document.documentElement.style.removeProperty('--accent-bg');
 }
 
 function saveAllSettings() {
@@ -10852,8 +12735,6 @@ function saveAllSettings() {
   saveSetting('theme', document.getElementById('sTheme').value);
   saveSetting('fontSize', document.getElementById('sFontSize').value);
   saveSetting('compact', document.getElementById('sCompact').checked);
-  const activeChip = document.querySelector('.accent-chip.active');
-  if (activeChip) saveSetting('accentColor', activeChip.dataset.color);
   // Data settings
   saveSetting('displayName', document.getElementById('sDisplayName').value);
   saveSetting('defaultSort', document.getElementById('sDefaultSort').value || null);
@@ -10861,6 +12742,16 @@ function saveAllSettings() {
   saveSetting('autoHide', document.getElementById('sAutoHide').checked);
   saveSetting('completionAnim', document.getElementById('sCompletionAnim').checked);
   saveSetting('dueReminder', document.getElementById('sDueReminder').value);
+  // Reminders (FAZ 2.B) — 5 tür toggle + 4 saat
+  const rIds = ['overdue','yesterdayIncomplete','lastWeekIncomplete','sundayWeekPlan','dailyTomorrowPlan'];
+  const rTimeIds = ['yesterdayIncomplete','lastWeekIncomplete','sundayWeekPlan','dailyTomorrowPlan'];
+  const reminders = {};
+  rIds.forEach(id => { reminders[id] = !!document.getElementById('sR_' + id)?.checked; });
+  rTimeIds.forEach(id => {
+    const el = document.getElementById('sR_' + id + 'Time');
+    if (el?.value) reminders[id + 'Time'] = el.value;
+  });
+  saveSetting('reminders', reminders);
   saveSetting('dateFormat', document.getElementById('sDateFormat').value);
   saveSetting('timeFormat', document.getElementById('sTimeFormat').value);
   saveSetting('weekStart', document.getElementById('sWeekStart').value);
@@ -10878,7 +12769,6 @@ function cancelSettings() {
     applyTheme(_settingsSnapshot.theme, false);
     applyFontSize(_settingsSnapshot.fontSize, false);
     applyCompact(_settingsSnapshot.compact, false);
-    applyAccent(_settingsSnapshot.accentColor, false);
     _settingsSnapshot = null;
   }
   closeSettings();
@@ -10989,7 +12879,7 @@ async function loadTfaStatus() {
   const badge = document.getElementById('tfaStatusBadge');
   const desc  = document.getElementById('tfaStatusDesc');
   const actionRow = document.getElementById('tfaActionRow');
-  badge.innerHTML = '<span class="mi s16">shield</span><span>Yükleniyor...</span>';
+  badge.innerHTML = '<span class="mi s16">shield</span><span>Yükleniyor…</span>';
   badge.className = 'tfa-status off';
   try {
     const factors = await authFetch('/factors');
@@ -11091,21 +12981,11 @@ function populateSettings() {
   // Hesap
   document.getElementById('sDisplayName').value = appSettings.displayName || '';
   document.getElementById('sCurrentEmail').textContent = session?.user?.email || '—';
+  if (typeof renderSettingsAvatar === 'function') renderSettingsAvatar();
   // Görünüm
   document.getElementById('sTheme').value = appSettings.theme;
   document.getElementById('sFontSize').value = appSettings.fontSize;
   document.getElementById('sCompact').checked = !!appSettings.compact;
-  // Accent chips
-  const chips = document.getElementById('accentChips');
-  chips.innerHTML = '';
-  ACCENT_COLORS.forEach(c => {
-    const el = document.createElement('div');
-    el.className = 'accent-chip' + (appSettings.accentColor === c ? ' active' : '');
-    el.style.background = c; el.dataset.color = c;
-    el.title = c;
-    el.onclick = () => applyAccent(c, false);
-    chips.appendChild(el);
-  });
   // Görevler
   document.getElementById('sDefaultSort').value = appSettings.defaultSort || '';
   document.getElementById('sDefaultPriority').value = appSettings.defaultPriority || '';
@@ -11114,6 +12994,26 @@ function populateSettings() {
   // Bildirimler
   document.getElementById('sNotifEnabled').checked = !!appSettings.notifEnabled;
   document.getElementById('sDueReminder').value = appSettings.dueReminder || 'none';
+  // Reminders toggle + saat (FAZ 2.B)
+  const rdef = (appSettings.reminders) || {};
+  ['overdue','yesterdayIncomplete','lastWeekIncomplete','sundayWeekPlan','dailyTomorrowPlan'].forEach(id => {
+    const el = document.getElementById('sR_' + id);
+    if (el) el.checked = (rdef[id] !== false); // default true
+  });
+  const _rDefaultTime = { yesterdayIncomplete:'09:00', lastWeekIncomplete:'09:00', sundayWeekPlan:'19:00', dailyTomorrowPlan:'21:30' };
+  Object.keys(_rDefaultTime).forEach(id => {
+    const tEl = document.getElementById('sR_' + id + 'Time');
+    const cEl = document.getElementById('sR_' + id);
+    if (tEl) {
+      tEl.value = rdef[id + 'Time'] || _rDefaultTime[id];
+      tEl.disabled = !cEl?.checked;
+    }
+    // Toggle değişince saat input'u senkronize ol
+    if (cEl && !cEl._timeBound) {
+      cEl.addEventListener('change', () => { if (tEl) tEl.disabled = !cEl.checked; });
+      cEl._timeBound = true;
+    }
+  });
   const perm = Notification?.permission || 'unsupported';
   document.getElementById('sNotifStatus').textContent =
     perm === 'granted' ? '✓ İzin verildi' : perm === 'denied' ? '✗ Reddedildi (tarayıcı ayarından açın)' : 'İzin bekleniyor';
@@ -11170,9 +13070,19 @@ async function deleteAccount() {
 async function requestNotifPermission() {
   if (!('Notification' in window)) { showToast('Bu tarayıcı bildirimleri desteklemiyor.'); return; }
   const perm = await Notification.requestPermission();
-  document.getElementById('sNotifStatus').textContent =
-    perm === 'granted' ? '✓ İzin verildi' : '✗ Reddedildi';
-  if (perm === 'granted') { saveSetting('notifEnabled', true); document.getElementById('sNotifEnabled').checked = true; }
+  // Settings modal açıksa elementleri güncelle (yoksa null crash olmasın)
+  const statusEl = document.getElementById('sNotifStatus');
+  if (statusEl) statusEl.textContent = perm === 'granted' ? '✓ İzin verildi' : '✗ Reddedildi';
+  const toggleEl = document.getElementById('sNotifEnabled');
+  if (perm === 'granted') {
+    saveSetting('notifEnabled', true);
+    if (toggleEl) toggleEl.checked = true;
+  }
+  // İzin değiştiği için bağlı UI'ları yenile
+  if (typeof renderProfileButton === 'function') renderProfileButton();
+  if (typeof renderNotifCenter === 'function') renderNotifCenter();
+  showToast(perm === 'granted' ? '✓ Bildirim izni verildi' : '✗ Bildirim izni reddedildi');
+  return perm;
 }
 
 function toggleNotifications(val) {
@@ -11183,7 +13093,11 @@ function toggleNotifications(val) {
 function scheduleReminders() {
   if (!appSettings.notifEnabled || appSettings.dueReminder === 'none') return;
   if (Notification?.permission !== 'granted') return;
-  const mins = appSettings.dueReminder === '30min' ? 30 : appSettings.dueReminder === '1hour' ? 60 : 1440;
+  const mins = appSettings.dueReminder === '30min'  ? 30
+             : appSettings.dueReminder === '1hour'  ? 60
+             : appSettings.dueReminder === '3hour'  ? 180
+             : appSettings.dueReminder === '12hour' ? 720
+             : 1440;
   const msAhead = mins * 60 * 1000;
   const now = Date.now();
   tasks.filter(t => !t.done && t.due_at && hasTime(t.due_at)).forEach(t => {
@@ -11196,6 +13110,333 @@ function scheduleReminders() {
       }, delay);
     }
   });
+}
+
+/* ── Scheduled Reminders (FAZ 2.B) ── */
+function _ymdKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function _reminderLastFired(type) {
+  try { return JSON.parse(localStorage.getItem('reminders_lastFired') || '{}')[type] || null; }
+  catch { return null; }
+}
+function _markReminderFired(type, key) {
+  try {
+    const lf = JSON.parse(localStorage.getItem('reminders_lastFired') || '{}');
+    lf[type] = key;
+    localStorage.setItem('reminders_lastFired', JSON.stringify(lf));
+  } catch {}
+  // Profil badge'ini yenile (tetiklenen reminder etkili olur)
+  if (typeof renderProfileButton === 'function') renderProfileButton();
+}
+function notifyReminder(type, title, body) {
+  // In-app toast
+  if (typeof showToast === 'function') showToast(`${title}: ${body}`);
+  // Browser Notification (izin varsa)
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try { new Notification(title, { body, icon:'/favicon.ico', tag: type }); } catch {}
+  }
+  // Notif log'a ekle (FAZ B — bildirim merkezinde okunmamış olarak görünür)
+  _notifLogAdd({ type, title, desc: body });
+}
+
+/* ── Notif log (FAZ B) ── */
+const NOTIF_LOG_MAX = 50;
+const NOTIF_LOG_TTL_MS = 7 * 24 * 3600 * 1000; // 7 gün (sistem makale 90 gün)
+const NOTIF_LOG_ARTICLE_TTL_MS = 90 * 24 * 3600 * 1000;
+function _notifLogRead() {
+  try { return JSON.parse(localStorage.getItem('notifLog') || '[]'); }
+  catch { return []; }
+}
+function _notifLogWrite(arr) {
+  try { localStorage.setItem('notifLog', JSON.stringify(arr.slice(0, NOTIF_LOG_MAX))); } catch {}
+}
+function _notifLogPrune(arr) {
+  const now = Date.now();
+  return arr.filter(e => {
+    const ttl = (e.type === 'system_article') ? NOTIF_LOG_ARTICLE_TTL_MS : NOTIF_LOG_TTL_MS;
+    return (now - e.ts) < ttl;
+  });
+}
+function _notifLogAdd(entry) {
+  const arr = _notifLogPrune(_notifLogRead());
+  arr.unshift({
+    id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    ts: Date.now(),
+    read: false,
+    ...entry,
+  });
+  _notifLogWrite(arr);
+  // Profil badge'i de senkron olsun
+  if (typeof renderProfileButton === 'function') renderProfileButton();
+}
+function _notifLogMarkRead(id) {
+  const arr = _notifLogRead();
+  const e = arr.find(x => x.id === id);
+  if (e) { e.read = true; _notifLogWrite(arr); }
+  if (typeof renderProfileButton === 'function') renderProfileButton();
+}
+function _notifLogMarkAllRead() {
+  const arr = _notifLogRead().map(e => ({ ...e, read: true }));
+  _notifLogWrite(arr);
+  if (typeof renderProfileButton === 'function') renderProfileButton();
+}
+function _notifLogUnreadCount() {
+  return _notifLogPrune(_notifLogRead()).filter(e => !e.read).length;
+}
+
+/* ── Sistem Makaleleri (Disiplan Haftalık) ── */
+const SYSTEM_ARTICLES = [
+  {
+    id: 'art_2026_w19_timeboxing',
+    week: '2026-W19',
+    title: 'Time Boxing: Zamanı doldurmayı bırak, zamanla şekillendir',
+    desc: 'Haftalık Disiplan #1 — Sorun, tarih, atasözü ve bilimle zaman yönetimi',
+    icon: 'menu_book',
+    thumbnail: `<img src="https://covers.openlibrary.org/b/isbn/1455586692-M.jpg" alt="Deep Work">`,
+    contentHTML: `
+      <!-- HERO: 3 ana kitap (sadece Deep Work gerçek kapak; diğerleri tipografik) -->
+      <div class="art-book-shelf">
+        <div class="art-book-fb art-book-fb-red">
+          <strong>Parkinson's Law</strong>
+          <small>C. N. Parkinson<br>1957</small>
+        </div>
+        <img src="https://covers.openlibrary.org/b/isbn/1455586692-L.jpg" alt="Deep Work">
+        <div class="art-book-fb art-book-fb-tomato">
+          <strong>The Pomodoro Technique</strong>
+          <small>F. Cirillo<br>2018</small>
+        </div>
+      </div>
+      <div class="art-shelf-caption">Bu makaleyi besleyen 3 anahtar kitap</div>
+
+      <div class="art-hero-meta-bar">
+        <div class="art-hero-tag">HAFTALIK DİSİPLAN · #1</div>
+        <div class="art-hero-sub">5 dk okuma · Zaman Yönetimi</div>
+      </div>
+
+      <!-- 1. SORUN -->
+      <h2>Sorun: Saatleri kaybeden iş</h2>
+      <p>Sabah heyecanla masaya oturursun: <em>"Bugün şu sunumu bitireceğim."</em> Akşam olur, hâlâ slayt 3'tesin. Mail bakmışsın, üç kez kahve molası vermişsin, telefon almışsın, biraz Twitter'a göz atmışsın…</p>
+      <p>Sorun tembelliğin değildir. Sorun şudur: <strong>zamana açılan boşluk, bir vakum gibi her işi içine çeker</strong>. İş kendisini, ona ayırdığın süreye göre genişletir. Sınır yoksa sürmez; biter de demez.</p>
+
+      <div class="art-fake-svg">
+        <svg viewBox="0 0 480 100" xmlns="http://www.w3.org/2000/svg">
+          <text x="20" y="22" font-size="11" font-weight="600" fill="#475569">Sınırsız zaman → iş yayılır</text>
+          <rect x="20" y="30" width="440" height="22" rx="4" fill="#fbd9b8" stroke="#E9731C" stroke-width="1"/>
+          <text x="240" y="46" text-anchor="middle" font-size="11" font-weight="700" fill="#7c2d12">Saatlerce uzayan iş</text>
+          <text x="20" y="78" font-size="11" font-weight="600" fill="#475569">Sınırlı zaman → iş şekillenir</text>
+          <rect x="20" y="86" width="110" height="14" rx="4" fill="#c1e0f2" stroke="#12A3E3" stroke-width="1.5"/>
+          <text x="75" y="96" text-anchor="middle" font-size="9" font-weight="700" fill="#0c4a6e">90 dk blok</text>
+        </svg>
+      </div>
+
+      <!-- 2. TARİH -->
+      <h2>Tarih boyunca insan bunu nasıl çözmüş?</h2>
+      <p>Bu sorun yeni değil. Asırlardır insanlar zamanı bloklara bölerek hayatı düzene sokmuş.</p>
+
+      <div class="art-history-card">
+        <div class="art-history-emoji">🕌</div>
+        <div>
+          <h4>Osmanlı'da beş vakit ezan</h4>
+          <p>Günü 5 dilime bölen ezan sistemi yalnızca dini bir ritüel değildi — <strong>günlük yaşamı zaman bloklarına bölen</strong> doğal bir ritimdi. İmsak'ta çırak işbaşı yapardı, öğlen aralık verilir, ikindide hesaplar tutulur, akşam dükkân kapanırdı. 600 yıl boyunca millet, "şimdi saat kaç" diye değil, "hangi vakit" diye düşündü.</p>
+        </div>
+      </div>
+
+      <div class="art-history-card">
+        <div class="art-history-emoji">🛍️</div>
+        <div>
+          <h4>Ahi loncalarında çırak eğitimi</h4>
+          <p>13. yüzyılda Anadolu'nun esnaf birliği <strong>Ahi teşkilatı</strong>nda çıraklık <em>belirlenmiş süreler</em> üzerinden işlerdi: 1001 günlük çıraklık, ardından 1001 günlük kalfalık. Bilgi tamamlandığında değil, <strong>süre dolduğunda</strong> usta yapılırdı. Süre, başlı başına bir öğretmendi.</p>
+        </div>
+      </div>
+
+      <div class="art-history-card">
+        <div class="art-history-emoji">⏳</div>
+        <div>
+          <h4>Sufi terbiyesinde "halvet"</h4>
+          <p>Mevlevi ve Bektaşi geleneğinde <strong>40 günlük halvet</strong> vardır. Tam bir zaman kutusu: müridin ne yapacağı, ne kadar süreceği önceden belirlenmiştir. Kişi süreyi değil, sürenin içini doldurur.</p>
+        </div>
+      </div>
+
+      <!-- 3. ATASÖZÜ -->
+      <h2>Atalarımızın özüsözü</h2>
+      <blockquote class="art-motto">"Bugünün işini yarına bırakma."</blockquote>
+      <p>Bu basit cümle, Time Boxing'in kalbidir. <strong>İş bugünden, bugüne ayırdığın süreden taşmasın</strong>. Yarına ertelenen iş, yarın da ertelenir; çünkü zaman doldurulmaya değil, şekillendirilmeye gelir.</p>
+      <p>Bir başka atasözümüz pekiştirir: <em>"Sakla samanı, gelir zamanı."</em> Saman gibi zaman da öyle: bugün bir blok ayırırsan, yarın hasadını alırsın.</p>
+
+      <!-- 4. BİLİM -->
+      <h2>Bilim ne diyor?</h2>
+      <p>Geleneğin sezgisini bilim de doğruluyor. İşte 4 temel kaynak:</p>
+
+      <div class="art-book-card">
+        <div class="art-book-fb-sm art-book-fb-red"><strong>Parkinson's Law</strong></div>
+        <div>
+          <div class="art-book-title">Parkinson Yasası <small>(1957)</small></div>
+          <div class="art-book-author">C. Northcote Parkinson</div>
+          <p><em>"İş, kendisine ayrılan süreyi doldurmak için genişler."</em></p>
+          <p>Bir göreve 8 saat verirseniz 8 saat sürer. 2 saat verirseniz 2 saatte biter. <strong>Sınır beyni odaklar.</strong></p>
+        </div>
+      </div>
+
+      <div class="art-book-card">
+        <img src="https://covers.openlibrary.org/b/isbn/1455586692-L.jpg" alt="Deep Work">
+        <div>
+          <div class="art-book-title">Deep Work <small>(2016)</small></div>
+          <div class="art-book-author">Cal Newport</div>
+          <p>Korunmuş, kesintisiz zaman blokları üst düzey üretkenliğin koşulu. Telefon, e-posta, Slack — hepsi blok dışında bırakılır. <strong>Bağlam değiştirme maliyeti minimuma iner</strong>; bilişsel kapasite tek konuya yönlenir.</p>
+        </div>
+      </div>
+
+      <div class="art-book-card">
+        <div class="art-book-fb-sm art-book-fb-tomato"><strong>Pomodoro Technique</strong></div>
+        <div>
+          <div class="art-book-title">The Pomodoro Technique <small>(2018)</small></div>
+          <div class="art-book-author">Francesco Cirillo</div>
+          <p>25 dakikalık çalışma + 5 dakikalık mola. Time boxing'in en popüler ve test edilmiş varyasyonu. 1980'lerde icat edildi, hâlâ milyonlarca insanın gündelik tekniği.</p>
+        </div>
+      </div>
+
+      <div class="art-book-card no-img">
+        <div class="art-book-placeholder">📜</div>
+        <div>
+          <div class="art-book-title">Hedef Belirleme Teorisi <small>(2002)</small></div>
+          <div class="art-book-author">Edwin Locke & Gary Latham · <em>American Psychologist</em></div>
+          <p>35 yıllık meta-analiz: <strong>spesifik ve zorlu hedefler</strong>, belirsiz "elimden geleni yapacağım" türü hedeflerden ortalama <strong>%16-19 daha yüksek performans</strong> üretir. Time Boxing tam bunu yapar: spesifik (90 dk) + zorlu (bitir).</p>
+        </div>
+      </div>
+
+      <!-- 5. DİSİPLAN'DA NASIL? -->
+      <h2>Disiplan'da nasıl yaparız?</h2>
+      <p><strong>3 adımda</strong>: ① Görevin tarih ikonuna tıkla, süre slider'ından bloğunu seç (5/25/60/90 dk hızlı snap'ler). ② Görevi <strong>Takvim Görünümü</strong>'ne sürükle — yüksekliği süreye göre otomatik oturur. ③ Hafta sonu <strong>İstatistikler</strong>'i aç, kaç blok tamamladığını ve en verimli saatini gör. Veriye göre haftayı yenile.</p>
+
+      <div class="art-tip">
+        <strong>İpucu:</strong> İlk hafta blokların kısa gelir. 2-3 hafta sonra "ne kadar sürer" tahminin isabetlenir. Veriyi <strong>İstatistikler</strong>'den takip et.
+      </div>
+
+      <h2>Bilimsel kaynaklar</h2>
+      <ol class="art-refs">
+        <li>Parkinson, C.N. (1957). <em>Parkinson's Law: The Pursuit of Progress</em>. Houghton Mifflin.</li>
+        <li>Newport, C. (2016). <em>Deep Work: Rules for Focused Success in a Distracted World</em>. Grand Central Publishing.</li>
+        <li>Locke, E.A., & Latham, G.P. (2002). "Building a practically useful theory of goal setting and task motivation: A 35-year odyssey." <em>American Psychologist</em>, 57(9), 705–717. doi:10.1037/0003-066X.57.9.705</li>
+        <li>Cirillo, F. (2018). <em>The Pomodoro Technique: The Acclaimed Time-Management System</em>. Currency.</li>
+        <li>Bayram, M. (1991). <em>Ahi Evran ve Ahi Teşkilatı'nın Kuruluşu</em>. Damla Matbaacılık, Konya.</li>
+        <li>Schimmel, A. (1975). <em>Mystical Dimensions of Islam</em>. University of North Carolina Press. (Halvet pratiği)</li>
+      </ol>
+
+    `,
+  },
+];
+
+function loadSystemArticles() {
+  let seen;
+  try { seen = new Set(JSON.parse(localStorage.getItem('seenArticles') || '[]')); }
+  catch { seen = new Set(); }
+  let added = false;
+  SYSTEM_ARTICLES.forEach(art => {
+    if (seen.has(art.id)) return;
+    _notifLogAdd({
+      type: 'system_article',
+      title: art.title,
+      desc: art.desc,
+      icon: art.icon || 'menu_book',
+      _articleId: art.id,
+    });
+    seen.add(art.id);
+    added = true;
+  });
+  if (added) {
+    try { localStorage.setItem('seenArticles', JSON.stringify([...seen])); } catch {}
+  }
+}
+function _parseHm(s, defH, defM) {
+  if (!s || typeof s !== 'string' || !/^\d{1,2}:\d{2}$/.test(s)) return [defH, defM];
+  const [h, m] = s.split(':').map(n => parseInt(n, 10));
+  return [Number.isFinite(h) ? h : defH, Number.isFinite(m) ? m : defM];
+}
+function _isWithinWindow(nowH, nowM, targetH, targetM, windowMin) {
+  // [target, target+windowMin) penceresi içinde mi?
+  const nowMin = nowH * 60 + nowM;
+  const tMin = targetH * 60 + targetM;
+  return nowMin >= tMin && nowMin < tMin + windowMin;
+}
+function checkScheduledReminders() {
+  const r = appSettings.reminders || {};
+  const now = new Date();
+  const today = _ymdKey(now);
+  const dow = now.getDay(); // 0=Pazar, 1=Pazartesi
+  const hh = now.getHours();
+  const mm = now.getMinutes();
+
+  // 1. Geciken görevler (sayfa açılışında / dakika başı, günde 1 kez)
+  if (r.overdue && _reminderLastFired('overdue') !== today) {
+    const overdue = (typeof tasks !== 'undefined' ? tasks : []).filter(t =>
+      !t.done && t.due_at && new Date(t.due_at).getTime() < now.getTime()
+    );
+    if (overdue.length > 0) {
+      notifyReminder('overdue', 'Geciken görevler', `${overdue.length} geciken görevin var`);
+      _markReminderFired('overdue', today);
+    }
+  }
+
+  // 2. Dün tamamlanmayan (kullanıcı saati, default 09:00)
+  if (r.yesterdayIncomplete && _reminderLastFired('yesterdayIncomplete') !== today) {
+    const [tH, tM] = _parseHm(r.yesterdayIncompleteTime, 9, 0);
+    if (_isWithinWindow(hh, mm, tH, tM, 5)) {
+      const y = new Date(now); y.setDate(y.getDate() - 1);
+      const ydk = _ymdKey(y);
+      const ydTasks = (typeof tasks !== 'undefined' ? tasks : []).filter(t =>
+        !t.done && t.due_at && t.due_at.slice(0,10) === ydk
+      );
+      if (ydTasks.length > 0) {
+        notifyReminder('yesterdayIncomplete', 'Dün tamamlanmadı', `${ydTasks.length} görev`);
+      }
+      _markReminderFired('yesterdayIncomplete', today);
+    }
+  }
+
+  // 3. Geçen hafta tamamlanmayanlar (Pazartesi, kullanıcı saati, default 09:00)
+  if (r.lastWeekIncomplete && dow === 1 && _reminderLastFired('lastWeekIncomplete') !== today) {
+    const [tH, tM] = _parseHm(r.lastWeekIncompleteTime, 9, 0);
+    if (_isWithinWindow(hh, mm, tH, tM, 5)) {
+      const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7);
+      const lwTasks = (typeof tasks !== 'undefined' ? tasks : []).filter(t => {
+        if (t.done || !t.due_at) return false;
+        const due = new Date(t.due_at).getTime();
+        return due >= weekAgo.getTime() && due < now.getTime();
+      });
+      if (lwTasks.length > 0) {
+        notifyReminder('lastWeekIncomplete', 'Geçen hafta', `${lwTasks.length} tamamlanmayan görev`);
+      }
+      _markReminderFired('lastWeekIncomplete', today);
+    }
+  }
+
+  // 4. Pazar haftalık plan (Pazar, kullanıcı saati, default 19:00)
+  if (r.sundayWeekPlan && dow === 0 && _reminderLastFired('sundayWeekPlan') !== today) {
+    const [tH, tM] = _parseHm(r.sundayWeekPlanTime, 19, 0);
+    if (_isWithinWindow(hh, mm, tH, tM, 5)) {
+      notifyReminder('sundayWeekPlan', 'Haftalık planlama', 'Önümüzdeki haftayı planla');
+      _markReminderFired('sundayWeekPlan', today);
+    }
+  }
+
+  // 5. Her gün yarınki plan (kullanıcı saati, default 21:30)
+  if (r.dailyTomorrowPlan && _reminderLastFired('dailyTomorrowPlan') !== today) {
+    const [tH, tM] = _parseHm(r.dailyTomorrowPlanTime, 21, 30);
+    if (_isWithinWindow(hh, mm, tH, tM, 5)) {
+      notifyReminder('dailyTomorrowPlan', 'Yarının planı', 'Yarının planını gözden geçir');
+      _markReminderFired('dailyTomorrowPlan', today);
+    }
+  }
+}
+let _reminderInterval = null;
+function startReminderScheduler() {
+  // Daha önce başlatıldıysa tekrar başlatma
+  if (_reminderInterval) return;
+  // İlk kontrol — sayfa açılışında 3sn sonra (tasks yüklenmiş olur)
+  setTimeout(checkScheduledReminders, 3000);
+  // Her dakika kontrol (zamansal pencereler 5 dk genişliğinde — yakalama garanti)
+  _reminderInterval = setInterval(checkScheduledReminders, 60_000);
 }
 
 /* Export */
@@ -11387,7 +13628,7 @@ if ('serviceWorker' in navigator) {
       <span class="mi s18">add</span><span>Yeni Liste</span>
     </button>
     <div class="mob-drawer-new-inp" id="mobDrawerNewInp" style="display:none">
-      <input type="text" id="mobDrawerNewName" placeholder="Liste adı..." onkeydown="if(event.key==='Enter')saveMobDrawerList()">
+      <input type="text" id="mobDrawerNewName" placeholder="Liste adı…" onkeydown="if(event.key==='Enter')saveMobDrawerList()">
       <button onclick="saveMobDrawerList()">Ekle</button>
     </div>
     <!-- Ayarlar + Profil -->
