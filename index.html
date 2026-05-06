@@ -4187,6 +4187,32 @@
       const p = plan || 'pro_monthly_try';
       return 'landing/checkout.html?plan=' + p;
     };
+
+    // ── Crisp chat widget (Faz 4.B) ─────────────────────────────────────
+    // Logged-in user'lara açık. Identify login akışında çağrılır (dpCrispIdentify).
+    // Webhook → support_tickets ingestion Faz 4.B.2'de gelecek.
+    window.$crisp = [];
+    window.CRISP_WEBSITE_ID = '207f8235-63fa-424e-a7c4-37677d901e5f';
+    (function () {
+      var d = document; var s = d.createElement('script');
+      s.src = 'https://client.crisp.chat/l.js'; s.async = 1;
+      d.getElementsByTagName('head')[0].appendChild(s);
+    })();
+    // Helper: kullanıcıyı Crisp'e tanıt (login + initApp'te çağrılır)
+    window.dpCrispIdentify = function (user, sub) {
+      try {
+        if (!window.$crisp || !user) return;
+        if (user.email) window.$crisp.push(['set', 'user:email', [user.email]]);
+        if (user.name)  window.$crisp.push(['set', 'user:nickname', [user.name]]);
+        var data = [];
+        if (sub?.plan_code) data.push(['plan_code', sub.plan_code]);
+        if (sub?.status)    data.push(['subscription_status', sub.status]);
+        if (data.length)    window.$crisp.push(['set', 'session:data', [data]]);
+      } catch (_) { /* sessizce */ }
+    };
+    window.dpCrispReset = function () {
+      try { if (window.$crisp) window.$crisp.push(['do', 'session:reset']); } catch (_) {}
+    };
   </script>
   <style>
     .dp-pro-badge {
@@ -5237,6 +5263,7 @@ function clearSession() {
   localStorage.removeItem('sb_session');
   if (window.dpEvent) window.dpEvent('user_logged_out');
   if (window.dpReset) window.dpReset();
+  if (window.dpCrispReset) window.dpCrispReset();
 }
 
 async function refreshSession() {
@@ -5339,8 +5366,10 @@ async function submitAuth() {
           }
           window.dpSubscription = { plan_code: planCode, status: subscription_status, is_pro: isPro && (subscription_status === 'active' || subscription_status === 'trialing') };
           if (window.dpIdentify) window.dpIdentify(s.user.id, { subscription_status, plan_code: planCode });
+          if (window.dpCrispIdentify) window.dpCrispIdentify({ email: s.user.email, name: appSettings?.displayName }, window.dpSubscription);
         } catch (_) {
           window.dpSubscription = { plan_code: 'free', status: 'free', is_pro: false };
+          if (window.dpCrispIdentify) window.dpCrispIdentify({ email: s.user.email }, window.dpSubscription);
         }
         await initApp();
       }
@@ -5375,8 +5404,10 @@ async function initApp() {
       }
       window.dpSubscription = { plan_code: planCode, status: subscription_status, is_pro: isPro && (subscription_status === 'active' || subscription_status === 'trialing') };
       if (window.dpIdentify) window.dpIdentify(session.user.id, { subscription_status, plan_code: planCode });
+      if (window.dpCrispIdentify) window.dpCrispIdentify({ email: session.user.email, name: appSettings?.displayName }, window.dpSubscription);
     } catch (_) {
       window.dpSubscription = { plan_code: 'free', status: 'free', is_pro: false };
+      if (window.dpCrispIdentify) window.dpCrispIdentify({ email: session.user.email }, window.dpSubscription);
     }
   }
   loadSettings();
