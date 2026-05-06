@@ -76,6 +76,13 @@ export const NAV_GROUPS: NavGroup[] = [
         faz: 1, // Faz 3.A — sayfa hazır, veri Faz 3.B'de Iyzico webhook'tan akacak
         badge: 'Iyzico bekliyor',
       },
+      {
+        href: '/admin/coupons',
+        label: 'Kuponlar',
+        iconName: 'Tag',
+        requires: 'coupons',
+        faz: 1, // Faz 3.A — admin UI hazır, checkout'a Faz 3.B'de bağlanacak
+      },
     ],
   },
   {

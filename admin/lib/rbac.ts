@@ -20,6 +20,7 @@ export type Resource =
   | 'subscriptions'
   | 'subscriptions.refund'
   | 'payments'
+  | 'coupons'
   | 'support_tickets'
   | 'audit_log'
   | 'admin_users'
@@ -43,6 +44,7 @@ const PERMISSIONS: Record<Role, Partial<Record<Resource, Action[]>>> = {
     subscriptions: ['read', 'write', 'delete'],
     'subscriptions.refund': ['write'],
     payments: ['read'],
+    coupons: ['read', 'write', 'delete'],
     support_tickets: ['read', 'write', 'delete'],
     audit_log: ['read'], // delete bilinçli olarak yok
     admin_users: ['read', 'write', 'delete'],
@@ -61,6 +63,7 @@ const PERMISSIONS: Record<Role, Partial<Record<Resource, Action[]>>> = {
     subscriptions: ['read', 'write'],
     'subscriptions.refund': ['write'],
     payments: ['read'],
+    coupons: ['read', 'write'],
     support_tickets: ['read', 'write', 'delete'],
     audit_log: ['read'],
     admin_users: ['read'],
@@ -77,6 +80,7 @@ const PERMISSIONS: Record<Role, Partial<Record<Resource, Action[]>>> = {
     notification_campaigns: ['read'],
     subscriptions: ['read'],
     payments: ['read'],
+    coupons: ['read'],
     support_tickets: ['read', 'write'],
     audit_log: ['read'],
     data_export_requests: ['read', 'write'],
@@ -95,6 +99,7 @@ const PERMISSIONS: Record<Role, Partial<Record<Resource, Action[]>>> = {
     notification_campaigns: ['read'],
     subscriptions: ['read'],
     payments: ['read'],
+    coupons: ['read'],
     support_tickets: ['read'],
     audit_log: ['read'],
     admin_users: ['read'],
