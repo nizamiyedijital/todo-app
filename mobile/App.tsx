@@ -7,10 +7,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import RootNavigator from './src/navigation/RootNavigator';
 import { initPostHog } from './src/lib/posthog';
+import { configureCrisp } from './src/lib/crisp';
 
 export default function App() {
-  // PostHog'u uygulama mount'ta tek seferlik init et
-  useEffect(() => { initPostHog(); }, []);
+  // PostHog + Crisp'i uygulama mount'ta tek seferlik init et
+  useEffect(() => {
+    initPostHog();
+    configureCrisp();
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

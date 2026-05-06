@@ -10,6 +10,7 @@
 import { supabase } from './supabase';
 import { useStore } from '../state/store';
 import { dpIdentify } from './posthog';
+import { crispIdentify } from './crisp';
 import type { SubscriptionStatus, PlanCode } from '../state/store';
 
 export function isProPlanCode(code: string | null | undefined): boolean {
@@ -47,9 +48,18 @@ export async function fetchAndApplySubscription(userId: string): Promise<void> {
       plan_code: planCode,
       subscription_status: status,
     });
+    // Crisp session data'yı da güncelle
+    const session = useStore.getState().session;
+    crispIdentify(
+      { id: userId, email: session?.user?.email ?? null },
+      subscription,
+    );
   } catch {
     // Sessizce free varsay
-    useStore.getState().setSubscription({ plan_code: 'free', status: 'free', is_pro: false });
+    const fallback = { plan_code: 'free' as PlanCode, status: 'free' as SubscriptionStatus, is_pro: false };
+    useStore.getState().setSubscription(fallback);
     dpIdentify(userId, { plan_code: 'free', subscription_status: 'free' });
+    const session = useStore.getState().session;
+    crispIdentify({ id: userId, email: session?.user?.email ?? null }, fallback);
   }
 }

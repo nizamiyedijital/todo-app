@@ -12,6 +12,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { useStore } from '../state/store';
 import { supabase } from '../lib/supabase';
 import { dpEvent } from '../lib/posthog';
+import { crispOpen } from '../lib/crisp';
 
 type TicketStatus = 'new' | 'in_progress' | 'awaiting_user' | 'escalated' | 'resolved' | 'closed';
 type Category = 'bug' | 'feature_request' | 'account' | 'billing' | 'data' | 'other';
@@ -165,6 +166,19 @@ export default function SupportScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+          {/* Canlı chat (Crisp) — hızlı yanıt */}
+          <TouchableOpacity
+            onPress={crispOpen}
+            style={[styles.chatBtn, { backgroundColor: colors.accent }]}
+          >
+            <MaterialIcons name="chat" size={18} color="#fff" />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.chatBtnTitle}>Canlı sohbet aç</Text>
+              <Text style={styles.chatBtnDesc}>Anında cevap için chat ile yaz</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={20} color="#fff" />
+          </TouchableOpacity>
+
           {/* Önceki taleplerim */}
           {tickets.length > 0 && (
             <>
@@ -324,4 +338,7 @@ const styles = StyleSheet.create({
   catText: { fontSize: 12, fontWeight: '500' },
   submitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 10, marginTop: 14 },
   submitText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  chatBtn: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 12, marginBottom: 20 },
+  chatBtnTitle: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  chatBtnDesc: { color: '#ffffffcc', fontSize: 11, marginTop: 1 },
 });

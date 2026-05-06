@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { dpEvent, dpIdentify, dpReset } from './posthog';
 import { fetchAndApplySubscription } from './subscription';
+import { crispIdentify, crispReset } from './crisp';
 import { useStore } from '../state/store';
 
 export async function signIn(email: string, password: string) {
@@ -9,6 +10,7 @@ export async function signIn(email: string, password: string) {
   if (data.user) {
     dpIdentify(data.user.id, { email: data.user.email });
     dpEvent('user_logged_in', { method: 'email' });
+    crispIdentify({ id: data.user.id, email: data.user.email ?? null });
     // subscription_status person property + global state — sessizce, login akışını engellemesin
     void fetchAndApplySubscription(data.user.id);
   }
@@ -27,6 +29,7 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
   dpReset();
+  crispReset();
   useStore.getState().setSubscription({ plan_code: 'free', status: 'free', is_pro: false });
 }
 
