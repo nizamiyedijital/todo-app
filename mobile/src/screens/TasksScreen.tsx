@@ -17,6 +17,7 @@ export default function TasksScreen() {
   const { colors } = useTheme();
   const activeListId = useStore(s => s.activeListId);
   const lists = useStore(s => s.lists);
+  const pomo = useStore(s => s.pomo);
 
   const title = (() => {
     if (activeListId === BOARD_LIST_ID) return 'Tümü';
@@ -35,8 +36,30 @@ export default function TasksScreen() {
           <MaterialIcons name="menu" size={24} color={colors.text2} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity
+          onPress={() => nav.navigate('Pomodoro' as never)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <MaterialIcons
+            name="timer"
+            size={24}
+            color={pomo.status === 'running' ? '#E9731C' : colors.text2}
+          />
+        </TouchableOpacity>
       </View>
+
+      {/* Çalışan pomo banner — running'ken görünür */}
+      {pomo.status === 'running' && (
+        <TouchableOpacity
+          onPress={() => nav.navigate('Pomodoro' as never)}
+          style={[styles.pomoRunBanner, { backgroundColor: pomo.phase === 'work' ? '#E9731C' : '#22c55e' }]}
+        >
+          <MaterialIcons name="timer" size={14} color="#fff" />
+          <Text style={styles.pomoRunText}>
+            {pomo.phase === 'work' ? 'Çalışma' : 'Mola'} sürüyor — kalan süre için aç
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -68,4 +91,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1,
   },
   title: { fontSize: 17, fontWeight: '600' },
+  pomoRunBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 8 },
+  pomoRunText: { color: '#fff', fontSize: 12, fontWeight: '600' },
 });

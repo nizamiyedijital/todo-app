@@ -13,6 +13,16 @@ export type SubscriptionState = {
   is_pro: boolean;
 };
 
+export type PomoPhase = 'work' | 'break' | 'idle';
+export type PomoState = {
+  status: 'idle' | 'running';
+  phase: PomoPhase;
+  taskId: string | null;
+  endMs: number;       // bu fazın sona ereceği epoch ms
+  startMs: number;     // bu fazın başladığı epoch ms (elapsed_min hesabı için)
+  durationMin: number; // bu fazın toplam dakikası
+};
+
 type State = {
   session: Session | null;
   subscription: SubscriptionState;
@@ -23,9 +33,11 @@ type State = {
   editingTaskId: string | null;
   themePref: ThemePref;
   loading: boolean;
+  pomo: PomoState;
 
   setSession: (s: Session | null) => void;
   setSubscription: (sub: SubscriptionState) => void;
+  setPomo: (p: PomoState) => void;
   setLists: (l: List[]) => void;
   setTasks: (t: Todo[]) => void;
   upsertTask: (t: Todo) => void;
@@ -50,9 +62,11 @@ export const useStore = create<State>((set) => ({
   editingTaskId: null,
   themePref: 'system',
   loading: false,
+  pomo: { status: 'idle', phase: 'idle', taskId: null, endMs: 0, startMs: 0, durationMin: 0 },
 
   setSession: (s) => set({ session: s }),
   setSubscription: (sub) => set({ subscription: sub }),
+  setPomo: (p) => set({ pomo: p }),
   setLists:   (l) => set({ lists: l }),
   setTasks:   (t) => set({ tasks: t }),
   upsertTask: (t) => set((st) => {

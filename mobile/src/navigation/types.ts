@@ -10,4 +10,5 @@ export type AppStackParamList = {
   Support: undefined;
   Notifications: undefined;
   Stats: undefined;
+  Pomodoro: undefined;
 };
