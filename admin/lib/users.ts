@@ -92,7 +92,7 @@ export async function listUsers(filters: UserFilters = {}): Promise<UserListResu
 
   // 4) Görev sayıları — toplu sorgu (her user için ayrı RPC patlatmamak için)
   const tasksRes = await adminDb
-    .from('tasks')
+    .from('todos')
     .select('user_id, done')
     .in('user_id', userIds);
   const tasksData = (tasksRes.data ?? []) as Pick<DbTask, 'user_id' | 'done'>[];
@@ -182,7 +182,7 @@ export async function getUserDetail(userId: string) {
 
   // Görev özeti
   const [tasksRes, subsRes, notesRes, adminRes] = await Promise.all([
-    adminDb.from('tasks').select('id, done, created_at').eq('user_id', userId),
+    adminDb.from('todos').select('id, done, created_at').eq('user_id', userId),
     adminDb
       .from('subscriptions')
       .select(

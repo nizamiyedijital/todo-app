@@ -5359,6 +5359,26 @@ async function initApp() {
   if (window.dpIdentify && session?.user) {
     window.dpIdentify(session.user.id, { email: session.user.email });
   }
+  // Subscription state — fresh login'de zaten setlenir; session restore'da
+  // burada refetch et ki dpSubscription her zaman güncel olsun (Faz 3.A.4 bug fix).
+  if (session?.user?.id) {
+    try {
+      const subs = await db(`/subscriptions?user_id=eq.${session.user.id}&status=in.(active,trialing,past_due)&select=status,subscription_plans(code)&order=created_at.desc&limit=1`);
+      const sub = Array.isArray(subs) && subs[0] ? subs[0] : null;
+      const planCode = sub?.subscription_plans?.code || 'free';
+      const isPro = window.dpIsProPlan && window.dpIsProPlan(planCode);
+      let subscription_status = 'free';
+      if (sub) {
+        if (sub.status === 'active' && isPro) subscription_status = 'active';
+        else if (sub.status === 'trialing') subscription_status = 'trialing';
+        else if (sub.status === 'past_due') subscription_status = 'past_due';
+      }
+      window.dpSubscription = { plan_code: planCode, status: subscription_status, is_pro: isPro && (subscription_status === 'active' || subscription_status === 'trialing') };
+      if (window.dpIdentify) window.dpIdentify(session.user.id, { subscription_status, plan_code: planCode });
+    } catch (_) {
+      window.dpSubscription = { plan_code: 'free', status: 'free', is_pro: false };
+    }
+  }
   loadSettings();
   scheduleTokenRefresh();
   await Promise.all([loadLists(), loadTasks()]);

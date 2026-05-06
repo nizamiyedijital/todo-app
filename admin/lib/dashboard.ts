@@ -64,14 +64,14 @@ export async function getKpiSnapshot(): Promise<KpiSnapshot> {
   if (adminDb) {
     try {
       const { count: tCount } = await adminDb
-        .from('tasks')
+        .from('todos')
         .select('id', { count: 'exact', head: true });
       totalTasks = tCount ?? null;
 
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
       const { count: doneCount } = await adminDb
-        .from('tasks')
+        .from('todos')
         .select('id', { count: 'exact', head: true })
         .eq('done', true)
         .gte('completed_at', todayStart.toISOString());

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { logAudit } from '@/lib/audit';
 
 /**
@@ -40,17 +41,24 @@ export async function createManualSubscription(
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Geçersiz veri' };
   }
 
-  const supabase = await createClient();
+  // RLS bypass — admin başka kullanıcı adına insert yapacağı için service-role
+  // gerekir. Tickets/articles gibi user-owned tablolar service-role olmadan
+  // çalışmaz; subscriptions de aynı pattern.
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return { ok: false, error: 'Service-role key gerekli (.env.local)' };
+  }
+  const supabase = createAdminClient();
 
   // Plan'ı al — amount snapshot için
-  const { data: plan, error: planErr } = await supabase
+  const { data: planRaw, error: planErr } = await supabase
     .from('subscription_plans')
     .select('id, amount, currency, code')
     .eq('id', parsed.data.plan_id)
     .maybeSingle();
-  if (planErr || !plan) {
+  if (planErr || !planRaw) {
     return { ok: false, error: 'Plan bulunamadı' };
   }
+  const plan = planRaw as { id: string; amount: number; currency: string; code: string };
 
   const now = new Date();
   const trialEnd =
@@ -64,8 +72,14 @@ export async function createManualSubscription(
 
   const status = trialEnd ? 'trialing' : 'active';
 
-  const { data: inserted, error } = await supabase
-    .from('subscriptions')
+  // Type cast — admin client untyped (lib/users.ts ile aynı pattern)
+  const { data: insertedRaw, error } = await (
+    supabase.from('subscriptions') as unknown as {
+      insert: (row: Record<string, unknown>) => {
+        select: (cols: string) => { single: () => Promise<{ data: { id: string } | null; error: { code?: string; message: string } | null }> };
+      };
+    }
+  )
     .insert({
       user_id: parsed.data.user_id,
       plan_id: parsed.data.plan_id,
@@ -79,6 +93,7 @@ export async function createManualSubscription(
     })
     .select('id')
     .single();
+  const inserted = insertedRaw;
 
   if (error) {
     if (error.code === '23505') {
@@ -92,7 +107,7 @@ export async function createManualSubscription(
 
   await logAudit('SUBSCRIPTION_CREATED', {
     targetType: 'subscription',
-    targetId: inserted.id,
+    targetId: inserted?.id,
     payload: {
       user_id: parsed.data.user_id,
       plan_code: plan.code,
@@ -115,9 +130,16 @@ export async function cancelSubscription(
 ): Promise<{ ok: boolean; error?: string }> {
   if (!subscriptionId) return { ok: false, error: 'Subscription ID gerekli' };
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from('subscriptions')
+  // RLS bypass — admin user-owned satırı update ediyor
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return { ok: false, error: 'Service-role key gerekli' };
+  }
+  const supabase = createAdminClient();
+  const { error } = await (
+    supabase.from('subscriptions') as unknown as {
+      update: (row: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: { message: string } | null }> };
+    }
+  )
     .update({
       status: 'cancelled',
       cancelled_at: new Date().toISOString(),
