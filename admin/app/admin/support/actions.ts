@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { logAudit } from '@/lib/audit';
+import { sendCrispMessage, getCrispSessionId } from '@/lib/crisp';
 import type { TicketStatus, TicketPriority } from '@/lib/support-shared';
 
 const ReplySchema = z.object({
@@ -49,22 +50,34 @@ export async function replyToTicket(
   if (msgErr) return { ok: false, error: msgErr.message };
 
   // Public cevapsa first_response_at güncelle (yalnızca null'sa) + status awaiting_user
+  // + Crisp kaynaklı ticket ise Crisp'e mesaj push et (Faz 4.B.2.2)
   if (!parsed.data.is_internal_note) {
     const { data: t } = await supabase
       .from('support_tickets')
-      .select('first_response_at, status')
+      .select('first_response_at, status, source, metadata')
       .eq('id', parsed.data.ticket_id)
       .maybeSingle();
 
     const updates: Record<string, unknown> = {};
     if (t && !t.first_response_at) updates.first_response_at = new Date().toISOString();
-    // Status'u sadece 'new' ise güncelle — admin manuel başka status seçmiş olabilir
     if (t?.status === 'new') updates.status = 'awaiting_user';
     if (Object.keys(updates).length) {
       await supabase
         .from('support_tickets')
         .update(updates)
         .eq('id', parsed.data.ticket_id);
+    }
+
+    // Crisp push — yalnızca source=crisp ve metadata.crisp_session_id varsa
+    if (t?.source === 'crisp') {
+      const sessionId = getCrispSessionId((t.metadata as Record<string, unknown> | null) ?? null);
+      if (sessionId) {
+        const result = await sendCrispMessage(sessionId, parsed.data.body, user.email ?? undefined);
+        if (!result.ok) {
+          console.warn('[support] Crisp push failed:', result.error);
+          // Hata reply'ı engellemiyor — Disiplan'da mesaj kaydedildi
+        }
+      }
     }
   }
 
