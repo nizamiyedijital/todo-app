@@ -31,9 +31,25 @@ PostHog Cloud (EU) hesabında Disiplan projesine ait dashboard'lar.
 
 > İsimler PostHog UI'da değişmiş olabilir; gerçek dashboard'ı kaynak kabul et.
 
-## Faz 2.B'de Eklenecek (Disiplan-Spesifik Insight'lar)
+## Faz 2.B Insight'ları (Disiplan — Genel Bakış dashboard'ında)
 
-**Önkoşul (kod tarafı tamamlandı — Faz 2.B):**
+Faz 2.B'de event tracking tamamlandıktan sonra dashboard'a 5 yeni insight eklendi (toplam 12 tile):
+
+| # | İnsight | Tip | short_id | Konfigürasyon | Durum |
+|---|---|---|---|---|---|
+| 1 | En çok kullanılan özellikler | Trend (bar) | `igHjgGGm` | `feature_used` × breakdown=`feature_name` | ✅ Veri akıyor |
+| 2 | Kullanıcı başı görev sayısı | Trend (line) | `vg4rkSmL` | `task_created`, math=`avg_count_per_actor`, son 30g | ✅ Veri akıyor |
+| 3 | Mobile vs Web (DAU breakdown) | Trend (line) | `2UQywO97` | `$pageview` DAU, breakdown=`surface`, `surface ≠ admin_panel` filter | ✅ Veri akıyor |
+| 4 | İlk gün onboarding funnel | Funnel | `uuPFibKr` | `user_signed_up → first_task_created → balance_state_viewed`, 1g window | ✅ İlk veriyi bekliyor (yeni signup gerek) |
+| 5 | Yeni kullanıcı 7 gün retention | Retention | `fk6LCqKi` | target=`user_signed_up`, returning=`task_created`, period=Day, intervals=8 | ✅ Tarihsel veri görüntülüyor |
+
+**Faz 3'te eklenecek 2 insight (event'leri henüz yok):**
+- Pro kullanıcılar DAU — `subscription_status = active` person property gerekir
+- Free → Pro funnel — `pricing_page_viewed → checkout_started → subscription_started`
+
+## Faz 2.B Event Tracking — Implementasyon Özeti
+
+Kod tarafı tamamlandı:
 - ✅ Admin login → `user_logged_in` (`admin/components/admin/posthog-provider.tsx`, tab başına 1× per user)
 - ✅ Admin logout → `user_logged_out` (`admin/components/admin/topbar.tsx`)
 - ✅ Web task lifecycle: `task_completed`/`uncompleted`, `task_postponed`, `task_starred`/`unstarred`, `task_deleted`, `task_dragged_to_calendar`, `daily_focus_selected`, `first_task_created` (`index.html`)
@@ -46,18 +62,6 @@ PostHog Cloud (EU) hesabında Disiplan projesine ait dashboard'lar.
 - ✅ `feature_used` early access signup (`landing/erken-erisim.html`)
 - ⏳ Mobile login (test edilmedi — mobile/ gitignore'da, ayrı fazda yapılacak)
 - ⏳ Checkout flow event'leri (Faz 3 — `checkout_started`, `subscription_started` vb.)
-
-**Eklenecek insight'lar:**
-
-| Soru | Insight türü | Konfigürasyon |
-|---|---|---|
-| Pro kullanıcılar ne kadar aktif? | DAU (filtered) | Property filter: `subscription_status = active` |
-| Yeni kullanıcı 7g sonra retain mi? | Retention | Event: `task_created`, cohort: `user_signed_up` |
-| Free → Pro dönüşüm funnel | Funnel | `pricing_page_viewed → checkout_started → subscription_started` |
-| Mobile vs Web kullanım | DAU | Breakdown by `surface` (admin_panel hariç) |
-| Kullanıcı başı görev sayısı | Trend | Event: `task_created`, math: `Average per user` |
-| İlk gün onboarding | Funnel | `user_signed_up → first_task_created → balance_state_viewed` |
-| En çok kullanılan özellikler | Trend | Event: `feature_used`, breakdown by `feature_name` |
 
 ## Standart Property'ler (Tüm Custom Event'lerde)
 
