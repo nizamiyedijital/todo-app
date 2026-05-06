@@ -14,6 +14,7 @@ import { patchTask, deleteTask, createTask, toggleTaskDone } from '../lib/data';
 import PrioritySelector from './PrioritySelector';
 import DueRow from './DueRow';
 import SubtaskRow from './SubtaskRow';
+import BalancePicker from './BalancePicker';
 
 export default function TaskEditor() {
   const editingTaskId = useStore(s => s.editingTaskId);
@@ -167,6 +168,18 @@ export default function TaskEditor() {
                 <Text style={[styles.sectionLabelText, { color: colors.text3 }]}>Öncelik</Text>
               </View>
               <PrioritySelector value={task.priority} onChange={(p) => saveField({ priority: p })} />
+            </View>
+
+            {/* Balance category — Aktif Yaşam Dengesi */}
+            <View style={styles.section}>
+              <View style={styles.sectionLabel}>
+                <MaterialIcons name="self-improvement" size={16} color={colors.text3} />
+                <Text style={[styles.sectionLabelText, { color: colors.text3 }]}>Denge</Text>
+              </View>
+              <BalancePicker
+                value={task.balance_category ?? null}
+                onChange={(c) => saveField({ balance_category: c })}
+              />
             </View>
 
             {/* Due date */}

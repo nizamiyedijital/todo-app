@@ -10,6 +10,7 @@ import TaskList from '../components/TaskList';
 import AddBar from '../components/AddBar';
 import TaskEditor from '../components/TaskEditor';
 import BoardView from '../components/BoardView';
+import BalanceCard from '../components/BalanceCard';
 
 export default function TasksScreen() {
   const nav = useNavigation();
@@ -43,7 +44,16 @@ export default function TasksScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <View style={{ flex: 1 }}>
-          {activeListId === BOARD_LIST_ID ? <BoardView /> : <TaskList />}
+          {activeListId === BOARD_LIST_ID ? (
+            <BoardView />
+          ) : (
+            <>
+              <BalanceCard />
+              <View style={{ flex: 1 }}>
+                <TaskList />
+              </View>
+            </>
+          )}
         </View>
         <AddBar />
       </KeyboardAvoidingView>

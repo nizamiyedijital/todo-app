@@ -16,6 +16,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/ThemeProvider';
 import { useStore } from '../state/store';
 import { dpEvent } from '../lib/posthog';
+import { selectBalanceStats } from '../state/selectors';
+import { BALANCE_CATEGORIES } from '../theme/balance';
+import { BOARD_LIST_ID } from '../types/db';
 import type { Todo } from '../types/db';
 
 type Range = 'week' | 'month' | 'year' | 'all';
@@ -35,10 +38,11 @@ export default function StatsScreen() {
   const [range, setRange] = useState<Range>('month');
 
   const stats = useMemo(() => computeStats(tasks, range), [tasks, range]);
+  const balance = useMemo(() => selectBalanceStats(tasks, BOARD_LIST_ID), [tasks]);
 
   useEffect(() => {
-    dpEvent('balance_state_viewed', { state: stats.balanceState });
-  }, [stats.balanceState]);
+    dpEvent('balance_state_viewed', { state: balance.state });
+  }, [balance.state]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -98,12 +102,48 @@ export default function StatsScreen() {
           </View>
         )}
 
-        {/* Faz Aktif Yaşam Dengesi placeholder — Sprint M3'te gerçek balance card */}
+        {/* Aktif Yaşam Dengesi — tüm aktif görevler */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Aktif Yaşam Dengesi</Text>
-          <Text style={[styles.cardSubtitle, { color: colors.text3 }]}>
-            Zihin/Beden/Ruh detayı yakında — şu an web tarafında aktif.
-          </Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Aktif Yaşam Dengesi</Text>
+            <Text style={[styles.cardSubtitle, { color: colors.text3 }]}>{balance.stateLabel}</Text>
+          </View>
+          {balance.total === 0 ? (
+            <Text style={[styles.cardSubtitle, { color: colors.text3 }]}>
+              Görevlere kategori (Zihin/Beden/Kalp) ata, denge burada görünür.
+            </Text>
+          ) : (
+            <>
+              <View style={[styles.bar, { backgroundColor: colors.surface2, flexDirection: 'row' }]}>
+                {(['mental', 'physical', 'spiritual'] as const).map(k => (
+                  balance.ratios[k] > 0 && (
+                    <View
+                      key={k}
+                      style={{
+                        width: `${balance.ratios[k]}%`,
+                        backgroundColor: BALANCE_CATEGORIES[k].color,
+                        height: '100%',
+                      }}
+                    />
+                  )
+                ))}
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
+                {(['spiritual', 'physical', 'mental'] as const).map(k => (
+                  <View key={k} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <MaterialIcons
+                      name={BALANCE_CATEGORIES[k].icon as any}
+                      size={12}
+                      color={BALANCE_CATEGORIES[k].color}
+                    />
+                    <Text style={{ fontSize: 11, color: colors.text2, fontWeight: '600' }}>
+                      {BALANCE_CATEGORIES[k].label}: %{Math.round(balance.ratios[k])}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
         </View>
 
         {stats.totalActiveTasks === 0 && stats.completedCount === 0 && (

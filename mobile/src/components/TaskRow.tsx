@@ -5,6 +5,7 @@ import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import type { Todo } from '../types/db';
 import { PRIORITIES } from '../theme/priority';
+import { BALANCE_CATEGORIES } from '../theme/balance';
 import { useTheme } from '../theme/ThemeProvider';
 import { toggleTaskDone, toggleTaskStar } from '../lib/data';
 import { useStore } from '../state/store';
@@ -51,8 +52,20 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
         >
           {task.text}
         </Text>
-        {(dueText || subtaskCount > 0 || task.notes) && (
+        {(dueText || subtaskCount > 0 || task.notes || task.balance_category) && (
           <View style={styles.metaRow}>
+            {task.balance_category && BALANCE_CATEGORIES[task.balance_category] && (
+              <View style={styles.chip}>
+                <MaterialIcons
+                  name={BALANCE_CATEGORIES[task.balance_category].icon as any}
+                  size={12}
+                  color={BALANCE_CATEGORIES[task.balance_category].color}
+                />
+                <Text style={[styles.chipText, { color: BALANCE_CATEGORIES[task.balance_category].color }]}>
+                  {BALANCE_CATEGORIES[task.balance_category].label}
+                </Text>
+              </View>
+            )}
             {dueText && (
               <View style={styles.chip}>
                 <MaterialIcons name="schedule" size={12} color={dueOverdue ? colors.danger : colors.text3} />
