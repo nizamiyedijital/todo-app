@@ -86,8 +86,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Destek',
         iconName: 'LifeBuoy',
         requires: 'support_tickets',
-        faz: 4,
-        badge: 'Faz 4',
+        faz: 1, // Faz 4.A — admin UI shipped; Crisp entegrasyonu Faz 4.B
       },
       {
         href: '/admin/analytics',
