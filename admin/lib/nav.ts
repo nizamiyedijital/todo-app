@@ -73,8 +73,8 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Ödemeler',
         iconName: 'Wallet',
         requires: 'payments',
-        faz: 3,
-        badge: 'Faz 3',
+        faz: 1, // Faz 3.A — sayfa hazır, veri Faz 3.B'de Iyzico webhook'tan akacak
+        badge: 'Iyzico bekliyor',
       },
     ],
   },
