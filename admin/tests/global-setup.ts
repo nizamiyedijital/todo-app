@@ -17,6 +17,18 @@ import { join } from 'path';
 
 const AUTH_DIR = 'tests/.auth';
 
+async function lookupUserIdByEmail(email: string): Promise<string | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  if (!url || !key) return null;
+  const r = await fetch(`${url}/auth/v1/admin/users`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}` },
+  });
+  if (!r.ok) return null;
+  const data = (await r.json()) as { users: Array<{ id: string; email: string }> };
+  return data.users.find((u) => u.email === email)?.id ?? null;
+}
+
 export default async function globalSetup() {
   if (!existsSync(AUTH_DIR)) mkdirSync(AUTH_DIR, { recursive: true });
 
@@ -41,13 +53,9 @@ export default async function globalSetup() {
   await adminPage.click('button[type="submit"]');
   await adminPage.waitForURL(/\/admin(\/|$)/, { timeout: 10_000 });
   await adminCtx.storageState({ path: join(AUTH_DIR, 'admin.json') });
-  // UID'i topbar avatar'dan veya doğrudan supabase getUser çağrısı ile al
-  const adminUserId = await adminPage.evaluate(async () => {
-    const r = await fetch('/api/whoami').catch(() => null);
-    if (r?.ok) return (await r.json()).user_id;
-    return null;
-  });
   await adminCtx.close();
+  // UID'i Supabase admin API ile email'den lookup (service role gerekir)
+  const adminUserId = await lookupUserIdByEmail(adminEmail!);
 
   // ── Web app login (index.html auth form) ──────────────────────────────
   console.log('[setup] web login →', webEmail);
@@ -71,8 +79,15 @@ export default async function globalSetup() {
     );
   }
   await webCtx.storageState({ path: join(AUTH_DIR, 'web.json') });
+  // session JS-level binding (module scope), window'da değil. localStorage'dan oku.
   const webUserId = await webPage.evaluate(() => {
-    return (window as any).session?.user?.id ?? null;
+    try {
+      const raw = localStorage.getItem('sb_session');
+      if (!raw) return null;
+      return JSON.parse(raw)?.user?.id ?? null;
+    } catch {
+      return null;
+    }
   });
   await webCtx.close();
   await browser.close();

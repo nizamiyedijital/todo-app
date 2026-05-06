@@ -1,18 +1,29 @@
 import { test, expect } from '@playwright/test';
-import { getTestIds, createActiveSub, deleteAllTestSubs, deleteTicketsByPrefix, deleteKvkkRequestsByUser, dbGet } from '../fixtures/db';
+import { getTestIds, createActiveSub, deleteAllTestSubs, deleteKvkkRequestsByUser, dbGet } from '../fixtures/db';
 
 const ids = getTestIds();
-const PREFIX = 'E2E:';
+
+// REST helper — test içinde oluşturulan ticket'ları targeted silmek için
+async function deleteTicketById(id: string) {
+  await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/support_tickets?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: {
+      apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+  });
+}
 
 test.describe('Web app', () => {
+  // Sub'lar metadata filter'ı ile güvenli silinir — production sub yoksa risk yok.
+  // Ticket'lar / KVKK request'leri kullanıcının prod kayıtları olabilir, sadece
+  // test içinde oluşturulanı targeted siliyoruz.
   test.beforeAll(async () => {
     await deleteAllTestSubs();
-    await deleteTicketsByPrefix(PREFIX);
     await deleteKvkkRequestsByUser(ids.webUserId);
   });
   test.afterAll(async () => {
     await deleteAllTestSubs();
-    await deleteTicketsByPrefix(PREFIX);
     await deleteKvkkRequestsByUser(ids.webUserId);
   });
 
@@ -55,7 +66,7 @@ test.describe('Web app', () => {
   });
 
   test('in-app destek formu — ticket oluşturur + önceki taleplerim listesi', async ({ page }) => {
-    const subject = `${PREFIX} web app test ${Date.now()}`;
+    const subject = `E2ETEST_ web app test ${Date.now()}`;
     await page.goto('/index.html');
     await page.waitForFunction(() => typeof (window as any).openSupportModal === 'function', { timeout: 10_000 });
     await page.evaluate(() => (window as any).openSupportModal());
@@ -66,19 +77,26 @@ test.describe('Web app', () => {
     await page.evaluate(() => (document.getElementById('supportForm') as HTMLFormElement).requestSubmit());
     await page.waitForTimeout(2000);
     // DB doğrulama
-    const tickets = await dbGet<Array<{ subject: string; status: string }>>(
-      `/support_tickets?user_id=eq.${ids.webUserId}&select=subject,status&order=created_at.desc&limit=1`,
+    const tickets = await dbGet<Array<{ id: string; subject: string; status: string }>>(
+      `/support_tickets?user_id=eq.${ids.webUserId}&subject=eq.${encodeURIComponent(subject)}&select=id,subject,status`,
     );
-    expect(tickets[0].subject).toBe(subject);
+    expect(tickets).toHaveLength(1);
     expect(tickets[0].status).toBe('new');
-    // Modal kapandı, yeniden aç → önceki taleplerim'de görünmeli
-    await page.evaluate(() => (window as any).openSupportModal());
-    await page.waitForFunction(
-      () => document.getElementById('supportPrevWrap')?.style.display !== 'none',
-      { timeout: 5000 },
-    );
-    const items = await page.locator('#supportPrevList > div').count();
-    expect(items).toBeGreaterThan(0);
+    const ticketId = tickets[0].id;
+
+    try {
+      // Modal kapandı, yeniden aç → önceki taleplerim'de görünmeli
+      await page.evaluate(() => (window as any).openSupportModal());
+      await page.waitForFunction(
+        () => document.getElementById('supportPrevWrap')?.style.display !== 'none',
+        { timeout: 5000 },
+      );
+      const items = await page.locator('#supportPrevList > div').count();
+      expect(items).toBeGreaterThan(0);
+    } finally {
+      // Cleanup — sadece bu test'in oluşturduğu ticket
+      await deleteTicketById(ticketId);
+    }
   });
 
   test('KVKK self-service — export request DB\'ye yazar', async ({ page }) => {

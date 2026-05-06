@@ -58,7 +58,14 @@ export async function createActiveSub(userId: string, planId?: string, periodDay
 }
 
 export async function deleteAllTestSubs(): Promise<void> {
-  await rest("/subscriptions?metadata->>source=eq.e2e_test", { method: 'DELETE' });
+  // E2E test ya da manuel admin testi sırasında oluşturulan tüm sub'lar
+  await rest("/subscriptions?metadata->>source=in.(e2e_test,admin_manual,admin_manual_seed)", {
+    method: 'DELETE',
+  });
+}
+
+export async function deleteSubsForUser(userId: string): Promise<void> {
+  await rest(`/subscriptions?user_id=eq.${userId}`, { method: 'DELETE' });
 }
 
 // ── Coupon helpers ───────────────────────────────────────────────────────────
@@ -70,8 +77,16 @@ export async function deleteCouponByCode(code: string): Promise<void> {
 // ── Support helpers ──────────────────────────────────────────────────────────
 
 export async function deleteTicketsByPrefix(prefix: string): Promise<void> {
-  // Subject prefix ile silme — test'lerin başına 'E2E:' koyacağız
-  await rest(`/support_tickets?subject=ilike.${encodeURIComponent(prefix)}%`, { method: 'DELETE' });
+  // Test ticket'ları metadata.source='e2e_test' ile işaretlenir (PostgREST ilike % URL
+  // encoding Supabase Cloudflare worker'da 500 atıyor, daha güvenli filter)
+  // Önce kayıt yapılırken metadata zaten e2e_test olarak set ediliyor varsayıyoruz.
+  // Eski subject prefix yaklaşımı yerine, hem prefix hem metadata source ile sil.
+  void prefix; // backward-compat parametre
+  await rest("/support_tickets?metadata->>source=eq.e2e_test", { method: 'DELETE' });
+}
+
+export async function deleteTicketsForUser(userId: string): Promise<void> {
+  await rest(`/support_tickets?user_id=eq.${userId}`, { method: 'DELETE' });
 }
 
 // ── KVKK helpers ─────────────────────────────────────────────────────────────

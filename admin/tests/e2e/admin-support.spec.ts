@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { getTestIds, deleteTicketsByPrefix, dbGet } from '../fixtures/db';
 
 const ids = getTestIds();
-const PREFIX = 'E2E:';
+const PREFIX = 'E2ETEST_';
 
 test.describe('Admin → Support', () => {
   test.beforeAll(async () => {
@@ -41,6 +41,7 @@ test.describe('Admin → Support', () => {
         priority: 'normal',
         status: 'new',
         source: 'in_app',
+        metadata: { source: 'e2e_test' },
       }),
     });
     const [ticket] = (await ticketRes.json()) as Array<{ id: string }>;
@@ -83,6 +84,7 @@ test.describe('Admin → Support', () => {
         priority: 'normal',
         status: 'new',
         source: 'in_app',
+        metadata: { source: 'e2e_test' },
       }),
     });
     const [ticket] = (await ticketRes.json()) as Array<{ id: string }>;
