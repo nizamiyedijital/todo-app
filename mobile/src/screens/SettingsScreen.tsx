@@ -1,10 +1,11 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Linking, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/ThemeProvider';
 import { useStore } from '../state/store';
+import { supabase } from '../lib/supabase';
 import type { ThemePref } from '../state/store';
 
 const PRO_CHECKOUT_URL = 'https://nizamiyedijital.github.io/todo-app/landing/checkout.html?plan=pro_monthly_try';
@@ -23,6 +24,62 @@ export default function SettingsScreen() {
     { key: 'dark',   label: 'Koyu' },
   ];
 
+  const [exportRequested, setExportRequested] = useState(false);
+  const [deleteRequested, setDeleteRequested] = useState(false);
+
+  async function requestKvkkExport() {
+    if (!session?.user?.id) return;
+    Alert.alert(
+      'Verilerimi resmî talep et',
+      'KVKK Madde 11 — 30 gün içinde JSON paketi e-postanla iletilecek. Devam edilsin mi?',
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Talep et',
+          onPress: async () => {
+            setExportRequested(true);
+            const { error } = await supabase.from('data_export_requests').insert({
+              user_id: session.user.id,
+              user_email: session.user.email,
+              format: 'json',
+              status: 'pending',
+            });
+            if (error) {
+              setExportRequested(false);
+              Alert.alert('Hata', error.message);
+            }
+          },
+        },
+      ],
+    );
+  }
+
+  async function requestKvkkDeletion() {
+    if (!session?.user?.id) return;
+    Alert.alert(
+      'Hesabımı sil',
+      '7 gün cayma süresi var. Bu süre içinde iptal edebilirsin. Devam edilsin mi?',
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Talep et', style: 'destructive',
+          onPress: async () => {
+            setDeleteRequested(true);
+            const { error } = await supabase.from('data_deletion_requests').insert({
+              user_id: session.user.id,
+              user_email: session.user.email,
+              status: 'pending',
+            });
+            if (error) {
+              setDeleteRequested(false);
+              Alert.alert('Hata', error.message);
+            }
+          },
+        },
+      ],
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[styles.header, { borderBottomColor: colors.border2 }]}>
@@ -33,7 +90,7 @@ export default function SettingsScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <View style={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
         {/* Hesap kartı + Pro rozeti / "Pro'ya Geç" */}
         <View style={[styles.accountCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -79,7 +136,59 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           ))}
         </View>
-      </View>
+
+        {/* Destek + Yardım */}
+        <Text style={[styles.section, { color: colors.text3, marginTop: 24 }]}>Destek</Text>
+        <View style={[styles.kvkkCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <TouchableOpacity
+            onPress={() => nav.navigate('Support' as never)}
+            style={styles.kvkkRow}
+          >
+            <MaterialIcons name="support-agent" size={20} color={colors.accent} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.kvkkLabel, { color: colors.text }]}>Destek Talebi</Text>
+              <Text style={[styles.kvkkDesc, { color: colors.text3 }]}>Sorun bildir, geçmişi gör</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={22} color={colors.text3} />
+          </TouchableOpacity>
+        </View>
+
+        {/* KVKK Hakları */}
+        <Text style={[styles.section, { color: colors.text3, marginTop: 24 }]}>KVKK Hakları</Text>
+        <View style={[styles.kvkkCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View style={styles.kvkkRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.kvkkLabel, { color: colors.text }]}>Verilerimi resmî talep et</Text>
+              <Text style={[styles.kvkkDesc, { color: colors.text3 }]}>KVKK Madde 11 — 30 gün içinde JSON</Text>
+            </View>
+            <TouchableOpacity
+              onPress={requestKvkkExport}
+              disabled={exportRequested}
+              style={[styles.kvkkBtn, { borderColor: colors.border }, exportRequested && { opacity: 0.5 }]}
+            >
+              <Text style={[styles.kvkkBtnText, { color: colors.text2 }]}>
+                {exportRequested ? 'Talep edildi' : 'Talep et'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={[styles.divider, { backgroundColor: colors.border2 }]} />
+          <View style={styles.kvkkRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.kvkkLabel, { color: colors.text }]}>Hesabımı sil</Text>
+              <Text style={[styles.kvkkDesc, { color: colors.text3 }]}>7 gün cayma süresi, sonra kalıcı</Text>
+            </View>
+            <TouchableOpacity
+              onPress={requestKvkkDeletion}
+              disabled={deleteRequested}
+              style={[styles.kvkkBtn, { borderColor: '#dc2626' }, deleteRequested && { opacity: 0.5 }]}
+            >
+              <Text style={[styles.kvkkBtnText, { color: '#dc2626' }]}>
+                {deleteRequested ? 'Talep edildi' : 'Sil'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -98,4 +207,11 @@ const styles = StyleSheet.create({
   proBadgeText: { color: '#fff', fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
   upgradeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#E9731C', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
   upgradeBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  kvkkCard: { borderRadius: 12, borderWidth: 1, overflow: 'hidden' },
+  kvkkRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
+  kvkkLabel: { fontSize: 14, fontWeight: '600' },
+  kvkkDesc: { fontSize: 11, marginTop: 2 },
+  kvkkBtn: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 8, borderWidth: 1 },
+  kvkkBtnText: { fontSize: 12, fontWeight: '600' },
+  divider: { height: 1, marginHorizontal: 14 },
 });

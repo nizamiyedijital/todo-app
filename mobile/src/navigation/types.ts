@@ -7,4 +7,5 @@ export type AuthStackParamList = {
 export type AppStackParamList = {
   Tasks: undefined;
   Settings: undefined;
+  Support: undefined;
 };
