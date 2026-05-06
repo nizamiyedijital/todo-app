@@ -100,8 +100,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Analitik',
         iconName: 'BarChart3',
         requires: 'analytics',
-        faz: 1, // placeholder sayfası Faz 1C.4'te eklendi, gerçek içerik Faz 2'de
-        badge: 'Hazırlık',
+        faz: 1, // Faz 2.A/2.B/3.A — PostHog dashboard deep links
       },
       {
         href: '/admin/system-health',
