@@ -5071,6 +5071,23 @@
           </div>
         </div>
         <div class="sgroup">
+          <div class="sgroup-title">KVKK Hakları</div>
+          <div class="srow">
+            <div class="srow-info">
+              <div class="srow-label">Verilerimi Resmî Olarak Talep Et</div>
+              <div class="srow-desc">KVKK Madde 11 — 30 gün içinde JSON paketle döneriz</div>
+            </div>
+            <button class="sbtn" onclick="requestKvkkExport()" id="kvkkExportBtn">Talep Et</button>
+          </div>
+          <div class="srow">
+            <div class="srow-info">
+              <div class="srow-label">Hesabımı Sil</div>
+              <div class="srow-desc">7 gün cayma süresi, sonra kalıcı silinir</div>
+            </div>
+            <button class="sbtn danger" onclick="requestKvkkDeletion()" id="kvkkDeleteBtn">Sil</button>
+          </div>
+        </div>
+        <div class="sgroup">
           <div class="sgroup-title">Entegrasyonlar <span style="font-size:.7rem;color:#aaa;font-weight:400;margin-left:6px;">(Yakında)</span></div>
           <div class="srow" style="opacity:.5;pointer-events:none;">
             <div class="srow-info"><div class="srow-label">Google Takvim Senkronizasyonu</div></div>
@@ -12682,6 +12699,54 @@ async function submitSupportForm(e) {
   } finally {
     btn.disabled = false;
     document.getElementById('supportSubmitLabel').textContent = 'Gönder';
+  }
+}
+
+// KVKK self-service — Madde 11 (veri ihracı) + silme talebi.
+// Talepler /admin/kvkk panelinde işlenir, 30 gün yasal süre.
+async function requestKvkkExport() {
+  const uid = session?.user?.id;
+  const email = session?.user?.email;
+  if (!uid || !email) { showToast('Önce giriş yap'); return; }
+  if (!confirm('Verilerinin resmî bir kopyasını talep ediyorsun. 30 gün içinde JSON paketi e-postanla iletilecek.')) return;
+  const btn = document.getElementById('kvkkExportBtn');
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    await db('/data_export_requests', {
+      method: 'POST',
+      body: JSON.stringify({ user_id: uid, user_email: email, format: 'json', status: 'pending' }),
+    });
+    showToast('Talep alındı — 30 gün içinde e-postanla iletilecek');
+    btn.textContent = 'Talep edildi'; btn.disabled = true;
+  } catch (e) {
+    showToast('Hata: ' + (e.message || 'talep gönderilemedi'));
+    btn.disabled = false; btn.textContent = 'Talep Et';
+  }
+}
+
+async function requestKvkkDeletion() {
+  const uid = session?.user?.id;
+  const email = session?.user?.email;
+  if (!uid || !email) { showToast('Önce giriş yap'); return; }
+  const reason = prompt('Hesabını silmek istediğine emin misin?\n\n7 gün cayma süresi var; bu sürede iptal edebilirsin. İstersen sebebini yaz (opsiyonel):');
+  if (reason === null) return; // cancel
+  const btn = document.getElementById('kvkkDeleteBtn');
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    await db('/data_deletion_requests', {
+      method: 'POST',
+      body: JSON.stringify({
+        user_id: uid,
+        user_email: email,
+        reason: reason || null,
+        status: 'pending',
+      }),
+    });
+    showToast('Talep alındı — 7 gün cayma süresi başladı');
+    btn.textContent = 'Talep edildi'; btn.disabled = true;
+  } catch (e) {
+    showToast('Hata: ' + (e.message || 'talep gönderilemedi'));
+    btn.disabled = false; btn.textContent = 'Sil';
   }
 }
 
