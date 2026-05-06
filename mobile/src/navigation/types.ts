@@ -8,4 +8,6 @@ export type AppStackParamList = {
   Tasks: undefined;
   Settings: undefined;
   Support: undefined;
+  Notifications: undefined;
+  Stats: undefined;
 };

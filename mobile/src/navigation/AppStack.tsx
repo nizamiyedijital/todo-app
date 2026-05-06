@@ -4,6 +4,8 @@ import type { AppStackParamList } from './types';
 import TasksScreen from '../screens/TasksScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import SupportScreen from '../screens/SupportScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import StatsScreen from '../screens/StatsScreen';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -13,6 +15,8 @@ export default function AppStack() {
       <Stack.Screen name="Tasks" component={TasksScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Support" component={SupportScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
+      <Stack.Screen name="Stats" component={StatsScreen} />
     </Stack.Navigator>
   );
 }

@@ -137,17 +137,41 @@ export default function SettingsScreen() {
           ))}
         </View>
 
-        {/* Destek + Yardım */}
-        <Text style={[styles.section, { color: colors.text3, marginTop: 24 }]}>Destek</Text>
+        {/* Genel — Bildirimler + İstatistikler + Destek */}
+        <Text style={[styles.section, { color: colors.text3, marginTop: 24 }]}>Genel</Text>
         <View style={[styles.kvkkCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <TouchableOpacity
+            onPress={() => nav.navigate('Notifications' as never)}
+            style={styles.kvkkRow}
+          >
+            <MaterialIcons name="notifications" size={20} color={colors.accent} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.kvkkLabel, { color: colors.text }]}>Bildirimler</Text>
+              <Text style={[styles.kvkkDesc, { color: colors.text3 }]}>Sistem makaleleri ve duyurular</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={22} color={colors.text3} />
+          </TouchableOpacity>
+          <View style={[styles.divider, { backgroundColor: colors.border2 }]} />
+          <TouchableOpacity
+            onPress={() => nav.navigate('Stats' as never)}
+            style={styles.kvkkRow}
+          >
+            <MaterialIcons name="bar-chart" size={20} color={colors.accent} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.kvkkLabel, { color: colors.text }]}>İstatistikler</Text>
+              <Text style={[styles.kvkkDesc, { color: colors.text3 }]}>Tamamlama oranı, son aktiviteler</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={22} color={colors.text3} />
+          </TouchableOpacity>
+          <View style={[styles.divider, { backgroundColor: colors.border2 }]} />
           <TouchableOpacity
             onPress={() => nav.navigate('Support' as never)}
             style={styles.kvkkRow}
           >
             <MaterialIcons name="support-agent" size={20} color={colors.accent} />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.kvkkLabel, { color: colors.text }]}>Destek Talebi</Text>
-              <Text style={[styles.kvkkDesc, { color: colors.text3 }]}>Sorun bildir, geçmişi gör</Text>
+              <Text style={[styles.kvkkLabel, { color: colors.text }]}>Destek</Text>
+              <Text style={[styles.kvkkDesc, { color: colors.text3 }]}>Sorun bildir, canlı sohbet, geçmiş</Text>
             </View>
             <MaterialIcons name="chevron-right" size={22} color={colors.text3} />
           </TouchableOpacity>
