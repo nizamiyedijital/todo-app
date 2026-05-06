@@ -8,6 +8,8 @@ import { useStore } from '../state/store';
 import { useTheme } from '../theme/ThemeProvider';
 import { loadAll } from '../lib/data';
 import { startRealtime, stopRealtime } from '../lib/realtime';
+import { fetchAndApplySubscription } from '../lib/subscription';
+import { dpIdentify } from '../lib/posthog';
 
 export default function RootNavigator() {
   const { colors } = useTheme();
@@ -27,7 +29,10 @@ export default function RootNavigator() {
   }, [setSession]);
 
   useEffect(() => {
-    if (session) {
+    if (session?.user) {
+      // Session restore'da identify + subscription fetch (web initApp pattern'i)
+      dpIdentify(session.user.id, { email: session.user.email });
+      void fetchAndApplySubscription(session.user.id);
       loadAll().catch((e) => console.warn('[data] load error', e));
       startRealtime();
       return () => { stopRealtime(); };

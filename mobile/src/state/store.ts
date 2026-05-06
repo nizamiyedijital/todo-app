@@ -5,8 +5,17 @@ import { BOARD_LIST_ID } from '../types/db';
 
 export type ThemePref = 'light' | 'dark' | 'system';
 
+export type SubscriptionStatus = 'free' | 'active' | 'trialing' | 'past_due' | 'cancelled' | 'expired';
+export type PlanCode = 'free' | 'pro_monthly_try' | 'pro_yearly_try' | string;
+export type SubscriptionState = {
+  plan_code: PlanCode;
+  status: SubscriptionStatus;
+  is_pro: boolean;
+};
+
 type State = {
   session: Session | null;
+  subscription: SubscriptionState;
   lists: List[];
   tasks: Todo[];
   activeListId: string;
@@ -16,6 +25,7 @@ type State = {
   loading: boolean;
 
   setSession: (s: Session | null) => void;
+  setSubscription: (sub: SubscriptionState) => void;
   setLists: (l: List[]) => void;
   setTasks: (t: Todo[]) => void;
   upsertTask: (t: Todo) => void;
@@ -32,6 +42,7 @@ type State = {
 
 export const useStore = create<State>((set) => ({
   session: null,
+  subscription: { plan_code: 'free', status: 'free', is_pro: false },
   lists: [],
   tasks: [],
   activeListId: BOARD_LIST_ID,
@@ -41,6 +52,7 @@ export const useStore = create<State>((set) => ({
   loading: false,
 
   setSession: (s) => set({ session: s }),
+  setSubscription: (sub) => set({ subscription: sub }),
   setLists:   (l) => set({ lists: l }),
   setTasks:   (t) => set({ tasks: t }),
   upsertTask: (t) => set((st) => {

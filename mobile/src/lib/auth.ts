@@ -1,5 +1,7 @@
 import { supabase } from './supabase';
 import { dpEvent, dpIdentify, dpReset } from './posthog';
+import { fetchAndApplySubscription } from './subscription';
+import { useStore } from '../state/store';
 
 export async function signIn(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -7,6 +9,8 @@ export async function signIn(email: string, password: string) {
   if (data.user) {
     dpIdentify(data.user.id, { email: data.user.email });
     dpEvent('user_logged_in', { method: 'email' });
+    // subscription_status person property + global state — sessizce, login akışını engellemesin
+    void fetchAndApplySubscription(data.user.id);
   }
   return data;
 }
@@ -23,6 +27,7 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
   dpReset();
+  useStore.getState().setSubscription({ plan_code: 'free', status: 'free', is_pro: false });
 }
 
 export async function getSession() {
