@@ -4580,6 +4580,44 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Support modal (Faz 4.A in-app ticket creation) -->
+<div class="stats-overlay" id="supportOverlay" onclick="closeSupportModal()"></div>
+<div class="stats-modal" id="supportModal" style="max-width:480px">
+  <div class="stats-hdr">
+    <h2><span class="mi s18" style="vertical-align:middle;margin-right:6px;">support_agent</span>Destek Talebi</h2>
+    <button class="stats-close" onclick="closeSupportModal()" title="Kapat"><span class="mi s18">close</span></button>
+  </div>
+  <div class="stats-body">
+    <p style="font-size:.78rem;color:var(--text3);margin-bottom:14px;">Sorunu, hata veya isteğini yaz — ekibimiz 1 iş günü içinde dönüş yapar.</p>
+    <form id="supportForm" onsubmit="submitSupportForm(event)" style="display:flex;flex-direction:column;gap:11px;">
+      <label style="font-size:.74rem;font-weight:500;color:var(--text2);display:flex;flex-direction:column;gap:4px;">
+        Konu
+        <input type="text" id="supportSubject" required maxlength="200" placeholder="Kısa bir özet" style="padding:9px 11px;border:1px solid var(--border);border-radius:7px;font-size:.85rem;background:var(--surface);color:var(--text);">
+      </label>
+      <label style="font-size:.74rem;font-weight:500;color:var(--text2);display:flex;flex-direction:column;gap:4px;">
+        Kategori
+        <select id="supportCategory" style="padding:9px 11px;border:1px solid var(--border);border-radius:7px;font-size:.85rem;background:var(--surface);color:var(--text);">
+          <option value="bug">Hata</option>
+          <option value="feature_request">Özellik isteği</option>
+          <option value="account">Hesap</option>
+          <option value="billing">Faturalandırma</option>
+          <option value="data">Veri / KVKK</option>
+          <option value="other" selected>Diğer</option>
+        </select>
+      </label>
+      <label style="font-size:.74rem;font-weight:500;color:var(--text2);display:flex;flex-direction:column;gap:4px;">
+        Mesaj
+        <textarea id="supportBody" required rows="5" maxlength="5000" placeholder="Detayları paylaş…" style="padding:9px 11px;border:1px solid var(--border);border-radius:7px;font-size:.85rem;background:var(--surface);color:var(--text);resize:vertical;font-family:inherit;"></textarea>
+      </label>
+      <div id="supportError" style="display:none;color:#dc2626;font-size:.75rem;"></div>
+      <button type="submit" id="supportSubmitBtn" style="background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+        <span class="mi s16">send</span>
+        <span id="supportSubmitLabel">Gönder</span>
+      </button>
+    </form>
+  </div>
+</div>
+
 <!-- Stats modal -->
 <div class="stats-overlay" id="statsOverlay" onclick="closeStats()"></div>
 <div class="stats-modal" id="statsModal">
@@ -4728,6 +4766,10 @@
   <button class="pm-item" onclick="closeProfileMenu();openSettings()">
     <span class="mi s18">settings</span>
     <span class="pm-item-label">Ayarlar</span>
+  </button>
+  <button class="pm-item" onclick="closeProfileMenu();openSupportModal()">
+    <span class="mi s18">support_agent</span>
+    <span class="pm-item-label">Destek</span>
   </button>
   <button class="pm-item" onclick="closeProfileMenu();window.open('/yardim','_blank')">
     <span class="mi s18">help_outline</span>
@@ -12580,6 +12622,68 @@ function openSettingsTab(tabId) {
 }
 /* ── İstatistikler (FAZ 2.C.2 + 2.C.3) ── */
 let statsRange = 'month'; // 'week' | 'month' | 'year' | 'all'
+
+function openSupportModal() {
+  document.getElementById('supportOverlay').classList.add('open');
+  document.getElementById('supportModal').classList.add('open');
+  document.getElementById('supportError').style.display = 'none';
+  setTimeout(() => document.getElementById('supportSubject')?.focus(), 50);
+}
+function closeSupportModal() {
+  document.getElementById('supportOverlay').classList.remove('open');
+  document.getElementById('supportModal').classList.remove('open');
+}
+async function submitSupportForm(e) {
+  e.preventDefault();
+  const btn = document.getElementById('supportSubmitBtn');
+  const errEl = document.getElementById('supportError');
+  const subject = document.getElementById('supportSubject').value.trim();
+  const category = document.getElementById('supportCategory').value;
+  const body = document.getElementById('supportBody').value.trim();
+  if (!subject || !body) return;
+  btn.disabled = true;
+  document.getElementById('supportSubmitLabel').textContent = 'Gönderiliyor…';
+  errEl.style.display = 'none';
+  try {
+    const payload = {
+      user_id: session?.user?.id,
+      user_email: session?.user?.email || 'bilinmiyor',
+      user_name: appSettings?.displayName || null,
+      subject,
+      category,
+      priority: 'normal',
+      status: 'new',
+      source: 'in_app',
+      related_url: location.href,
+      app_version: '1.0.0',
+      platform: 'web',
+    };
+    const [ticket] = await db('/support_tickets', { method: 'POST', body: JSON.stringify(payload) });
+    if (ticket?.id) {
+      await db('/support_messages', {
+        method: 'POST',
+        body: JSON.stringify({
+          ticket_id: ticket.id,
+          author_id: session?.user?.id,
+          author_type: 'user',
+          author_email: session?.user?.email,
+          body,
+          is_internal_note: false,
+        }),
+      });
+    }
+    if (window.dpEvent) window.dpEvent('support_ticket_created', { category, from_screen: 'main_app' });
+    closeSupportModal();
+    document.getElementById('supportForm').reset();
+    showToast('Talep alındı, en kısa sürede dönüş yapacağız');
+  } catch (e) {
+    errEl.textContent = 'Hata: ' + (e.message || 'Talep gönderilemedi');
+    errEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    document.getElementById('supportSubmitLabel').textContent = 'Gönder';
+  }
+}
 
 function openStats() {
   closeProfileMenu();
