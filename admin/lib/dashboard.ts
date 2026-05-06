@@ -14,6 +14,8 @@ export interface KpiSnapshot {
   tasksCompletedToday: number | null;
   proSubscribers: number | null;
   openTickets: number | null;
+  pendingKvkk: number | null;
+  overdueKvkk: number | null;
 }
 
 export interface GrowthPoint {
@@ -103,6 +105,37 @@ export async function getKpiSnapshot(): Promise<KpiSnapshot> {
     console.error('[dashboard] support count:', e);
   }
 
+  // 5) KVKK talepleri — bekleyen + süre aşımı
+  let pendingKvkk: number | null = null;
+  let overdueKvkk: number | null = null;
+  try {
+    const now = new Date().toISOString();
+    const [exp, del, expOver, delOver] = await Promise.all([
+      supabase
+        .from('data_export_requests')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['pending', 'processing']),
+      supabase
+        .from('data_deletion_requests')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['pending', 'review', 'approved']),
+      supabase
+        .from('data_export_requests')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['pending', 'processing'])
+        .lt('due_at', now),
+      supabase
+        .from('data_deletion_requests')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['pending', 'review', 'approved'])
+        .lt('due_at', now),
+    ]);
+    pendingKvkk = (exp.count ?? 0) + (del.count ?? 0);
+    overdueKvkk = (expOver.count ?? 0) + (delOver.count ?? 0);
+  } catch (e) {
+    console.error('[dashboard] kvkk count:', e);
+  }
+
   return {
     totalUsers,
     newUsers7d,
@@ -110,6 +143,8 @@ export async function getKpiSnapshot(): Promise<KpiSnapshot> {
     tasksCompletedToday,
     proSubscribers,
     openTickets,
+    pendingKvkk,
+    overdueKvkk,
   };
 }
 

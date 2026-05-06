@@ -34,7 +34,7 @@ export default async function AdminHome() {
       </div>
 
       {/* KPI grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-4">
         <KpiCard label="Toplam Kullanıcı" value={kpi.totalUsers} hint="auth.users" />
         <KpiCard label="Yeni (7 gün)" value={kpi.newUsers7d} hint="son 7 gün" />
         <KpiCard label="Toplam Görev" value={kpi.totalTasks} hint="tüm zaman" />
@@ -45,6 +45,12 @@ export default async function AdminHome() {
         />
         <KpiCard label="Pro Aboneler" value={kpi.proSubscribers} hint="active+trial" />
         <KpiCard label="Açık Ticket" value={kpi.openTickets} hint="resolved/closed hariç" />
+        <KpiCard label="KVKK Talepleri" value={kpi.pendingKvkk} hint="export+deletion" />
+        <KpiCard
+          label="KVKK Süre Aşımı"
+          value={kpi.overdueKvkk}
+          hint={kpi.overdueKvkk && kpi.overdueKvkk > 0 ? '⚠ yasal' : '30 gün geçen'}
+        />
       </div>
 
       {/* Service-role uyarısı */}
