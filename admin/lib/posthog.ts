@@ -32,4 +32,19 @@ export function initPostHog() {
   return posthog;
 }
 
+/**
+ * Admin event helper — taxonomy'deki standart property'leri otomatik ekler
+ * (web `index.html`'deki `window.dpEvent` ile aynı kontrat).
+ */
+export function dpEvent(name: string, properties?: Record<string, unknown>) {
+  if (typeof window === 'undefined') return;
+  initPostHog();
+  posthog.capture(name, {
+    platform: 'web',
+    surface: 'admin_panel',
+    app_version: '1.0.0',
+    ...(properties ?? {}),
+  });
+}
+
 export { posthog };

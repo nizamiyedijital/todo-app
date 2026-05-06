@@ -5385,10 +5385,12 @@ async function createList(name, icon) {
     renderSidebar();
     selectList(l.id);
     showToast('Liste oluşturuldu');
+    if (window.dpEvent) window.dpEvent('list_created', { list_id: l.id, icon: l.icon, color: l.color });
   } catch(e) { showToast('Hata: '+e.message); }
 }
 
 async function deleteList(listId) {
+  const taskCount = tasks.filter(t => t.category === listId).length;
   try {
     // Delete all tasks in list first
     await db(`/todos?category=eq.${encodeURIComponent(listId)}`,{method:'DELETE',headers:{Prefer:''}});
@@ -5401,6 +5403,7 @@ async function deleteList(listId) {
     renderSidebar();
     render();
     showToast('Liste silindi');
+    if (window.dpEvent) window.dpEvent('list_deleted', { list_id: listId, task_count: taskCount });
   } catch(e) { showToast('Hata: '+e.message); }
 }
 
@@ -5488,6 +5491,7 @@ async function updateList(listId, patch) {
     await db(`/lists?id=eq.${encodeURIComponent(listId)}`, {method:'PATCH', body:JSON.stringify(patch)});
     const l = lists.find(l=>l.id===listId);
     if (l) Object.assign(l, patch);
+    if (patch.name && window.dpEvent) window.dpEvent('list_renamed', { list_id: listId });
     if (listId===activeListId) {
       const _liEl = document.getElementById('mainListIcon');
       if (_liEl) _liEl.innerHTML = mi(_safeIconName(lists.find(l=>l.id===listId)?.icon), 22);
@@ -6263,6 +6267,7 @@ async function addTask() {
   addingTask = true;
   keepInputFocused = true;
   lastAddTaskTime = Date.now();
+  const wasFirstTask = !tasks.some(x => !x.parent_id);
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
     tasks.unshift(t); recentlyAddedId = t.id;
@@ -6275,6 +6280,16 @@ async function addTask() {
       starred: !!payload.starred,
       priority: payload.priority || null,
     });
+    if (wasFirstTask && window.dpEvent) {
+      try {
+        const uid = (typeof session !== 'undefined' && session?.user?.id) || 'anon';
+        const k = `dp_first_task_fired_${uid}`;
+        if (!localStorage.getItem(k)) {
+          window.dpEvent('first_task_created', { task_id: t.id });
+          localStorage.setItem(k, '1');
+        }
+      } catch { window.dpEvent('first_task_created', { task_id: t.id }); }
+    }
     for (const subText of subs) {
       try {
         const [s] = await db('/todos', { method:'POST', body: JSON.stringify({ text: subText, done:false, category: t.category, parent_id: t.id, sort_order: Date.now() }) });
@@ -6799,6 +6814,7 @@ async function addTaskKeepFocus() {
   resetAddForm();
   keepInputFocused = true;
   addingTask = true;
+  const wasFirstTask = !tasks.some(x => !x.parent_id);
   try {
     const [t] = await db('/todos',{method:'POST',body:JSON.stringify(payload)});
     tasks.unshift(t); recentlyAddedId = t.id;
@@ -6811,6 +6827,16 @@ async function addTaskKeepFocus() {
       starred: !!payload.starred,
       priority: payload.priority || null,
     });
+    if (wasFirstTask && window.dpEvent) {
+      try {
+        const uid = (typeof session !== 'undefined' && session?.user?.id) || 'anon';
+        const k = `dp_first_task_fired_${uid}`;
+        if (!localStorage.getItem(k)) {
+          window.dpEvent('first_task_created', { task_id: t.id });
+          localStorage.setItem(k, '1');
+        }
+      } catch { window.dpEvent('first_task_created', { task_id: t.id }); }
+    }
     for (const subText of subs) {
       try {
         const [s] = await db('/todos', { method:'POST', body: JSON.stringify({ text: subText, done:false, category: t.category, parent_id: t.id, sort_order: Date.now() }) });
@@ -6875,12 +6901,32 @@ async function toggleTask(task) {
   else           patch.completed_at = null;
   await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify(patch)});
   Object.assign(task, patch);
+  if (window.dpEvent) {
+    if (nowDone) {
+      // task_completed.time_to_complete_min — created_at → completed_at farkı (varsa)
+      let ttc;
+      if (task.created_at && task.completed_at) {
+        ttc = Math.round((new Date(task.completed_at) - new Date(task.created_at)) / 60000);
+      }
+      window.dpEvent('task_completed', {
+        task_id: task.id,
+        time_to_complete_min: ttc,
+        was_starred: !!task.starred,
+      });
+    } else {
+      window.dpEvent('task_uncompleted', { task_id: task.id });
+    }
+  }
   render(); renderSidebar();
 }
 
 async function deleteTask(id) {
+  const t = tasks.find(x => x.id === id);
   await db(`/todos?id=eq.${id}`,{method:'DELETE',headers:{Prefer:''}});
   tasks = tasks.filter(t=>t.id!==id && t.parent_id!==id);
+  if (window.dpEvent) {
+    window.dpEvent('task_deleted', { task_id: id, was_completed: !!t?.done });
+  }
   render(); renderSidebar();
 }
 
@@ -6895,12 +6941,16 @@ function scheduleUpdate(task, patch) {
 }
 
 async function updateDue(task, val, mins) {
+  const oldDueAt = task.due_at;
   const due_at = val ? new Date(val).toISOString() : null;
   const patch = { due_at };
   if (mins !== undefined) patch.estimated_minutes = mins;
   await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify(patch)});
   task.due_at = due_at;
   if (mins !== undefined) task.estimated_minutes = mins;
+  if (window.dpEvent && oldDueAt && due_at && new Date(due_at) > new Date(oldDueAt)) {
+    window.dpEvent('task_postponed', { task_id: task.id });
+  }
   render();
 }
 
@@ -7748,6 +7798,12 @@ function buildTaskCard(task, isDone) {
         method:'PATCH',
         body: JSON.stringify({ done: nowDone, completed_at: nowDone ? new Date().toISOString() : null })
       });
+      if (window.dpEvent) {
+        window.dpEvent(nowDone ? 'task_completed' : 'task_uncompleted', {
+          task_id: s.id,
+          is_subtask: true,
+        });
+      }
     };
     const t = document.createElement('span');
     t.className = 'sub-i-txt' + (s.done ? ' done' : '');
@@ -7876,6 +7932,10 @@ async function toggleStar(task) {
   if (addEditingTaskId === task.id) {
     addStarred = starred;
     document.getElementById('addStarBtn')?.classList.toggle('active', starred);
+  }
+  if (window.dpEvent) {
+    window.dpEvent(starred ? 'task_starred' : 'task_unstarred', { task_id: task.id });
+    if (starred) window.dpEvent('daily_focus_selected', { task_id: task.id });
   }
   render(); renderSidebar();
 }
@@ -9885,6 +9945,14 @@ async function pomoStartNow() {
 }
 
 function pomoReset() {
+  // Aktif bir set varsa (running/paused) ve kullanıcı set tamamlanmadan kestiyse → pomo_cancelled
+  const wasActive = pomoSchedule.status === 'running' || pomoSchedule.status === 'paused';
+  const cancelledTaskId = wasActive ? pomoQueue[pomoActiveIndex] : null;
+  let elapsedMin;
+  if (wasActive && pomoEndMs && pomoPhase === 'work') {
+    const remainMs = Math.max(0, pomoEndMs - Date.now());
+    elapsedMin = Math.max(0, POMO_WORK_MIN - Math.round(remainMs / 60000));
+  }
   pomoSchedule = { startMs:null, status:'idle' };
   pomoActiveIndex = 0;
   pomoPhase = 'work';
@@ -9897,6 +9965,9 @@ function pomoReset() {
   renderPomoPanel();
   if (typeof renderListCalendar === 'function') renderListCalendar();
   renderPomoBreakBar();
+  if (wasActive && window.dpEvent) {
+    window.dpEvent('pomo_cancelled', { task_id: cancelledTaskId, elapsed_min: elapsedMin });
+  }
 }
 
 // Faz 11: Pomodoro Ayarları (localStorage)
@@ -10339,6 +10410,12 @@ function pomoNextPhase() {
     pomoAutoDoneTask(finishedTaskId);
     // Pomodoro session log (FAZ 2.C.1) — sessiz arka plan
     pomoLogSession(finishedTask, 'work').catch(() => {});
+    if (window.dpEvent) {
+      window.dpEvent('pomo_completed', {
+        task_id: finishedTaskId,
+        actual_duration_min: POMO_WORK_MIN,
+      });
+    }
     pomoTickAudioStop();
     // Mola tamamen kapalıysa → direkt sonraki work
     if (pomoSettings.breakDisabled) {
@@ -10416,6 +10493,9 @@ function _pomoStartWork() {
   renderPomoPanel();
   if (typeof renderListCalendar === 'function') renderListCalendar();
   renderPomoBreakBar();
+  if (window.dpEvent) {
+    window.dpEvent('pomo_started', { task_id: nextTask?.id, duration_min: POMO_WORK_MIN });
+  }
 }
 
 // Paused → kullanıcı "Devam Et" butonuna basar
@@ -10540,6 +10620,9 @@ function pomoFire() {
     renderPomoPanel();
     renderPomoOverlayTime();
     if (typeof renderListCalendar === 'function') renderListCalendar();
+    if (window.dpEvent) {
+      window.dpEvent('pomo_started', { task_id: firstTask?.id, duration_min: POMO_WORK_MIN });
+    }
   };
   if (pomoSettings.countdownEnabled) {
     pomoStartCountdown(startWork);
@@ -11288,6 +11371,17 @@ async function dropTaskOnCalendar(task, target) {
   try {
     if (session?.access_token) {
       await db(`/todos?id=eq.${task.id}`, { method:'PATCH', body: JSON.stringify(updates) });
+    }
+    if (window.dpEvent) {
+      window.dpEvent('task_dragged_to_calendar', {
+        task_id: task.id,
+        target_day: target.date instanceof Date ? target.date.toISOString().slice(0,10) : String(target.date),
+        target_hour: target.hour,
+      });
+      // Postpone = mevcut due_at varsa ve yeni zaman ileriye gittiyse
+      if (oldDueAt && new Date(newDueAt) > new Date(oldDueAt)) {
+        window.dpEvent('task_postponed', { task_id: task.id });
+      }
     }
     showUndoToast(task, { due_at: oldDueAt, category: oldCategory });
   } catch (e) {
@@ -12386,6 +12480,14 @@ function openStats() {
   document.getElementById('statsOverlay').classList.add('open');
   document.getElementById('statsModal').classList.add('open');
   setStatsRange(statsRange); // active button + render
+  if (window.dpEvent) {
+    let state;
+    try {
+      const s = activeListId ? calculateListStats(activeListId) : null;
+      state = s?.status; // 'empty' | 'no_category' | 'balanced' | 'mental_heavy' | 'physical_heavy' | 'spiritual_heavy'
+    } catch {}
+    window.dpEvent('balance_state_viewed', { state });
+  }
 }
 function closeStats() {
   document.getElementById('statsOverlay').classList.remove('open');

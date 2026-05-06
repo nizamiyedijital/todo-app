@@ -2,7 +2,9 @@
 
 import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { initPostHog, posthog } from '@/lib/posthog';
+import { initPostHog, posthog, dpEvent } from '@/lib/posthog';
+
+const LOGIN_FIRED_KEY = 'dp_admin_login_fired_for';
 
 /**
  * PostHog provider — admin app için.
@@ -22,7 +24,7 @@ export function PostHogProvider({
     initPostHog();
   }, []);
 
-  // Identify user (admin context)
+  // Identify user (admin context) + user_logged_in event (tab başına bir kez per user.id)
   useEffect(() => {
     if (!user?.id) return;
     initPostHog();
@@ -31,6 +33,14 @@ export function PostHogProvider({
       admin_roles: user.roles,
       surface: 'admin_panel',
     });
+
+    if (typeof window !== 'undefined') {
+      const lastFiredFor = window.sessionStorage.getItem(LOGIN_FIRED_KEY);
+      if (lastFiredFor !== user.id) {
+        dpEvent('user_logged_in', { method: 'email' });
+        window.sessionStorage.setItem(LOGIN_FIRED_KEY, user.id);
+      }
+    }
   }, [user?.id, user?.email]);
 
   return (

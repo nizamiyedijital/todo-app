@@ -6,6 +6,7 @@
 <title>Fiyatlandırma | Disiplan</title>
 <meta name="description" content="Disiplan fiyatlandırma planları: Bireysel ücretsiz, Pro premium ve Kurumsal ekip planları. Esnek, şeffaf, sürdürülebilir.">
 <link rel="icon" type="image/png" href="assets/favicon-32.png">
+<script src="assets/analytics.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
@@ -197,5 +198,11 @@
 <script>
   document.getElementById('mobileMenuBtn')?.addEventListener('click',()=>document.getElementById('mobileMenu')?.classList.toggle('hidden'));
   document.querySelectorAll('#mobileMenu a').forEach(a=>a.addEventListener('click',()=>document.getElementById('mobileMenu')?.classList.add('hidden')));
+  // PostHog: fiyatlandırma sayfası görüntülendi (Faz 3 funnel için altyapı)
+  if (window.dpEvent) {
+    window.dpEvent('pricing_page_viewed', {
+      from_screen: document.referrer ? new URL(document.referrer).pathname : 'direct',
+    });
+  }
 </script>
 </body></html>

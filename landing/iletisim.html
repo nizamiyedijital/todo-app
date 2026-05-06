@@ -6,6 +6,7 @@
 <title>İletişim | Disiplan</title>
 <meta name="description" content="Disiplan ekibiyle iletişime geç.">
 <link rel="icon" type="image/png" href="assets/favicon-32.png">
+<script src="assets/analytics.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
@@ -87,7 +88,7 @@
       <div>
         <h2 class="h-display text-2xl text-navy mb-3">Mesaj gönder</h2>
         <p class="text-muted-text text-sm mb-6">Genelde 1 iş günü içinde dönüş yapıyoruz.</p>
-        <form onsubmit="event.preventDefault(); alert('Mesajın alındı, en kısa sürede dönüş yapacağız.'); this.reset();" class="space-y-4">
+        <form id="contactForm" onsubmit="event.preventDefault(); if(window.dpEvent){window.dpEvent('support_ticket_created',{category:this.querySelector('select')?.value||'genel',from_screen:'landing_iletisim'});} alert('Mesajın alındı, en kısa sürede dönüş yapacağız.'); this.reset();" class="space-y-4">
           <div class="grid sm:grid-cols-2 gap-3">
             <div><label class="text-sm font-medium block mb-1.5">Ad</label><input type="text" required class="form-input"></div>
             <div><label class="text-sm font-medium block mb-1.5">E-posta</label><input type="email" required class="form-input"></div>

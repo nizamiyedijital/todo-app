@@ -5,6 +5,7 @@ import { LogOut, Moon, Sun, ChevronDown, User } from 'lucide-react';
 import { signOutAction } from '@/app/login/actions';
 import { useTheme } from './theme-provider';
 import { cn } from '@/lib/utils';
+import { dpEvent, posthog } from '@/lib/posthog';
 
 export function Topbar({ email, roles }: { email: string; roles: string[] }) {
   const [open, setOpen] = useState(false);
@@ -111,6 +112,13 @@ export function Topbar({ email, roles }: { email: string; roles: string[] }) {
               <form
                 action={() =>
                   startTransition(async () => {
+                    try {
+                      dpEvent('user_logged_out');
+                      if (typeof window !== 'undefined') {
+                        window.sessionStorage.removeItem('dp_admin_login_fired_for');
+                      }
+                      posthog.reset();
+                    } catch {}
                     await signOutAction();
                   })
                 }

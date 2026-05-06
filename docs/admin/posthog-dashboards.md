@@ -33,11 +33,19 @@ PostHog Cloud (EU) hesabında Disiplan projesine ait dashboard'lar.
 
 ## Faz 2.B'de Eklenecek (Disiplan-Spesifik Insight'lar)
 
-**Önkoşul:** Aşağıdaki event'ler taxonomy'ye uygun şekilde implementasyona dahil edilmeli (Faz 2.B):
-- Admin login → `user_logged_in` (admin app'te şu an sadece identify yapıyor, event yok)
-- Mobile login (test edilmedi)
-- Pricing/checkout flow event'leri (Faz 3 için)
-- Task lifecycle event'leri (postpone, star, delete)
+**Önkoşul (kod tarafı tamamlandı — Faz 2.B):**
+- ✅ Admin login → `user_logged_in` (`admin/components/admin/posthog-provider.tsx`, tab başına 1× per user)
+- ✅ Admin logout → `user_logged_out` (`admin/components/admin/topbar.tsx`)
+- ✅ Web task lifecycle: `task_completed`/`uncompleted`, `task_postponed`, `task_starred`/`unstarred`, `task_deleted`, `task_dragged_to_calendar`, `daily_focus_selected`, `first_task_created` (`index.html`)
+- ✅ Web liste lifecycle: `list_created`, `list_renamed`, `list_deleted` (`index.html`)
+- ✅ Pomodoro: `pomo_started`, `pomo_completed`, `pomo_cancelled` (`index.html`)
+- ✅ Denge: `balance_state_viewed` openStats() açılışında (`index.html`)
+- ✅ Landing site: `assets/analytics.js` ile PostHog snippet — 11 sayfa (surface=`landing`)
+- ✅ `pricing_page_viewed` (`landing/fiyatlandirma.html`)
+- ✅ `support_ticket_created` iletişim formu submit (`landing/iletisim.html`)
+- ✅ `feature_used` early access signup (`landing/erken-erisim.html`)
+- ⏳ Mobile login (test edilmedi — mobile/ gitignore'da, ayrı fazda yapılacak)
+- ⏳ Checkout flow event'leri (Faz 3 — `checkout_started`, `subscription_started` vb.)
 
 **Eklenecek insight'lar:**
 

@@ -6,6 +6,7 @@
 <title>Erken Erişim | Disiplan</title>
 <meta name="description" content="Disiplan erken erişim programına katıl. Pilot kullanıcılara öncelikli erişim ve %50 indirim.">
 <link rel="icon" type="image/png" href="assets/favicon-32.png">
+<script src="assets/analytics.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
@@ -45,7 +46,7 @@
     <div class="bg-bg-soft rounded-2xl p-8 lg:p-10">
       <h2 class="h-display text-2xl text-navy mb-2">Erken erişim formu</h2>
       <p class="text-muted-text text-sm mb-6">Form gönderildikten sonra e-postanı doğrulayacağız ve sıraya alacağız.</p>
-      <form onsubmit="event.preventDefault(); document.getElementById('successMsg').style.display='block'; this.style.display='none'; window.scrollTo({top:0,behavior:'smooth'});" class="space-y-4">
+      <form onsubmit="event.preventDefault(); if(window.dpEvent){window.dpEvent('feature_used',{feature_name:'early_access_signup'});} document.getElementById('successMsg').style.display='block'; this.style.display='none'; window.scrollTo({top:0,behavior:'smooth'});" class="space-y-4">
         <div>
           <label class="text-sm font-medium text-text-dark mb-1.5 block">Ad Soyad</label>
           <input type="text" required placeholder="Adın ve soyadın" class="form-input">
