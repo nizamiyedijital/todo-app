@@ -2,9 +2,25 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { ChevronLeft, Pin, ShieldCheck, Crown, Calendar, Mail, CheckCircle2 } from 'lucide-react';
+import {
+  ChevronLeft,
+  Pin,
+  ShieldCheck,
+  Crown,
+  Calendar,
+  Mail,
+  CheckCircle2,
+  LifeBuoy,
+  Shield,
+} from 'lucide-react';
 import { getUserDetail } from '@/lib/users';
+import { createClient } from '@/lib/supabase/server';
 import { logAudit } from '@/lib/audit';
+import { TICKET_STATUS_LABELS } from '@/lib/support-shared';
+import {
+  EXPORT_STATUS_LABELS,
+  DELETION_STATUS_LABELS,
+} from '@/lib/kvkk-shared';
 import { NoteForm } from './note-form';
 import { NoServiceRoleNotice } from '@/components/admin/no-service-role';
 
@@ -32,6 +48,32 @@ export default async function UserDetailPage(props: {
   await logAudit('USER_VIEWED', { targetType: 'user', targetId: id });
 
   const { user, stats, subscription: sub, notes, isAdmin } = detail;
+
+  // Bu kullanıcının ticket'ları ve KVKK talepleri (son 5'er kayıt)
+  const supabase = await createClient();
+  const [ticketsRes, exportsRes, deletionsRes] = await Promise.all([
+    supabase
+      .from('support_tickets')
+      .select('id, subject, status, priority, created_at')
+      .eq('user_id', id)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('data_export_requests')
+      .select('id, status, format, requested_at, due_at')
+      .eq('user_id', id)
+      .order('requested_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('data_deletion_requests')
+      .select('id, status, requested_at, due_at')
+      .eq('user_id', id)
+      .order('requested_at', { ascending: false })
+      .limit(5),
+  ]);
+  const tickets = ticketsRes.data ?? [];
+  const exportRequests = exportsRes.data ?? [];
+  const deletionRequests = deletionsRes.data ?? [];
   const planName = sub?.subscription_plans?.name ?? sub?.subscription_plans?.code ?? null;
 
   return (
@@ -175,10 +217,115 @@ export default async function UserDetailPage(props: {
         </div>
       </div>
 
-      {/* Placeholder: Faz 1B+ aksiyonlar */}
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30 p-4 text-xs text-slate-500 dark:text-slate-400">
-        <strong>Yakında (Faz 1B+):</strong> Pasifleştirme, plan değiştirme,
-        veri ihracı, hesap silme — Faz 3 ödeme bağlantısı tamamlanınca eklenecek.
+      {/* Destek talepleri + KVKK */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Tickets */}
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <LifeBuoy className="w-4 h-4" />
+              Destek Talepleri ({tickets.length})
+            </div>
+            <Link
+              href={`/admin/support?user=${user.id}`}
+              className="text-xs text-[#12A3E3] hover:underline"
+            >
+              Tümü
+            </Link>
+          </div>
+          {tickets.length === 0 ? (
+            <div className="text-xs text-slate-400 dark:text-slate-500 text-center py-4">
+              Bu kullanıcının açık talebi yok
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {tickets.map((t) => {
+                const st = TICKET_STATUS_LABELS[t.status as keyof typeof TICKET_STATUS_LABELS];
+                return (
+                  <li key={t.id}>
+                    <Link
+                      href={`/admin/support/${t.id}`}
+                      className="block border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 hover:border-[#12A3E3] transition-colors"
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider ${st?.cls ?? ''} shrink-0`}>
+                          {st?.label ?? t.status}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm text-slate-900 dark:text-slate-100 truncate">
+                            {t.subject}
+                          </div>
+                          <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                            {format(new Date(t.created_at), 'd MMM HH:mm', { locale: tr })}
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {/* KVKK */}
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <Shield className="w-4 h-4" />
+              KVKK Talepleri
+            </div>
+            <Link href="/admin/kvkk" className="text-xs text-[#12A3E3] hover:underline">
+              KVKK paneli
+            </Link>
+          </div>
+          {exportRequests.length === 0 && deletionRequests.length === 0 ? (
+            <div className="text-xs text-slate-400 dark:text-slate-500 text-center py-4">
+              Bu kullanıcının KVKK talebi yok
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {exportRequests.map((r) => {
+                const st = EXPORT_STATUS_LABELS[r.status as keyof typeof EXPORT_STATUS_LABELS];
+                return (
+                  <div
+                    key={r.id}
+                    className="flex items-center gap-2 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5"
+                  >
+                    <span className="text-[10px] uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold w-12">
+                      İhraç
+                    </span>
+                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider ${st?.cls ?? ''}`}>
+                      {st?.label ?? r.status}
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-auto">
+                      {format(new Date(r.requested_at), 'd MMM', { locale: tr })}
+                    </span>
+                  </div>
+                );
+              })}
+              {deletionRequests.map((r) => {
+                const st = DELETION_STATUS_LABELS[r.status as keyof typeof DELETION_STATUS_LABELS];
+                return (
+                  <div
+                    key={r.id}
+                    className="flex items-center gap-2 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5"
+                  >
+                    <span className="text-[10px] uppercase tracking-wider text-red-600 dark:text-red-400 font-semibold w-12">
+                      Silme
+                    </span>
+                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider ${st?.cls ?? ''}`}>
+                      {st?.label ?? r.status}
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-auto">
+                      {format(new Date(r.requested_at), 'd MMM', { locale: tr })}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
