@@ -117,7 +117,7 @@
           <li class="flex gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4EAC39" stroke-width="2.5" stroke-linecap="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg> Sınırsız cihaz</li>
           <li class="flex gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4EAC39" stroke-width="2.5" stroke-linecap="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg> Öncelikli destek</li>
         </ul>
-        <a href="erken-erisim.html" class="btn-primary justify-center" data-pro-cta data-interval="monthly">Pro'ya Başla</a>
+        <a href="checkout.html?plan=pro_monthly_try" class="btn-primary justify-center" data-pro-cta data-interval="monthly">Pro'ya Başla</a>
       </div>
       <!-- Kurumsal -->
       <div class="plan-card">
@@ -242,7 +242,11 @@
       monthlyEl.classList.toggle('hidden',  isYearly);
       yearlyEl .classList.toggle('hidden', !isYearly);
       if (yearlyNote) yearlyNote.style.display = isYearly ? '' : 'none';
-      if (cta) cta.dataset.interval = interval;
+      if (cta) {
+        cta.dataset.interval = interval;
+        const planCode = isYearly ? 'pro_yearly_try' : 'pro_monthly_try';
+        cta.href = `checkout.html?plan=${planCode}`;
+      }
     }
     btnM?.addEventListener('click', () => set('monthly'));
     btnY?.addEventListener('click', () => set('yearly'));

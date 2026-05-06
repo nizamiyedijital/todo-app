@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getAdminUser } from '@/lib/auth';
+import { getActiveSubscriptionForUser } from '@/lib/subscriptions';
+import { getPosthogSubscriptionStatus } from '@/lib/subscriptions-shared';
 import { ThemeProvider } from '@/components/admin/theme-provider';
 import { Sidebar } from '@/components/admin/sidebar';
 import { Topbar } from '@/components/admin/topbar';
@@ -20,9 +22,19 @@ export default async function AdminLayout({
     redirect('/forbidden');
   }
 
+  // Subscription status — PostHog identify için (admin'ler de Pro/Free olabilir)
+  const sub = await getActiveSubscriptionForUser(admin.userId);
+  const subscriptionStatus = getPosthogSubscriptionStatus(sub);
+
   return (
     <PostHogProvider
-      user={{ id: admin.userId, email: admin.email, roles: admin.roles }}
+      user={{
+        id: admin.userId,
+        email: admin.email,
+        roles: admin.roles,
+        subscriptionStatus,
+        planCode: sub?.plan_code ?? null,
+      }}
     >
       <ThemeProvider>
         <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">

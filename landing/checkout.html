@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ödeme | Disiplan</title>
+<meta name="description" content="Disiplan Pro aboneliği — KVKK uyumlu, Iyzico üzerinden güvenli ödeme.">
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<script src="assets/analytics.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{navy:'#0A1F49','deep-blue':'#143F8B','bright-blue':'#12A3E3','balance-green':'#4EAC39','action-orange':'#E9731C','bg-soft':'#F7FAFC','text-dark':'#101828','muted-text':'#667085'},fontFamily:{sans:['Inter','sans-serif'],display:['"Plus Jakarta Sans"','Inter','sans-serif']}}}};</script>
+<style>
+  body{font-family:'Inter',sans-serif;color:#101828}h1,h2,h3{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.02em}.h-display{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;line-height:1.05}
+  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;background:#E9731C;color:#fff;border-radius:10px;font-weight:600;font-size:.95rem;box-shadow:0 8px 24px rgba(233,115,28,.30)}
+  .btn-primary[disabled]{background:#94a3b8;color:#fff;box-shadow:none;cursor:not-allowed;opacity:.7}
+  .btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;background:#fff;color:#0A1F49;border:1.5px solid #E4E7EC;border-radius:10px;font-weight:600;font-size:.92rem}
+  .nav-link{color:#475467;font-size:.92rem;font-weight:500}.nav-link:hover{color:#0A1F49}
+</style>
+</head>
+<body class="antialiased">
+
+<header class="bg-white border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2.5"><img src="assets/logo-yatay.png" alt="disiplan" class="h-10 lg:h-11 w-auto"></a>
+    <a href="fiyatlandirma.html" class="nav-link">← Plan değiştir</a>
+  </div>
+</header>
+
+<section class="py-12 lg:py-16 bg-bg-soft min-h-[70vh]">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-8">
+      <div class="text-bright-blue text-xs font-bold uppercase tracking-wider mb-2">2/3 — Ödeme</div>
+      <h1 class="h-display text-3xl lg:text-4xl text-navy mb-3">Disiplan Pro Aboneliği</h1>
+      <p class="text-muted-text">Güvenli ödeme — Iyzico altyapısı, 256-bit SSL, KVKK uyumlu.</p>
+    </div>
+
+    <!-- Plan summary card -->
+    <div class="bg-white rounded-2xl border border-gray-100 p-6 lg:p-8 mb-6">
+      <div class="flex items-start justify-between gap-4 mb-5">
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider text-bright-blue mb-1" data-plan-name>Pro Aylık</div>
+          <h2 class="font-display font-extrabold text-3xl text-navy mb-1" data-plan-price>₺99<span class="text-base font-medium text-muted-text">/ay</span></h2>
+          <p class="text-sm text-muted-text" data-plan-desc>Sınırsız görev, alt görevler, haftalık takvim, gelişmiş istatistik, denge analizi.</p>
+        </div>
+        <a href="fiyatlandirma.html" class="text-xs text-bright-blue hover:underline whitespace-nowrap pt-1">Değiştir</a>
+      </div>
+      <div class="border-t border-gray-100 pt-5 space-y-2.5 text-sm">
+        <div class="flex justify-between"><span class="text-muted-text">Ara toplam</span><span class="font-medium" data-subtotal>₺99,00</span></div>
+        <div class="flex justify-between text-balance-green" data-discount-row style="display:none"><span>Erken erişim indirimi (%50)</span><span class="font-medium" data-discount>−₺49,50</span></div>
+        <div class="flex justify-between font-display font-bold text-navy text-lg pt-3 border-t border-gray-100"><span>Toplam</span><span data-total>₺99,00</span></div>
+        <p class="text-xs text-muted-text pt-1" data-renewal-note>Sonraki yenileme: <span data-next-renewal>30 gün sonra</span> · İptal serbest, sözleşme yok.</p>
+      </div>
+    </div>
+
+    <!-- KVKK + ToS form -->
+    <form id="checkoutForm" class="bg-white rounded-2xl border border-gray-100 p-6 lg:p-8 space-y-5">
+      <div>
+        <h3 class="font-display font-bold text-navy text-lg mb-3">Yasal onaylar</h3>
+        <label class="flex items-start gap-2.5 mb-3 cursor-pointer">
+          <input type="checkbox" id="agreeKvkk" required class="mt-1 rounded border-gray-300">
+          <span class="text-sm text-text-dark"><a href="gizlilik.html" class="text-bright-blue hover:underline" target="_blank">Gizlilik Politikası</a>'nı okudum ve KVKK kapsamında verilerimin abonelik yönetimi için işlenmesini kabul ediyorum.</span>
+        </label>
+        <label class="flex items-start gap-2.5 mb-3 cursor-pointer">
+          <input type="checkbox" id="agreeTos" required class="mt-1 rounded border-gray-300">
+          <span class="text-sm text-text-dark"><a href="kullanim-sartlari.html" class="text-bright-blue hover:underline" target="_blank">Kullanım Şartları</a>'nı okudum, kabul ediyorum.</span>
+        </label>
+        <label class="flex items-start gap-2.5 cursor-pointer">
+          <input type="checkbox" id="agreeAutoRenew" required class="mt-1 rounded border-gray-300">
+          <span class="text-sm text-text-dark">Aboneliğimin <strong data-renewal-period>aylık</strong> olarak otomatik yenileneceğini, dilediğim zaman iptal edebileceğimi anlıyorum.</span>
+        </label>
+      </div>
+
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        <div class="text-sm text-amber-900">
+          <p class="font-semibold mb-1">Iyzico ödeme entegrasyonu kurulum aşamasında</p>
+          <p>Pilot dönem boyunca ödeme alımı erken erişim formundan yapılır. Kurulum tamamlanınca buradan kart ile aboneliği başlatabileceksin.</p>
+        </div>
+      </div>
+
+      <button type="submit" id="payBtn" class="btn-primary w-full" disabled>
+        Ödemeye Geç (Yakında)
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+
+      <p class="text-xs text-center text-muted-text">Şimdilik <a href="erken-erisim.html?from=checkout" class="text-bright-blue hover:underline font-medium">erken erişim formundan</a> kayıt olabilirsin — pilot fiyatlandırma %50 indirimli.</p>
+    </form>
+  </div>
+</section>
+
+<footer class="py-8 bg-white border-t border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-muted-text">
+    <p>© 2026 Disiplan · <a href="iletisim.html" class="hover:text-navy">İletişim</a> · <a href="gizlilik.html" class="hover:text-navy">Gizlilik</a> · <a href="kullanim-sartlari.html" class="hover:text-navy">Şartlar</a></p>
+  </div>
+</footer>
+
+<script>
+  // Plan kataloğu — `admin/lib/plans-shared.ts` ile senkron tutulur.
+  const PLANS = {
+    pro_monthly_try: {
+      name: 'Pro Aylık', amount: 99, interval: 'monthly',
+      desc: 'Sınırsız görev, alt görevler, haftalık takvim, gelişmiş istatistik, denge analizi.',
+      renewalLabel: 'aylık', nextRenewalText: '30 gün sonra',
+    },
+    pro_yearly_try: {
+      name: 'Pro Yıllık', amount: 990, interval: 'yearly',
+      desc: 'Pro Aylık\'ın tüm özellikleri + yılda 2 ay bedava (%17 tasarruf).',
+      renewalLabel: 'yıllık', nextRenewalText: '12 ay sonra',
+    },
+  };
+  const EARLY_DISCOUNT_PCT = 50; // ilk 6 ay/yıl, plans-shared.ts ile sync
+
+  function formatTRY(amount) {
+    return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 2 }).format(amount);
+  }
+
+  function init() {
+    const params = new URLSearchParams(location.search);
+    const planCode = params.get('plan') || 'pro_monthly_try';
+    const earlyAccess = params.get('early') === '1';
+    const plan = PLANS[planCode] || PLANS.pro_monthly_try;
+
+    document.querySelector('[data-plan-name]').textContent = plan.name;
+    document.querySelector('[data-plan-desc]').textContent = plan.desc;
+    document.querySelector('[data-plan-price]').innerHTML = `₺${plan.amount}<span class="text-base font-medium text-muted-text">/${plan.interval === 'monthly' ? 'ay' : 'yıl'}</span>`;
+    document.querySelector('[data-renewal-period]').textContent = plan.renewalLabel;
+    document.querySelector('[data-next-renewal]').textContent = plan.nextRenewalText;
+
+    const subtotal = plan.amount;
+    const discount = earlyAccess ? Math.round(subtotal * EARLY_DISCOUNT_PCT / 100) : 0;
+    const total = subtotal - discount;
+
+    document.querySelector('[data-subtotal]').textContent = formatTRY(subtotal);
+    if (discount > 0) {
+      document.querySelector('[data-discount-row]').style.display = '';
+      document.querySelector('[data-discount]').textContent = '−' + formatTRY(discount);
+    }
+    document.querySelector('[data-total]').textContent = formatTRY(total);
+
+    // PostHog: checkout_started — Faz 3 funnel'ın orta basamağı
+    if (window.dpEvent) {
+      window.dpEvent('checkout_started', {
+        plan_id: planCode,
+        interval: plan.interval,
+        amount: total,
+        currency: 'TRY',
+        early_access: earlyAccess,
+      });
+    }
+  }
+  init();
+
+  // Form submit — şimdilik sadece "kurulum tamamlanmadı" göster
+  document.getElementById('checkoutForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    alert('Iyzico kurulumu tamamlanınca buradan abonelik başlayacak. Şimdilik erken erişim formuna yönlendiriliyorsun.');
+    location.href = 'erken-erisim.html?from=checkout';
+  });
+</script>
+</body></html>

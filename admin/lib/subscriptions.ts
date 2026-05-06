@@ -9,6 +9,51 @@ import type {
 
 export type { SubscriptionPlan, SubscriptionRow, SubscriptionStatus } from './subscriptions-shared';
 
+/**
+ * Bir kullanıcının "şu an etkin" subscription'ını döndürür.
+ * Etkin = status ∈ {active, trialing, past_due}. Yoksa null (free user).
+ * Plan kodu join ile getirilir (`plan_code`) — `isProUser()` için gereklidir.
+ */
+export async function getActiveSubscriptionForUser(userId: string): Promise<
+  | (SubscriptionRow & { plan_code: string })
+  | null
+> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select(
+      'id, user_id, plan_id, status, current_period_start, current_period_end, trial_ends_at, cancelled_at, amount_at_signup, currency_at_signup, created_at, subscription_plans(code, name)',
+    )
+    .eq('user_id', userId)
+    .in('status', ['active', 'trialing', 'past_due'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[subscriptions] getActiveForUser:', error.message);
+    return null;
+  }
+  if (!data) return null;
+
+  const plan = (data.subscription_plans ?? null) as { code?: string; name?: string } | null;
+  return {
+    id: data.id,
+    user_id: data.user_id,
+    plan_id: data.plan_id,
+    plan_name: plan?.name ?? null,
+    plan_code: plan?.code ?? '',
+    status: data.status as SubscriptionStatus,
+    current_period_start: data.current_period_start,
+    current_period_end: data.current_period_end,
+    trial_ends_at: data.trial_ends_at,
+    cancelled_at: data.cancelled_at,
+    amount_at_signup: data.amount_at_signup,
+    currency_at_signup: data.currency_at_signup,
+    created_at: data.created_at,
+  };
+}
+
 export async function listPlans(): Promise<SubscriptionPlan[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

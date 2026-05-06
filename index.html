@@ -5219,6 +5219,21 @@ async function submitAuth() {
           window.dpIdentify(s.user.id, { email: s.user.email });
         }
         if (window.dpEvent) window.dpEvent('user_logged_in', { method: 'email' });
+        // PostHog person property: subscription_status (Faz 3 funnel için)
+        // Async — başarısızsa identify "free" varsayılanıyla zaten gönderildi.
+        try {
+          const subs = await db(`/subscriptions?user_id=eq.${s.user.id}&status=in.(active,trialing,past_due)&select=status,subscription_plans(code)&order=created_at.desc&limit=1`);
+          const sub = Array.isArray(subs) && subs[0] ? subs[0] : null;
+          const planCode = sub?.subscription_plans?.code || 'free';
+          const isPro = window.dpIsProPlan && window.dpIsProPlan(planCode);
+          let subscription_status = 'free';
+          if (sub) {
+            if (sub.status === 'active' && isPro) subscription_status = 'active';
+            else if (sub.status === 'trialing') subscription_status = 'trialing';
+            else if (sub.status === 'past_due') subscription_status = 'past_due';
+          }
+          if (window.dpIdentify) window.dpIdentify(s.user.id, { subscription_status, plan_code: planCode });
+        } catch (_) { /* sessizce free varsay */ }
         await initApp();
       }
     }

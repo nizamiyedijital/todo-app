@@ -16,7 +16,13 @@ export function PostHogProvider({
   user,
   children,
 }: {
-  user?: { id: string; email: string; roles: string[] } | null;
+  user?: {
+    id: string;
+    email: string;
+    roles: string[];
+    subscriptionStatus?: string;
+    planCode?: string | null;
+  } | null;
   children: React.ReactNode;
 }) {
   // Init bir kez
@@ -32,6 +38,8 @@ export function PostHogProvider({
       email: user.email,
       admin_roles: user.roles,
       surface: 'admin_panel',
+      subscription_status: user.subscriptionStatus ?? 'free',
+      plan_code: user.planCode ?? 'free',
     });
 
     if (typeof window !== 'undefined') {
