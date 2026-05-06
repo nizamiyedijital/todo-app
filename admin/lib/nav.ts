@@ -89,6 +89,13 @@ export const NAV_GROUPS: NavGroup[] = [
         faz: 1, // Faz 4.A — admin UI shipped; Crisp entegrasyonu Faz 4.B
       },
       {
+        href: '/admin/kvkk',
+        label: 'KVKK',
+        iconName: 'Shield',
+        requires: 'data_export_requests',
+        faz: 1, // Faz 4.C
+      },
+      {
         href: '/admin/analytics',
         label: 'Analitik',
         iconName: 'BarChart3',
