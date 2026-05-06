@@ -5,6 +5,8 @@ import { CreditCard, Settings as SettingsIcon } from 'lucide-react';
 import { listSubscriptions, listPlans } from '@/lib/subscriptions';
 import { STATUS_LABELS, type SubscriptionStatus } from '@/lib/subscriptions-shared';
 import { logAudit } from '@/lib/audit';
+import { ManualSubscriptionForm } from './manual-form';
+import { CancelButton } from './cancel-button';
 
 export default async function SubscriptionsPage(props: {
   searchParams: Promise<{ status?: string }>;
@@ -35,13 +37,16 @@ export default async function SubscriptionsPage(props: {
             Tüm aboneliklerin durumu. Iyzico entegrasyonu Faz 3'te.
           </p>
         </div>
-        <Link
-          href="/admin/plans"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
-        >
-          <SettingsIcon className="w-4 h-4" />
-          Plan Yönetimi ({plans.length})
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/plans"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+          >
+            <SettingsIcon className="w-4 h-4" />
+            Plan Yönetimi ({plans.length})
+          </Link>
+          <ManualSubscriptionForm plans={plans} />
+        </div>
       </div>
 
       {/* Mini KPI'lar */}
@@ -96,6 +101,7 @@ export default async function SubscriptionsPage(props: {
                 <th className="text-right p-3 font-medium">Tutar</th>
                 <th className="text-left p-3 font-medium">Dönem sonu</th>
                 <th className="text-left p-3 font-medium">Başlangıç</th>
+                <th className="text-right p-3 font-medium">İşlem</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -131,6 +137,11 @@ export default async function SubscriptionsPage(props: {
                     </td>
                     <td className="p-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
                       {format(new Date(s.created_at), 'd MMM yyyy', { locale: tr })}
+                    </td>
+                    <td className="p-3 text-right whitespace-nowrap">
+                      {(s.status === 'active' || s.status === 'trialing' || s.status === 'past_due') && (
+                        <CancelButton subscriptionId={s.id} />
+                      )}
                     </td>
                   </tr>
                 );

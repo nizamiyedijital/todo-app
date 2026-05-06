@@ -31,9 +31,9 @@ PostHog Cloud (EU) hesabında Disiplan projesine ait dashboard'lar.
 
 > İsimler PostHog UI'da değişmiş olabilir; gerçek dashboard'ı kaynak kabul et.
 
-## Faz 2.B Insight'ları (Disiplan — Genel Bakış dashboard'ında)
+## Faz 2.B + 3.A Insight'ları (Disiplan — Genel Bakış dashboard'ında)
 
-Faz 2.B'de event tracking tamamlandıktan sonra dashboard'a 5 yeni insight eklendi (toplam 12 tile):
+Dashboard'da toplam **14 tile**: Faz 2.A'dan 7, Faz 2.B'den 5, Faz 3.A'dan 2.
 
 | # | İnsight | Tip | short_id | Konfigürasyon | Durum |
 |---|---|---|---|---|---|
@@ -42,10 +42,11 @@ Faz 2.B'de event tracking tamamlandıktan sonra dashboard'a 5 yeni insight eklen
 | 3 | Mobile vs Web (DAU breakdown) | Trend (line) | `2UQywO97` | `$pageview` DAU, breakdown=`surface`, `surface ≠ admin_panel` filter | ✅ Veri akıyor |
 | 4 | İlk gün onboarding funnel | Funnel | `uuPFibKr` | `user_signed_up → first_task_created → balance_state_viewed`, 1g window | ✅ İlk veriyi bekliyor (yeni signup gerek) |
 | 5 | Yeni kullanıcı 7 gün retention | Retention | `fk6LCqKi` | target=`user_signed_up`, returning=`task_created`, period=Day, intervals=8 | ✅ Tarihsel veri görüntülüyor |
+| 6 | Pro kullanıcı DAU | Trend (line) | `zofMvE4y` | `$pageview` DAU, person filter `subscription_status=active` | ⏳ Faz 3.B'de Iyzico webhook subscription oluşturduğunda dolacak |
+| 7 | Free → Pro dönüşüm funnel | Funnel | `5ur51HX9` | `pricing_page_viewed → checkout_started → subscription_started`, 7g window | ⏳ `subscription_started` Faz 3.B'de Iyzico webhook'tan emit edilecek |
 
-**Faz 3'te eklenecek 2 insight (event'leri henüz yok):**
-- Pro kullanıcılar DAU — `subscription_status = active` person property gerekir
-- Free → Pro funnel — `pricing_page_viewed → checkout_started → subscription_started`
+**Faz 3.A'da eklenen event:** `checkout_started` (`landing/checkout.html` → sayfa yüklendiğinde, plan/interval/amount/early_access property'leri ile).
+**Faz 3.A'da eklenen person property:** `subscription_status` (admin login + web login `posthog.identify` çağrısında — şu an herkes `free`, Iyzico geldiğinde `active`/`trialing` akacak).
 
 ## Faz 2.B Event Tracking — Implementasyon Özeti
 
