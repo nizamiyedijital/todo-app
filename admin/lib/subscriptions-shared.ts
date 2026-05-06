@@ -1,6 +1,9 @@
 /**
- * Client + server safe — types only.
+ * Client + server safe — subscription tipleri ve durum yardımcıları.
+ * Plan kataloğu için bkz: `plans-shared.ts`.
  */
+
+import { isProPlanCode } from './plans-shared';
 
 export type SubscriptionStatus =
   | 'trialing'
@@ -42,6 +45,37 @@ export interface SubscriptionRow {
   amount_at_signup: number | null;
   currency_at_signup: string | null;
   created_at: string;
+}
+
+/**
+ * Bir kullanıcı "Pro" sayılır mı?
+ *   - Aktif veya deneme süresinde olmalı (status ∈ {active, trialing})
+ *   - Plan kodu pro_monthly_try / pro_yearly_try olmalı
+ * `cancelled` ama period bitmemişse hâlâ Pro — current_period_end kontrolü ayrı yapılır.
+ */
+export function isProUser(
+  sub: { status: SubscriptionStatus; plan_code?: string | null } | null,
+): boolean {
+  if (!sub) return false;
+  if (sub.status !== 'active' && sub.status !== 'trialing') return false;
+  if (!sub.plan_code) return false;
+  return isProPlanCode(sub.plan_code);
+}
+
+/**
+ * Kullanıcının PostHog için subscription_status değeri.
+ * `posthog.identify(uid, { subscription_status })` ile gönderilir.
+ */
+export function getPosthogSubscriptionStatus(
+  sub: { status: SubscriptionStatus; plan_code?: string | null } | null,
+): 'free' | 'active' | 'trialing' | 'past_due' | 'cancelled' | 'expired' {
+  if (!sub) return 'free';
+  if (sub.status === 'active' && sub.plan_code && isProPlanCode(sub.plan_code)) return 'active';
+  if (sub.status === 'trialing') return 'trialing';
+  if (sub.status === 'past_due') return 'past_due';
+  if (sub.status === 'cancelled') return 'cancelled';
+  if (sub.status === 'expired') return 'expired';
+  return 'free';
 }
 
 export const STATUS_LABELS: Record<SubscriptionStatus, { label: string; cls: string }> = {

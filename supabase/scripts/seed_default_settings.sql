@@ -30,34 +30,9 @@ insert into public.feature_flags (key, enabled, description, rollout_percent) va
   ('advanced_analytics', false, 'Gelişmiş analitik dashboardları (Faz 2)', 0)
 on conflict (key) do nothing;
 
--- Varsayılan subscription planları (Iyzico ref code'lar boş — Faz 3'te doldurulur)
-insert into public.subscription_plans
-  (code, name, description, amount, currency, interval, trial_period_days, features, status, display_order)
-values
-  ('free',
-   'Free',
-   'Disiplan temel özellikleri, ücretsiz',
-   0, 'TRY', 'monthly', 0,
-   '["basic_lists", "basic_tasks", "balance_tracking"]'::jsonb,
-   'active', 0),
-
-  ('pro_monthly_try',
-   'Disiplan Pro Aylık',
-   'Tüm özellikler, sınırsız liste, bulut senkronizasyon',
-   49.90, 'TRY', 'monthly', 7,
-   '["unlimited_lists", "unlimited_tasks", "cloud_sync", "advanced_stats", "priority_support"]'::jsonb,
-   'active', 1),
-
-  ('pro_yearly_try',
-   'Disiplan Pro Yıllık',
-   'Pro planın yıllık versiyonu — 2 ay bedava',
-   499.00, 'TRY', 'yearly', 7,
-   '["unlimited_lists", "unlimited_tasks", "cloud_sync", "advanced_stats", "priority_support"]'::jsonb,
-   'active', 2)
-
-on conflict (code) do nothing;
+-- subscription_plans için ayrı seed: scripts/seed_subscription_plans.sql
+-- (Canonical kaynak: admin/lib/plans-shared.ts — Faz 3.A'da güncellendi)
 
 -- Kontrol
 select 'app_settings' as kind, count(*) as count from public.app_settings
-union all select 'feature_flags', count(*) from public.feature_flags
-union all select 'subscription_plans', count(*) from public.subscription_plans;
+union all select 'feature_flags', count(*) from public.feature_flags;

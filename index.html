@@ -4153,6 +4153,31 @@
       try { if (window.posthog) window.posthog.reset(); } catch (_) {}
     };
   </script>
+
+  <!-- ============================================================ -->
+  <!-- Plan kataloğu — `admin/lib/plans-shared.ts` ile senkron tutulur -->
+  <!-- Değişirse 3 yer: plans-shared.ts, seed_subscription_plans.sql, fiyatlandirma.html -->
+  <!-- ============================================================ -->
+  <script>
+    window.DP_PLANS = {
+      free: {
+        code: 'free', name: 'Bireysel', amount: 0, currency: 'TRY', interval: null,
+        features: { max_active_tasks: 100, max_lists: 5, pomodoro: true, pomodoro_themes: false,
+                    weekly_calendar: false, subtasks: false, advanced_stats: false, balance_analysis: false },
+      },
+      pro_monthly_try: {
+        code: 'pro_monthly_try', name: 'Pro Aylık', amount: 99, currency: 'TRY', interval: 'monthly',
+        features: { max_active_tasks: null, max_lists: null, pomodoro: true, pomodoro_themes: true,
+                    weekly_calendar: true, subtasks: true, advanced_stats: true, balance_analysis: true },
+      },
+      pro_yearly_try: {
+        code: 'pro_yearly_try', name: 'Pro Yıllık', amount: 990, currency: 'TRY', interval: 'yearly',
+        features: { max_active_tasks: null, max_lists: null, pomodoro: true, pomodoro_themes: true,
+                    weekly_calendar: true, subtasks: true, advanced_stats: true, balance_analysis: true },
+      },
+    };
+    window.dpIsProPlan = function(code) { return code === 'pro_monthly_try' || code === 'pro_yearly_try'; };
+  </script>
 </head>
 <body>
 <div id="splashBox"><div class="splash-spinner"></div></div>
