@@ -66,10 +66,47 @@ Web (`window.dpEvent`) ve mobile (`dpEvent`) helper'ları otomatik şu property'
 | Property | Olası Değerler | Açıklama |
 |---|---|---|
 | `platform` | `web`, `mobile_ios`, `mobile_android` | Hangi cihaz |
-| `surface` | `main_app`, `mobile_app`, `admin_panel` | Hangi UI yüzeyi |
+| `surface` | `main_app`, `mobile_app`, `admin_panel`, `landing` | Hangi UI yüzeyi |
 | `app_version` | `1.0.0` | Versiyonlama |
 
 Filter ve breakdown'larda bu property'ler kullanılabilir.
+
+## Faz 2.B Doğrulama Akışı
+
+Event'lerin gerçekten gönderildiğini PostHog **Activity → Live events** stream'inden anlık doğrula. Sırayla:
+
+### Admin (`localhost:3001/admin`)
+1. Login ol → `user_logged_in` (`surface=admin_panel`, tab başına 1× per user.id)
+2. Aynı sekmede menüleri gez → tekrar ateşlenmemeli
+3. Sol-üstteki avatar → "Çıkış yap" → `user_logged_out`
+4. Tekrar gir → `user_logged_in` yeniden gelir (logout flag'i temizliyor)
+
+### Web ana app (`index.html`)
+- **Görev oluştur** → `task_created` (+ kullanıcının ilk görevi ise `first_task_created`)
+- **Görev kartındaki checkbox** → `task_completed` (`time_to_complete_min` dolu); tekrar tıkla → `task_uncompleted`
+- **Yıldız butonu** → `task_starred` **+** `daily_focus_selected` (ikisi birden)
+- **Görevi sağ paneldeki haftalık takvime sürükle** → `task_dragged_to_calendar`; aynı görevi ileri saate tekrar sürükle → ek olarak `task_postponed`
+- **Sağ-tık menüden sil** → `task_deleted`
+- **Sol sidebar'da liste oluştur/yeniden adlandır/sil** → `list_created` / `list_renamed` / `list_deleted`
+- **Pomodoro paneli — 4 görev queue + Şimdi başlat** → countdown sonunda `pomo_started`; 25dk içinde iptal → `pomo_cancelled`; tamamlanırsa → `pomo_completed`
+- **İstatistikler:** sol sidebar **alt** köşesindeki **profil avatar butonu** → açılan menüde **"İstatistikler"** (`analytics` ikonu) → `balance_state_viewed` (`state` property'si: `balanced` / `mental_heavy` / `physical_heavy` / `spiritual_heavy` / `empty` / `no_category`)
+
+### Landing (`landing/*.html`)
+- Herhangi bir sayfayı aç → `$pageview` (`surface=landing`)
+- `fiyatlandirma.html` → ek olarak `pricing_page_viewed` (`from_screen` referrer'a göre)
+- `iletisim.html` → form submit → `support_ticket_created` (`category` = seçilen başlık)
+- `erken-erisim.html` → form submit → `feature_used` (`feature_name=early_access_signup`)
+
+### Property doğrulaması
+Live event detayında JSON property listesini aç. **Her event'te** olmalı: `platform`, `surface`, `app_version`, `distinct_id`. Eksik property görürsen taxonomy ile karşılaştır (`EVENT_TAXONOMY.md`).
+
+### Yaygın sorunlar
+| Belirti | Sebep | Çözüm |
+|---|---|---|
+| Live events boş | Ad blocker `posthog.com`'u engelliyor | Reverse proxy (aşağıda Faz 5/6) |
+| Admin'de event gelmiyor | `NEXT_PUBLIC_POSTHOG_KEY` env var eksik | `admin/.env.local` kontrol et |
+| Landing'de pageview gelmiyor | `analytics.js` cache | Hard refresh (Cmd+Shift+R) |
+| `task_postponed` gelmiyor | Sadece **mevcut due_at** ileri taşındığında atılır | Önce due_at ata, sonra sürükle |
 
 ## Dashboard Bakım Notları
 
