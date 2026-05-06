@@ -4177,7 +4177,44 @@
       },
     };
     window.dpIsProPlan = function(code) { return code === 'pro_monthly_try' || code === 'pro_yearly_try'; };
+    // Faz 3.A.4: Pro feature gating helper'ları (UI seviyesi — enforcement Faz 3.B'de gerçek Iyzico ile)
+    window.dpIsProUser = function() { return !!(window.dpSubscription && window.dpSubscription.is_pro); };
+    window.dpProBadgeHtml = function(extraClass) {
+      return '<span class="dp-pro-badge ' + (extraClass || '') + '">PRO</span>';
+    };
+    window.dpUpgradeUrl = function(plan) {
+      // Landing checkout'a yönlendir — relative path (deploy'da landing/ alt-dizinde)
+      const p = plan || 'pro_monthly_try';
+      return 'landing/checkout.html?plan=' + p;
+    };
   </script>
+  <style>
+    .dp-pro-badge {
+      display:inline-flex; align-items:center;
+      padding: 1px 6px; font-size: 9px; font-weight: 700;
+      letter-spacing: .04em; text-transform: uppercase;
+      background: linear-gradient(135deg, #E9731C 0%, #f59e42 100%);
+      color: #fff; border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(233,115,28,.25);
+      vertical-align: middle;
+    }
+    .dp-pro-locked {
+      position: relative; opacity: .6; pointer-events: none;
+    }
+    .dp-pro-locked::after {
+      content: 'PRO'; position: absolute; top: 4px; right: 4px;
+      padding: 2px 6px; font-size: 9px; font-weight: 700;
+      letter-spacing: .04em;
+      background: linear-gradient(135deg, #E9731C 0%, #f59e42 100%);
+      color: #fff; border-radius: 4px;
+    }
+    .dp-upgrade-cta {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600; color: #E9731C;
+      text-decoration: none; padding: 2px 6px; border-radius: 4px;
+    }
+    .dp-upgrade-cta:hover { background: rgba(233,115,28,.08); }
+  </style>
 </head>
 <body>
 <div id="splashBox"><div class="splash-spinner"></div></div>
@@ -4659,11 +4696,16 @@
       <span class="pm-avatar-overlay">Değiştir</span>
     </div>
     <div class="pm-info">
-      <div class="pm-name">Kullanıcı</div>
+      <div class="pm-name">Kullanıcı <span id="pmPlanBadge" style="display:none"></span></div>
       <div class="pm-email">—</div>
     </div>
   </div>
   <div class="pm-sep"></div>
+  <a class="pm-item" id="pmUpgradeRow" href="landing/checkout.html?plan=pro_monthly_try" target="_blank" rel="noopener" style="display:none;text-decoration:none;color:inherit">
+    <span class="mi s18" style="color:#E9731C">workspace_premium</span>
+    <span class="pm-item-label">Pro'ya Geç</span>
+    <span class="dp-pro-badge" style="margin-left:auto">Yükselt</span>
+  </a>
   <button class="pm-item" onclick="openNotifPage(event)">
     <span class="mi s18">notifications</span>
     <span class="pm-item-label">Bildirimler</span>
@@ -5219,8 +5261,8 @@ async function submitAuth() {
           window.dpIdentify(s.user.id, { email: s.user.email });
         }
         if (window.dpEvent) window.dpEvent('user_logged_in', { method: 'email' });
-        // PostHog person property: subscription_status (Faz 3 funnel için)
-        // Async — başarısızsa identify "free" varsayılanıyla zaten gönderildi.
+        // Subscription state — global, hem PostHog hem feature gating için (Faz 3.A.4)
+        // Başarısızsa sessizce 'free' varsay.
         try {
           const subs = await db(`/subscriptions?user_id=eq.${s.user.id}&status=in.(active,trialing,past_due)&select=status,subscription_plans(code)&order=created_at.desc&limit=1`);
           const sub = Array.isArray(subs) && subs[0] ? subs[0] : null;
@@ -5232,8 +5274,11 @@ async function submitAuth() {
             else if (sub.status === 'trialing') subscription_status = 'trialing';
             else if (sub.status === 'past_due') subscription_status = 'past_due';
           }
+          window.dpSubscription = { plan_code: planCode, status: subscription_status, is_pro: isPro && (subscription_status === 'active' || subscription_status === 'trialing') };
           if (window.dpIdentify) window.dpIdentify(s.user.id, { subscription_status, plan_code: planCode });
-        } catch (_) { /* sessizce free varsay */ }
+        } catch (_) {
+          window.dpSubscription = { plan_code: 'free', status: 'free', is_pro: false };
+        }
         await initApp();
       }
     }
@@ -12062,8 +12107,29 @@ function toggleProfileMenu(e) {
   const lgMail = menu.querySelector('.pm-email');
   const lgImg  = menu.querySelector('.pm-avatar-img');
   if (lgInit) lgInit.textContent = initials;
-  if (lgName) lgName.textContent = appSettings.displayName || 'Kullanıcı';
+  if (lgName) {
+    // displayName'i ayrı text node'una yaz, badge span'ını koru
+    const nameText = appSettings.displayName || 'Kullanıcı';
+    const badgeSpan = lgName.querySelector('#pmPlanBadge');
+    lgName.firstChild ? (lgName.firstChild.nodeValue = nameText + ' ') : lgName.insertBefore(document.createTextNode(nameText + ' '), badgeSpan);
+    if (badgeSpan) {
+      const isPro = window.dpIsProUser && window.dpIsProUser();
+      if (isPro) {
+        badgeSpan.innerHTML = '';
+        badgeSpan.className = 'dp-pro-badge';
+        badgeSpan.textContent = 'PRO';
+        badgeSpan.style.display = '';
+      } else {
+        badgeSpan.style.display = 'none';
+      }
+    }
+  }
   if (lgMail) lgMail.textContent = session?.user?.email || '—';
+  // Pro'ya Geç satırı sadece free kullanıcıya göster
+  const upgradeRow = document.getElementById('pmUpgradeRow');
+  if (upgradeRow) {
+    upgradeRow.style.display = (window.dpIsProUser && window.dpIsProUser()) ? 'none' : '';
+  }
   // Header avatar img/initials swap
   const url = _getAvatarUrl();
   if (lgImg) {
