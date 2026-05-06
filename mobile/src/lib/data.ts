@@ -1,7 +1,25 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
 import { useStore } from '../state/store';
 import { dpEvent } from './posthog';
 import type { Todo, List } from '../types/db';
+
+/**
+ * Bir kullanıcı için "ilk görev" event'i ömür boyu bir kez ateşlensin diye
+ * AsyncStorage flag — web'deki localStorage pattern'iyle aynı (Faz 2.B).
+ */
+async function maybeFireFirstTask(taskId: string, userId: string | null | undefined) {
+  if (!userId) return;
+  const key = `dp_first_task_fired_${userId}`;
+  try {
+    const fired = await AsyncStorage.getItem(key);
+    if (fired) return;
+    dpEvent('first_task_created', { task_id: taskId });
+    await AsyncStorage.setItem(key, '1');
+  } catch {
+    // sessizce atla
+  }
+}
 
 export async function loadLists() {
   const { data, error } = await supabase
@@ -33,20 +51,46 @@ export async function loadAll() {
 
 export async function toggleTaskDone(task: Todo) {
   const nowDone = !task.done;
+  const completedAt = nowDone ? new Date().toISOString() : null;
   useStore.getState().upsertTask({ ...task, done: nowDone });
   const { error } = await supabase
     .from('todos')
-    .update({ done: nowDone })
+    .update({ done: nowDone, completed_at: completedAt })
     .eq('id', task.id);
   if (error) {
     useStore.getState().upsertTask(task);
     throw error;
   }
-  dpEvent(nowDone ? 'task_completed' : 'task_uncompleted', {
-    task_id: task.id,
-    list_id: task.category,
-    was_starred: !!task.starred,
-  });
+  if (nowDone) {
+    let ttc: number | undefined;
+    if (task.created_at && completedAt) {
+      ttc = Math.round((new Date(completedAt).getTime() - new Date(task.created_at).getTime()) / 60000);
+    }
+    dpEvent('task_completed', {
+      task_id: task.id,
+      list_id: task.category,
+      was_starred: !!task.starred,
+      time_to_complete_min: ttc,
+    });
+  } else {
+    dpEvent('task_uncompleted', { task_id: task.id, list_id: task.category });
+  }
+}
+
+/**
+ * Yıldız toggle — task_starred / task_unstarred + (yıldızlanan için)
+ * daily_focus_selected event'i. Web tarafıyla event eşit.
+ */
+export async function toggleTaskStar(task: Todo) {
+  const next = !task.starred;
+  useStore.getState().upsertTask({ ...task, starred: next });
+  const { error } = await supabase.from('todos').update({ starred: next }).eq('id', task.id);
+  if (error) {
+    useStore.getState().upsertTask(task);
+    throw error;
+  }
+  dpEvent(next ? 'task_starred' : 'task_unstarred', { task_id: task.id });
+  if (next) dpEvent('daily_focus_selected', { task_id: task.id });
 }
 
 export async function deleteTask(id: string) {
@@ -57,6 +101,7 @@ export async function deleteTask(id: string) {
     useStore.getState().upsertTask(prev);
     throw error;
   }
+  dpEvent('task_deleted', { task_id: id, was_completed: !!prev?.done });
 }
 
 export async function patchTask(id: string, patch: Partial<Todo>) {
@@ -68,9 +113,18 @@ export async function patchTask(id: string, patch: Partial<Todo>) {
     useStore.getState().upsertTask(prev);
     throw error;
   }
+  // task_postponed: due_at ileri taşındıysa (web'deki ile aynı kontrat)
+  if (
+    patch.due_at &&
+    prev.due_at &&
+    new Date(patch.due_at as string).getTime() > new Date(prev.due_at).getTime()
+  ) {
+    dpEvent('task_postponed', { task_id: id });
+  }
 }
 
 export async function createTask(payload: Partial<Todo> & { text: string; category: string }) {
+  const wasFirstTask = !useStore.getState().tasks.some(x => !x.parent_id);
   const body = {
     done: false,
     sort_order: Date.now(),
@@ -91,6 +145,10 @@ export async function createTask(payload: Partial<Todo> & { text: string; catego
       priority: payload.priority || null,
       parent_task_id: payload.parent_id || null,
     });
+    if (wasFirstTask && !payload.parent_id) {
+      const userId = useStore.getState().session?.user?.id ?? t.user_id ?? null;
+      void maybeFireFirstTask(t.id, userId);
+    }
   }
   return data as Todo;
 }
@@ -99,6 +157,37 @@ export async function createList(payload: Partial<List> & { name: string }) {
   const body = { sort_order: Date.now(), ...payload };
   const { data, error } = await supabase.from('lists').insert(body).select().single();
   if (error) throw error;
-  if (data) useStore.getState().upsertList(data as List);
+  if (data) {
+    useStore.getState().upsertList(data as List);
+    dpEvent('list_created', {
+      list_id: (data as List).id,
+      icon: (data as List).icon,
+      color: (data as List).color,
+    });
+  }
   return data as List;
+}
+
+export async function renameList(id: string, name: string) {
+  const prev = useStore.getState().lists.find(l => l.id === id);
+  if (!prev) return;
+  useStore.getState().upsertList({ ...prev, name });
+  const { error } = await supabase.from('lists').update({ name }).eq('id', id);
+  if (error) {
+    useStore.getState().upsertList(prev);
+    throw error;
+  }
+  dpEvent('list_renamed', { list_id: id });
+}
+
+export async function deleteList(id: string) {
+  const taskCount = useStore.getState().tasks.filter(t => t.category === id).length;
+  // Önce listenin görevlerini sil (cascade), sonra liste
+  await supabase.from('todos').delete().eq('category', id);
+  const { error } = await supabase.from('lists').delete().eq('id', id);
+  if (error) throw error;
+  useStore.getState().removeList(id);
+  // Store'dan da görevleri çıkar (realtime gelmeden önce UI temiz olsun)
+  useStore.setState((st) => ({ tasks: st.tasks.filter(t => t.category !== id) }));
+  dpEvent('list_deleted', { list_id: id, task_count: taskCount });
 }

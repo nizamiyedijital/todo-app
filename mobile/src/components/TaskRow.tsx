@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import type { Todo } from '../types/db';
 import { PRIORITIES } from '../theme/priority';
 import { useTheme } from '../theme/ThemeProvider';
-import { toggleTaskDone } from '../lib/data';
+import { toggleTaskDone, toggleTaskStar } from '../lib/data';
 import { useStore } from '../state/store';
 
 type Props = { task: Todo; subtaskCount?: number };
@@ -75,7 +75,20 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
         )}
       </View>
 
-      {task.starred && <MaterialIcons name="star" size={18} color="#f59e0b" />}
+      <TouchableOpacity
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        onPress={(e) => {
+          e.stopPropagation?.();
+          Haptics.selectionAsync();
+          toggleTaskStar(task);
+        }}
+      >
+        <MaterialIcons
+          name={task.starred ? 'star' : 'star-border'}
+          size={20}
+          color={task.starred ? '#f59e0b' : colors.text4}
+        />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 }

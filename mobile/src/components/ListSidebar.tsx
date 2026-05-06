@@ -7,8 +7,9 @@ import { useStore } from '../state/store';
 import { useTheme } from '../theme/ThemeProvider';
 import { STARRED_LIST_ID, BOARD_LIST_ID, WEEKLY_LIST_ID } from '../types/db';
 import { selectListCounts, selectStarredCount } from '../state/selectors';
-import { createList } from '../lib/data';
+import { createList, deleteList, renameList } from '../lib/data';
 import { signOut } from '../lib/auth';
+import type { List } from '../types/db';
 
 export default function ListSidebar(props: DrawerContentComponentProps) {
   const { colors } = useTheme();
@@ -18,6 +19,53 @@ export default function ListSidebar(props: DrawerContentComponentProps) {
   const setActiveListId = useStore(s => s.setActiveListId);
 
   const [newListName, setNewListName] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+
+  function openRename(l: List) {
+    setEditingId(l.id);
+    setEditName(l.name);
+  }
+  async function saveRename() {
+    if (!editingId) return;
+    const name = editName.trim();
+    if (!name) { setEditingId(null); return; }
+    try {
+      await renameList(editingId, name);
+    } catch (e: any) {
+      Alert.alert('Hata', e?.message || 'Yeniden adlandırılamadı');
+    } finally {
+      setEditingId(null);
+      setEditName('');
+    }
+  }
+  function confirmDelete(l: List) {
+    Alert.alert(
+      'Listeyi sil',
+      `"${l.name}" listesi ve içindeki tüm görevler kalıcı silinecek. Devam edilsin mi?`,
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Sil', style: 'destructive',
+          onPress: async () => {
+            try {
+              if (activeListId === l.id) setActiveListId(BOARD_LIST_ID);
+              await deleteList(l.id);
+            } catch (e: any) {
+              Alert.alert('Hata', e?.message || 'Silinemedi');
+            }
+          },
+        },
+      ],
+    );
+  }
+  function showListMenu(l: List) {
+    Alert.alert(l.name, undefined, [
+      { text: 'Yeniden adlandır', onPress: () => openRename(l) },
+      { text: 'Sil', style: 'destructive', onPress: () => confirmDelete(l) },
+      { text: 'İptal', style: 'cancel' },
+    ]);
+  }
 
   const counts = selectListCounts(tasks, lists);
   const starredCount = selectStarredCount(tasks);
@@ -66,16 +114,46 @@ export default function ListSidebar(props: DrawerContentComponentProps) {
 
         <View style={[styles.divider, { backgroundColor: colors.border2 }]} />
 
-        {lists.map(l => (
-          <Row
-            key={l.id}
-            id={l.id}
-            icon="list"
-            label={`${l.icon || '📋'}  ${l.name}`}
-            badge={counts[l.id] || 0}
-            active={activeListId === l.id}
-          />
-        ))}
+        {lists.map(l => {
+          if (editingId === l.id) {
+            return (
+              <View key={l.id} style={[styles.row, { backgroundColor: colors.accentBg }]}>
+                <MaterialIcons name="edit" size={20} color={colors.accent} />
+                <TextInput
+                  value={editName}
+                  onChangeText={setEditName}
+                  autoFocus
+                  onSubmitEditing={saveRename}
+                  onBlur={saveRename}
+                  returnKeyType="done"
+                  style={[styles.rowLabel, { color: colors.text, borderBottomWidth: 1.5, borderBottomColor: colors.accent }]}
+                />
+                <TouchableOpacity onPress={() => { setEditingId(null); setEditName(''); }}>
+                  <MaterialIcons name="close" size={20} color={colors.text3} />
+                </TouchableOpacity>
+              </View>
+            );
+          }
+          return (
+            <TouchableOpacity
+              key={l.id}
+              onPress={() => pick(l.id)}
+              onLongPress={() => showListMenu(l)}
+              delayLongPress={400}
+              style={[styles.row, activeListId === l.id && { backgroundColor: colors.accentBg }]}
+            >
+              <MaterialIcons name="list" size={20} color={activeListId === l.id ? colors.accent : colors.text3} />
+              <Text style={[styles.rowLabel, { color: activeListId === l.id ? colors.accent : colors.text2 }]} numberOfLines={1}>
+                {`${l.icon || '📋'}  ${l.name}`}
+              </Text>
+              {!!(counts[l.id] || 0) && (
+                <View style={[styles.badge, { backgroundColor: activeListId === l.id ? colors.accent : colors.surface2 }]}>
+                  <Text style={[styles.badgeText, { color: activeListId === l.id ? '#fff' : colors.text3 }]}>{counts[l.id]}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
 
         <View style={styles.addListWrap}>
           <TextInput
