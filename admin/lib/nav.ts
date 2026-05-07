@@ -114,7 +114,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Otomasyon',
         iconName: 'Workflow',
         requires: 'automation_presets',
-        faz: 5, // Faz 5.A — preset CRUD shipped; runner Faz 5.B'de
+        faz: 1, // Faz 5.A preset CRUD shipped; runner Faz 5.B'de — sidebar 'faz' alanı sadece "shipped/gelecek" anlamı taşıyor
         badge: 'Faz 5.A',
       },
       {
