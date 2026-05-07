@@ -10,11 +10,13 @@ import { useStore } from '../state/store';
 import { useTheme } from '../theme/ThemeProvider';
 import { selectSubtasks } from '../state/selectors';
 import type { Todo, PriorityKey } from '../types/db';
+import { getTaskLinks } from '../types/db';
 import { patchTask, deleteTask, createTask, toggleTaskDone } from '../lib/data';
 import PrioritySelector from './PrioritySelector';
 import DueRow from './DueRow';
 import SubtaskRow from './SubtaskRow';
 import BalancePicker from './BalancePicker';
+import LinkRow from './LinkRow';
 
 export default function TaskEditor() {
   const editingTaskId = useStore(s => s.editingTaskId);
@@ -28,7 +30,6 @@ export default function TaskEditor() {
 
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
-  const [link, setLink] = useState('');
   const [subInput, setSubInput] = useState('');
   const subInputRef = useRef<TextInput>(null);
 
@@ -36,7 +37,6 @@ export default function TaskEditor() {
     if (task) {
       setTitle(task.text ?? '');
       setNotes(task.notes ?? '');
-      setLink(task.link ?? '');
       setSubInput('');
     }
   }, [task?.id]);
@@ -56,9 +56,8 @@ export default function TaskEditor() {
 
   const onClose = () => {
     const patch: Partial<Todo> = {};
-    if (title !== task.text)   patch.text  = title.trim();
-    if (notes !== (task.notes ?? ''))  patch.notes = notes;
-    if (link  !== (task.link ?? ''))   patch.link  = link;
+    if (title !== task.text)          patch.text  = title.trim();
+    if (notes !== (task.notes ?? '')) patch.notes = notes;
     if (Object.keys(patch).length) saveField(patch);
     Keyboard.dismiss();
     closeEditor();
@@ -205,21 +204,15 @@ export default function TaskEditor() {
               </View>
             </View>
 
-            {/* Link */}
+            {/* Bağlantılar (web parity: links array + chip listesi) */}
             <View style={styles.section}>
               <View style={styles.sectionLabel}>
                 <MaterialIcons name="link" size={16} color={colors.text3} />
-                <Text style={[styles.sectionLabelText, { color: colors.text3 }]}>Bağlantı</Text>
+                <Text style={[styles.sectionLabelText, { color: colors.text3 }]}>Bağlantılar</Text>
               </View>
-              <TextInput
-                value={link}
-                onChangeText={setLink}
-                onBlur={() => link !== (task.link ?? '') && saveField({ link })}
-                autoCapitalize="none"
-                keyboardType="url"
-                placeholder="https://…"
-                placeholderTextColor={colors.text4}
-                style={[styles.linkInput, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border2 }]}
+              <LinkRow
+                value={getTaskLinks(task)}
+                onChange={(next) => saveField({ links: next, link: null })}
               />
             </View>
           </ScrollView>

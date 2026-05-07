@@ -11,7 +11,10 @@ export type Todo = {
   priority: PriorityKey | null;
   starred: boolean | null;
   notes: string | null;
+  /** @deprecated Web'de `links` array'ine migrate edildi; eski kayıtlar için okuma fallback'i */
   link: string | null;
+  /** Web ile birebir: jsonb/text[] array. Yeni kayıtlarda bu alan kullanılır. */
+  links: string[] | null;
   balance_category: BalanceCategory | null;
   estimated_minutes: number | null;
   completed_at: string | null;
@@ -19,6 +22,17 @@ export type Todo = {
   created_at: string;
   user_id?: string;
 };
+
+/**
+ * Bir görevin link'lerini normalize edip okuma — `links` array'i varsa onu,
+ * yoksa eski tek `link` text'ini tek-eleman array gibi döner. Web'in
+ * `_taskLinkArr` helper'ıyla aynı kontrat.
+ */
+export function getTaskLinks(task: Pick<Todo, 'links' | 'link'>): string[] {
+  if (Array.isArray(task.links) && task.links.length > 0) return task.links.filter(Boolean);
+  if (task.link) return [task.link];
+  return [];
+}
 
 export type List = {
   id: string;

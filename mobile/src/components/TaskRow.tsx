@@ -1,14 +1,16 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import type { Todo } from '../types/db';
+import { getTaskLinks } from '../types/db';
 import { PRIORITIES } from '../theme/priority';
 import { BALANCE_CATEGORIES } from '../theme/balance';
 import { useTheme } from '../theme/ThemeProvider';
 import { toggleTaskDone, toggleTaskStar, patchTask } from '../lib/data';
 import { useStore } from '../state/store';
+import { linkLabel } from './LinkRow';
 
 type Props = { task: Todo; subtaskCount?: number };
 
@@ -19,6 +21,9 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
 
   const dueText = task.due_at ? fmtDue(task.due_at) : null;
   const dueOverdue = task.due_at ? isPast(new Date(task.due_at)) && !task.done : false;
+  const links = getTaskLinks(task);
+  const linksShown = links.slice(0, 3);
+  const linksOverflow = links.length - linksShown.length;
 
   const setDuePreset = (preset: 'today' | 'tomorrow' | 'weekend' | 'clear') => {
     if (preset === 'clear') {
@@ -88,7 +93,7 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
         >
           {task.text}
         </Text>
-        {(dueText || subtaskCount > 0 || task.notes || task.balance_category) && (
+        {(dueText || subtaskCount > 0 || task.notes || task.balance_category || links.length > 0) && (
           <View style={styles.metaRow}>
             {task.balance_category && BALANCE_CATEGORIES[task.balance_category] && (
               <View style={styles.chip}>
@@ -106,6 +111,26 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
               <View style={styles.chip}>
                 <MaterialIcons name="schedule" size={12} color={dueOverdue ? colors.danger : colors.text3} />
                 <Text style={[styles.chipText, { color: dueOverdue ? colors.danger : colors.text3 }]}>{dueText}</Text>
+              </View>
+            )}
+            {linksShown.map((url) => (
+              <TouchableOpacity
+                key={url}
+                onPress={(e) => {
+                  e.stopPropagation?.();
+                  Linking.openURL(url).catch(() => {});
+                }}
+                style={styles.chip}
+              >
+                <MaterialIcons name="link" size={12} color={colors.accent} />
+                <Text numberOfLines={1} style={[styles.chipText, { color: colors.accent, maxWidth: 110 }]}>
+                  {linkLabel(url)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            {linksOverflow > 0 && (
+              <View style={styles.chip}>
+                <Text style={[styles.chipText, { color: colors.text3 }]}>+{linksOverflow}</Text>
               </View>
             )}
             {subtaskCount > 0 && (
