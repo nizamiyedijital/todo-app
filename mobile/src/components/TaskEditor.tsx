@@ -11,7 +11,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { selectSubtasks } from '../state/selectors';
 import type { Todo, PriorityKey } from '../types/db';
 import { getTaskLinks } from '../types/db';
-import { patchTask, deleteTask, createTask, toggleTaskDone } from '../lib/data';
+import { patchTask, deleteTask, createTask, toggleTaskDone, isTaskFullyEmpty } from '../lib/data';
 import PrioritySelector from './PrioritySelector';
 import DueRow from './DueRow';
 import SubtaskRow from './SubtaskRow';
@@ -60,6 +60,10 @@ export default function TaskEditor() {
     if (notes !== (task.notes ?? '')) patch.notes = notes;
     if (Object.keys(patch).length) saveField(patch);
     Keyboard.dismiss();
+    // Web parity: tüm alanlar boş + alt görev yoksa görevi otomatik sil
+    if (isTaskFullyEmpty(task, { text: title, notes })) {
+      deleteTask(task.id).catch((e) => console.warn('[editor] empty delete', e));
+    }
     closeEditor();
   };
 

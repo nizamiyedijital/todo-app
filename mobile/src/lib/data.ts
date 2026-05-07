@@ -3,6 +3,30 @@ import { supabase } from './supabase';
 import { useStore } from '../state/store';
 import { dpEvent } from './posthog';
 import type { Todo, List } from '../types/db';
+import { getTaskLinks } from '../types/db';
+
+/**
+ * Görev tamamen boş mu — web'in `isTaskFullyEmpty` (index.html:9427) ile
+ * birebir uyumlu, sadece JS'in `tasks` global'i yerine zustand store
+ * kullanır. `formOverrides` parametresi TaskEditor onClose'ta henüz
+ * patch edilmemiş text/notes değerlerini geçici olarak kontrole katar
+ * (kullanıcı son anda silip kapatırsa boş kabul edilir).
+ */
+export function isTaskFullyEmpty(
+  task: Todo,
+  formOverrides?: { text?: string; notes?: string },
+): boolean {
+  const text = (formOverrides?.text ?? task.text ?? '').trim();
+  const notes = (formOverrides?.notes ?? task.notes ?? '').trim();
+  if (text || notes) return false;
+  if (task.priority || task.balance_category) return false;
+  if (task.estimated_minutes || task.due_at) return false;
+  if (task.starred) return false;
+  if (getTaskLinks(task).length > 0) return false;
+  const tasks = useStore.getState().tasks;
+  if (tasks.some(t => t.parent_id === task.id)) return false;
+  return true;
+}
 
 /**
  * Bir kullanıcı için "ilk görev" event'i ömür boyu bir kez ateşlensin diye
