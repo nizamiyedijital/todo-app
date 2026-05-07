@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 import type { Todo, List } from '../types/db';
 import { BOARD_LIST_ID } from '../types/db';
+import type { PendingAutomation } from '../lib/automations';
 
 export type ThemePref = 'light' | 'dark' | 'system';
 
@@ -34,6 +35,7 @@ type State = {
   themePref: ThemePref;
   loading: boolean;
   pomo: PomoState;
+  automationsPending: PendingAutomation[];
 
   setSession: (s: Session | null) => void;
   setSubscription: (sub: SubscriptionState) => void;
@@ -50,6 +52,8 @@ type State = {
   closeEditor: () => void;
   setThemePref: (p: ThemePref) => void;
   setLoading: (b: boolean) => void;
+  pushAutomations: (items: PendingAutomation[]) => void;
+  dismissAutomation: (presetId: string) => void;
 };
 
 export const useStore = create<State>((set) => ({
@@ -63,6 +67,7 @@ export const useStore = create<State>((set) => ({
   themePref: 'system',
   loading: false,
   pomo: { status: 'idle', phase: 'idle', taskId: null, endMs: 0, startMs: 0, durationMin: 0 },
+  automationsPending: [],
 
   setSession: (s) => set({ session: s }),
   setSubscription: (sub) => set({ subscription: sub }),
@@ -91,4 +96,14 @@ export const useStore = create<State>((set) => ({
   closeEditor: () => set({ editingTaskId: null }),
   setThemePref: (p) => set({ themePref: p }),
   setLoading: (b) => set({ loading: b }),
+  pushAutomations: (items) => set((st) => ({
+    // Aynı preset_id zaten varsa tekrar ekleme — idempotent push
+    automationsPending: [
+      ...st.automationsPending,
+      ...items.filter(it => !st.automationsPending.some(p => p.preset.id === it.preset.id)),
+    ],
+  })),
+  dismissAutomation: (presetId) => set((st) => ({
+    automationsPending: st.automationsPending.filter(p => p.preset.id !== presetId),
+  })),
 }));

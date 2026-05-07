@@ -11,6 +11,7 @@ import AddBar from '../components/AddBar';
 import TaskEditor from '../components/TaskEditor';
 import BoardView from '../components/BoardView';
 import BalanceCard from '../components/BalanceCard';
+import AutomationBanner from '../components/AutomationBanner';
 
 export default function TasksScreen() {
   const nav = useNavigation();
@@ -68,9 +69,13 @@ export default function TasksScreen() {
       >
         <View style={{ flex: 1 }}>
           {activeListId === BOARD_LIST_ID ? (
-            <BoardView />
+            <>
+              <AutomationBanner />
+              <BoardView />
+            </>
           ) : (
             <>
+              <AutomationBanner />
               <BalanceCard />
               <View style={{ flex: 1 }}>
                 <TaskList />

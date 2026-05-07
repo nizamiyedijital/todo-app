@@ -2814,6 +2814,34 @@
     #balanceCard .bc-detail-btn.is-pinned { opacity:1; color:var(--accent); background:var(--accent-bg); }
     body.theme-dark #balanceCard { background:var(--card-bg); }
 
+    /* Faz 5.B.1 — Otomasyon banner'ları (event-based in-app bildirim) */
+    #automationBannerHost { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+    #automationBannerHost:empty { display:none; }
+    .dp-auto-banner {
+      display:flex; align-items:flex-start; gap:12px;
+      background:var(--accent-bg); border-left:3px solid var(--accent);
+      border-radius:10px; padding:12px 14px;
+      box-shadow:0 1px 3px rgba(0,0,0,.04);
+    }
+    body.theme-dark .dp-auto-banner { background:rgba(18,163,227,.12); }
+    .dp-auto-banner .ab-icon { flex-shrink:0; color:var(--accent); margin-top:2px; }
+    .dp-auto-banner .ab-body { flex:1; min-width:0; }
+    .dp-auto-banner .ab-title { font-size:.92rem; font-weight:700; color:var(--text); line-height:1.25; }
+    .dp-auto-banner .ab-text { font-size:.82rem; color:var(--text2); margin-top:3px; line-height:1.45; }
+    .dp-auto-banner .ab-actions { display:flex; gap:8px; margin-top:10px; align-items:center; flex-wrap:wrap; }
+    .dp-auto-banner .ab-cta {
+      display:inline-flex; align-items:center; gap:5px;
+      background:var(--accent); color:#fff; border:none; cursor:pointer;
+      padding:6px 12px; border-radius:6px; font-size:.78rem; font-weight:600;
+    }
+    .dp-auto-banner .ab-cta:hover { filter:brightness(.95); }
+    .dp-auto-banner .ab-dismiss {
+      background:transparent; border:none; cursor:pointer;
+      color:var(--text3); padding:4px; flex-shrink:0;
+      align-self:flex-start; line-height:0;
+    }
+    .dp-auto-banner .ab-dismiss:hover { color:var(--text); }
+
     /* Haftalık cell'lerde pill + ⓘ butonu */
     .lc-bal-status-row {
       display:flex; align-items:center; justify-content:center; gap:4px;
@@ -4152,6 +4180,155 @@
     window.dpReset = function() {
       try { if (window.posthog) window.posthog.reset(); } catch (_) {}
     };
+
+    // ---- Faz 5.B.1: dpAutomations — event-based in-app automation runner ----
+    // Belirli bir event tetiklendiğinde (login, pomo_completed) admin'in
+    // tanımladığı `automation_presets` kayıtlarını çeker, koşulları evalue
+    // eder ve uygun olanları üst banner olarak render eder.
+    // Idempotency: localStorage 'dp_auto_${preset_id}_${userId}_${YYYY-MM-DD}'
+    // → günde 1 kere fire (Faz 5.B.2 server-side log ile değiştirilecek).
+    window.dpAutomations = (function() {
+      const _pending = []; // {preset, title, body, cta, deeplink, key}
+
+      function _today() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      }
+
+      function _idempotencyKey(presetId, userId) {
+        return `dp_auto_${presetId}_${userId || 'anon'}_${_today()}`;
+      }
+
+      function _alreadyShown(presetId, userId) {
+        try { return !!localStorage.getItem(_idempotencyKey(presetId, userId)); }
+        catch (_) { return false; }
+      }
+
+      function _markShown(presetId, userId) {
+        try { localStorage.setItem(_idempotencyKey(presetId, userId), '1'); }
+        catch (_) {}
+      }
+
+      // Koşul evalue — context'e göre koşulun sağlanıp sağlanmadığını döner
+      function _evaluateCondition(key, ctx) {
+        if (key === 'incomplete_tasks_yesterday') {
+          // Dünden tamamlanmamış kök görev var mı?
+          const tasks = ctx.tasks || [];
+          const now = new Date();
+          const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const startYesterday = new Date(startToday.getTime() - 86400000);
+          return tasks.some(t =>
+            !t.parent_id && !t.done && t.due_at &&
+            new Date(t.due_at) >= startYesterday &&
+            new Date(t.due_at) < startToday
+          );
+        }
+        if (key === 'balance_zero_category_today') {
+          // Bu sprintte koşul evalue desteklenmiyor (Faz 5.B.2'de cron ile)
+          return true;
+        }
+        if (key === 'daily_pomo_minutes_gt') {
+          // Pomo event geldi → implicit true
+          return true;
+        }
+        return true; // bilinmeyen koşul → engelleme
+      }
+
+      function _evaluateConditions(conditions, ctx) {
+        if (!conditions || typeof conditions !== 'object') return true;
+        const keys = Object.keys(conditions).filter(k => conditions[k]);
+        if (keys.length === 0) return true;
+        return keys.every(k => _evaluateCondition(k, ctx));
+      }
+
+      // Placeholder substitution — {starred_count}, {pomo_minutes_today}, vs.
+      function _interpolate(template, ctx) {
+        if (!template) return '';
+        return String(template).replace(/\{(\w+)\}/g, (_, k) => {
+          const v = ctx[k];
+          return v == null ? `{${k}}` : String(v);
+        });
+      }
+
+      function _renderBanners() {
+        const host = document.getElementById('automationBannerHost');
+        if (!host) return;
+        host.innerHTML = '';
+        for (const item of _pending) {
+          const div = document.createElement('div');
+          div.className = 'dp-auto-banner';
+          div.dataset.presetId = item.preset.id;
+          div.innerHTML = `
+            <span class="ab-icon mi s20">campaign</span>
+            <div class="ab-body">
+              <div class="ab-title"></div>
+              <div class="ab-text"></div>
+              <div class="ab-actions"></div>
+            </div>
+            <button class="ab-dismiss" aria-label="Kapat"><span class="mi s18">close</span></button>
+          `;
+          div.querySelector('.ab-title').textContent = item.title;
+          div.querySelector('.ab-text').textContent = item.body;
+          const actions = div.querySelector('.ab-actions');
+          if (item.cta && item.deeplink) {
+            const btn = document.createElement('button');
+            btn.className = 'ab-cta';
+            btn.textContent = item.cta;
+            btn.onclick = () => {
+              if (item.deeplink.startsWith('/')) {
+                location.hash = item.deeplink.replace(/^\//, '');
+              } else {
+                window.open(item.deeplink, '_blank');
+              }
+              _dismiss(item.preset.id);
+            };
+            actions.appendChild(btn);
+          }
+          div.querySelector('.ab-dismiss').onclick = () => _dismiss(item.preset.id);
+          host.appendChild(div);
+        }
+      }
+
+      function _dismiss(presetId) {
+        const i = _pending.findIndex(x => x.preset.id === presetId);
+        if (i >= 0) {
+          _pending.splice(i, 1);
+          _renderBanners();
+        }
+      }
+
+      async function runEvent(eventName, ctx) {
+        try {
+          if (typeof db !== 'function') return;
+          const userId = (typeof session !== 'undefined' && session?.user?.id) || ctx?.userId || null;
+          const safeCtx = Object.assign({ tasks: (typeof tasks !== 'undefined' ? tasks : []) }, ctx || {});
+          const presets = await db(
+            `/automation_presets?is_enabled=eq.true&trigger_type=eq.event&select=id,name,trigger_config,conditions,action_config,audience`
+          );
+          if (!Array.isArray(presets)) return;
+          for (const p of presets) {
+            const evt = p.trigger_config?.event;
+            if (evt !== eventName) continue;
+            if (_alreadyShown(p.id, userId)) continue;
+            if (!_evaluateConditions(p.conditions, safeCtx)) continue;
+            const ac = p.action_config || {};
+            _pending.push({
+              preset: p,
+              title: _interpolate(ac.title, safeCtx),
+              body: _interpolate(ac.body, safeCtx),
+              cta: ac.cta || null,
+              deeplink: ac.deeplink || null,
+            });
+            _markShown(p.id, userId);
+          }
+          _renderBanners();
+        } catch (e) {
+          console.warn('[dpAutomations] runEvent error:', e?.message || e);
+        }
+      }
+
+      return { runEvent, _renderBanners };
+    })();
   </script>
 
   <!-- ============================================================ -->
@@ -4348,6 +4525,7 @@
 
       <div class="main-content" id="mainContent">
       <div class="main-body" id="mainBody">
+        <div id="automationBannerHost"></div>
         <div id="balanceCard" style="display:none"></div>
         <button id="newTaskBtn" class="new-task-btn" onclick="openNewTaskFromMain(this)" style="display:none">
           <span class="mi s18">add</span><span>Yeni görev</span>
@@ -5432,6 +5610,10 @@ async function initApp() {
   if (typeof loadSystemArticles === 'function') loadSystemArticles();
   connectRealtime();
   pomoLoadSettings();
+  // Faz 5.B.1: login event automations — Tamamlanmayan Görevler banner'ı vs.
+  if (window.dpAutomations) {
+    window.dpAutomations.runEvent('login', { tasks });
+  }
   pomoRestore();
   pomoTickerStart();
 }

@@ -20,10 +20,29 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme/ThemeProvider';
 import { useStore } from '../state/store';
 import { dpEvent } from '../lib/posthog';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { schedulePomoEnd, cancelScheduledPomo, ensurePomoNotifPermission } from '../lib/pomo-notifications';
 import { toggleTaskDone } from '../lib/data';
 import { isVisibleRootTask } from '../state/selectors';
+import { runEventAutomations } from '../lib/automations';
 import type { Todo } from '../types/db';
+
+function todayKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+async function incrementDailyPomoMinutes(min: number): Promise<number> {
+  const key = `dp_pomo_min_${todayKey()}`;
+  try {
+    const cur = parseInt((await AsyncStorage.getItem(key)) ?? '0', 10) || 0;
+    const next = cur + min;
+    await AsyncStorage.setItem(key, String(next));
+    return next;
+  } catch {
+    return min;
+  }
+}
 
 const WORK_MIN = 25;
 const BREAK_MIN = 5;
@@ -53,9 +72,31 @@ export default function PomodoroScreen() {
     // Süre doldu
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     if (pomo.phase === 'work') {
+      const completedDuration = pomo.durationMin;
+      const completedTaskId = pomo.taskId;
       dpEvent('pomo_completed', {
-        task_id: pomo.taskId,
-        actual_duration_min: pomo.durationMin,
+        task_id: completedTaskId,
+        actual_duration_min: completedDuration,
+      });
+      // Faz 5.B.1: pomo_completed event automations
+      void incrementDailyPomoMinutes(completedDuration).then(async (totalMin) => {
+        const userId = useStore.getState().session?.user?.id ?? null;
+        const startToday = new Date();
+        startToday.setHours(0, 0, 0, 0);
+        const tasks_completed_today = useStore
+          .getState()
+          .tasks.filter(
+            t =>
+              !t.parent_id &&
+              t.done &&
+              t.completed_at &&
+              new Date(t.completed_at) >= startToday,
+          ).length;
+        await runEventAutomations('pomo_completed', {
+          userId,
+          pomo_minutes_today: totalMin,
+          tasks_completed_today,
+        });
       });
     }
     setPomo({ ...pomo, status: 'idle', phase: 'idle', endMs: 0 });
