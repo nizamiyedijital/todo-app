@@ -178,7 +178,15 @@ export async function createTask(payload: Partial<Todo> & { text: string; catego
 }
 
 export async function createList(payload: Partial<List> & { name: string }) {
-  const body = { sort_order: Date.now(), ...payload };
+  // Web pattern (index.html:5840): id manuel olarak gönderilir.
+  // lists.id kolonunda DB-level default yok; client tarafı zorunlu.
+  const body = {
+    id: 'list_' + Date.now(),
+    icon: 'folder',
+    color: '#718096',
+    sort_order: Date.now(),
+    ...payload,
+  };
   const { data, error } = await supabase.from('lists').insert(body).select().single();
   if (error) throw error;
   if (data) {

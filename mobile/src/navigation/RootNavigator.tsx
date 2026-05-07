@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import { setNavigationRef, flushPendingDeeplinkOnReady } from '../lib/deeplink';
 
 /** Faz 5.B.4.2: notification tap handler nav için */
 export const navigationRef = createNavigationContainerRef();
+setNavigationRef(navigationRef);
 import AuthStack from './AuthStack';
 import AppDrawer from './AppDrawer';
 import { supabase } from '../lib/supabase';
@@ -62,7 +64,13 @@ export default function RootNavigator() {
   }
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => {
+        // Faz 5.B.4.2: cold-start sırasında bekleyen push deeplink'i flush
+        flushPendingDeeplinkOnReady();
+      }}
+    >
       {session ? <AppDrawer /> : <AuthStack />}
     </NavigationContainer>
   );

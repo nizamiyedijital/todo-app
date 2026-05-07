@@ -56,6 +56,7 @@ export default function LinkRow({ value, onChange }: Props) {
           value={draft}
           onChangeText={setDraft}
           onSubmitEditing={add}
+          onBlur={() => { if (draft.trim()) add(); }}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="url"
