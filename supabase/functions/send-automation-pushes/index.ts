@@ -48,7 +48,7 @@ interface ExpoPushTicket {
   status: 'ok' | 'error';
   id?: string;
   message?: string;
-  details?: Record<string, unknown>;
+  details?: { error?: string; [k: string]: unknown };
 }
 
 async function fetchPending(limit = 100): Promise<PendingExecution[]> {
@@ -144,6 +144,22 @@ async function markSent(executionIds: number[]): Promise<void> {
   if (error) console.error('[push-dispatcher] mark sent:', error.message);
 }
 
+/**
+ * Faz 5.B.4.3: Expo Push API "DeviceNotRegistered" döner → token geçersiz,
+ * DB'den sil. Diğer error'lar (MessageRateExceeded, MessageTooBig) tokeni
+ * sakla, sadece logla.
+ */
+async function pruneInvalidTokens(invalidTokens: string[]): Promise<void> {
+  if (invalidTokens.length === 0) return;
+  const uniq = [...new Set(invalidTokens)];
+  const { error } = await supabase.from('push_tokens').delete().in('token', uniq);
+  if (error) {
+    console.error('[push-dispatcher] prune invalid tokens:', error.message);
+    return;
+  }
+  console.log(`[push-dispatcher] pruned ${uniq.length} invalid token(s)`);
+}
+
 // @ts-expect-error -- Deno.serve
 Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') {
@@ -163,6 +179,7 @@ Deno.serve(async (req: Request) => {
     const tokenMap = await fetchTokensForUsers(userIds);
 
     const messages: ExpoMessage[] = [];
+    const tokensByIndex: string[] = []; // ticket index → token (error temizliği için)
     const sentExecutionIds: number[] = [];
 
     for (const exec of pending) {
@@ -185,6 +202,7 @@ Deno.serve(async (req: Request) => {
             deeplink: exec.deeplink_snapshot,
           },
         });
+        tokensByIndex.push(t.token);
       }
       sentExecutionIds.push(exec.id);
     }
@@ -192,6 +210,15 @@ Deno.serve(async (req: Request) => {
     const tickets = await sendExpoPush(messages);
     const okCount = tickets.filter(t => t.status === 'ok').length;
     const errorCount = tickets.length - okCount;
+
+    // Faz 5.B.4.3: DeviceNotRegistered → token geçersiz, DB'den sil
+    const invalidTokens: string[] = [];
+    tickets.forEach((tk, i) => {
+      if (tk.status === 'error' && tk.details?.error === 'DeviceNotRegistered') {
+        if (tokensByIndex[i]) invalidTokens.push(tokensByIndex[i]);
+      }
+    });
+    await pruneInvalidTokens(invalidTokens);
 
     await markSent(sentExecutionIds);
 

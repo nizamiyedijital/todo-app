@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+
+/** Faz 5.B.4.2: notification tap handler nav için */
+export const navigationRef = createNavigationContainerRef();
 import AuthStack from './AuthStack';
 import AppDrawer from './AppDrawer';
 import { supabase } from '../lib/supabase';
@@ -59,7 +62,7 @@ export default function RootNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       {session ? <AppDrawer /> : <AuthStack />}
     </NavigationContainer>
   );
