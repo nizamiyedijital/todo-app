@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { dpEvent, dpIdentify, dpReset } from './posthog';
 import { fetchAndApplySubscription } from './subscription';
 import { crispIdentify, crispReset } from './crisp';
+import { unregisterPushToken } from './push';
 import { useStore } from '../state/store';
 
 export async function signIn(email: string, password: string) {
@@ -26,6 +27,8 @@ export async function signUp(email: string, password: string) {
 
 export async function signOut() {
   dpEvent('user_logged_out');
+  // Faz 5.B.3: bu cihazın push tokenını sil — kullanıcı çıktıktan sonra push gelmesin
+  await unregisterPushToken();
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
   dpReset();

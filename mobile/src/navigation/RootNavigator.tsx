@@ -12,6 +12,7 @@ import { fetchAndApplySubscription } from '../lib/subscription';
 import { dpIdentify } from '../lib/posthog';
 import { crispIdentify } from '../lib/crisp';
 import { runEventAutomations, fetchPendingCronAutomations } from '../lib/automations';
+import { registerPushToken } from '../lib/push';
 
 export default function RootNavigator() {
   const { colors } = useTheme();
@@ -36,6 +37,8 @@ export default function RootNavigator() {
       dpIdentify(session.user.id, { email: session.user.email });
       crispIdentify({ id: session.user.id, email: session.user.email ?? null });
       void fetchAndApplySubscription(session.user.id);
+      // Faz 5.B.3: push token kayıt (sessizce; Expo Go'da çalışır, native'de gerçek)
+      void registerPushToken(session.user.id);
       loadAll()
         .then(async () => {
           await runEventAutomations('login', { userId: session.user.id });
