@@ -81,6 +81,20 @@ export default function TaskEditor() {
     saveField({ starred: !task.starred });
   };
 
+  const showListPicker = () => {
+    const others = lists.filter(l => l.id !== task.category);
+    if (others.length === 0) {
+      Alert.alert('Liste yok', 'Taşımak için başka liste yok.');
+      return;
+    }
+    const opts: { text: string; style?: 'destructive' | 'cancel'; onPress?: () => void }[] = others.map(l => ({
+      text: `${l.icon ?? '📋'}  ${l.name}`,
+      onPress: () => saveField({ category: l.id }),
+    }));
+    opts.push({ text: 'İptal', style: 'cancel' });
+    Alert.alert('Listeyi taşı', list ? `Şu an: ${list.name}` : undefined, opts);
+  };
+
   const addSub = async () => {
     const t = subInput.trim();
     if (!t) return;
@@ -107,10 +121,14 @@ export default function TaskEditor() {
           {/* Meta bar (web parity: header sade, butonlar footer'da) */}
           <View style={styles.metaBar}>
             {list && (
-              <View style={[styles.listChip, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+              <TouchableOpacity
+                onPress={showListPicker}
+                style={[styles.listChip, { borderColor: colors.border, backgroundColor: colors.surface }]}
+              >
                 <Text style={styles.listIcon}>{list.icon ?? '📋'}</Text>
                 <Text style={{ color: colors.text2, fontSize: 13 }}>{list.name}</Text>
-              </View>
+                <MaterialIcons name="arrow-drop-down" size={18} color={colors.text3} />
+              </TouchableOpacity>
             )}
             <TouchableOpacity onPress={toggleStar} style={[styles.mitBtn, { borderColor: task.starred ? '#f59e0b' : colors.border }]}>
               <MaterialIcons name={task.starred ? 'star' : 'star-outline'} size={18} color={task.starred ? '#f59e0b' : colors.text3} />
