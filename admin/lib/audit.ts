@@ -49,7 +49,12 @@ export type AuditAction =
   // KVKK
   | 'DATA_EXPORT_FULFILLED'
   | 'DATA_DELETION_APPROVED'
-  | 'DATA_DELETION_REJECTED';
+  | 'DATA_DELETION_REJECTED'
+  // Otomasyon (Faz 5.A)
+  | 'AUTOMATION_CREATED'
+  | 'AUTOMATION_UPDATED'
+  | 'AUTOMATION_DELETED'
+  | 'AUTOMATION_TOGGLED';
 
 export interface AuditOptions {
   targetType?: string;

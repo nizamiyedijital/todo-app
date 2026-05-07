@@ -28,7 +28,8 @@ export type Resource =
   | 'feature_flags'
   | 'data_export_requests'
   | 'data_deletion_requests'
-  | 'analytics';
+  | 'analytics'
+  | 'automation_presets';
 
 export type Action = 'read' | 'write' | 'delete';
 
@@ -53,6 +54,7 @@ const PERMISSIONS: Record<Role, Partial<Record<Resource, Action[]>>> = {
     data_export_requests: ['read', 'write'],
     data_deletion_requests: ['read', 'write'],
     analytics: ['read'],
+    automation_presets: ['read', 'write', 'delete'],
   },
   admin: {
     users: ['read', 'write', 'delete'],
@@ -72,6 +74,7 @@ const PERMISSIONS: Record<Role, Partial<Record<Resource, Action[]>>> = {
     data_export_requests: ['read', 'write'],
     data_deletion_requests: ['read', 'write'],
     analytics: ['read'],
+    automation_presets: ['read', 'write', 'delete'],
   },
   support: {
     users: ['read', 'write'],

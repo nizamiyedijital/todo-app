@@ -110,6 +110,14 @@ export const NAV_GROUPS: NavGroup[] = [
         faz: 1, // Faz 2.A/2.B/3.A — PostHog dashboard deep links
       },
       {
+        href: '/admin/automation',
+        label: 'Otomasyon',
+        iconName: 'Workflow',
+        requires: 'automation_presets',
+        faz: 5, // Faz 5.A — preset CRUD shipped; runner Faz 5.B'de
+        badge: 'Faz 5.A',
+      },
+      {
         href: '/admin/system-health',
         label: 'Sistem Sağlığı',
         iconName: 'Activity',
