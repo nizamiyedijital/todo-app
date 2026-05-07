@@ -9,9 +9,21 @@
  * require ile yüklenir ve hata sessizce yutulur. Native build'de SDK
  * normal şekilde çalışır.
  */
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import type { SubscriptionState } from '../state/store';
 
 const WEBSITE_ID = '207f8235-63fa-424e-a7c4-37677d901e5f';
+
+/**
+ * Expo Go'da Crisp native bridge yok — `require()` bile uncaught
+ * native runtime error fırlatıyor (sync try/catch yetersiz, JS exception
+ * değil). Bu yüzden ortamı PROAKTIF tespit edip require'a hiç girmiyoruz.
+ *
+ * `executionEnvironment === 'storeClient'` → Expo Go (mağazadan inen
+ * stock client). 'standalone' / 'bare' → custom dev/preview/production
+ * build, native modül yüklü, normal çalışır.
+ */
+const IS_EXPO_GO = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 let _crisp: any = null;
 let _loadAttempted = false;
@@ -20,11 +32,15 @@ let _configured = false;
 function loadCrisp(): any {
   if (_loadAttempted) return _crisp;
   _loadAttempted = true;
+  if (IS_EXPO_GO) {
+    console.log('[crisp] Expo Go ortamı — SDK atlanıyor (preview build\'de aktif olur)');
+    return null;
+  }
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     _crisp = require('crisp-sdk-react-native');
   } catch (e) {
-    console.warn('[crisp] modül yüklenemedi (Expo Go olabilir):', (e as Error).message);
+    console.warn('[crisp] modül yüklenemedi:', (e as Error).message);
     _crisp = null;
   }
   return _crisp;
