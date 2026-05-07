@@ -105,18 +105,7 @@ export default function TaskEditor() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          {/* Header */}
-          <View style={[styles.header, { borderBottomColor: colors.border2 }]}>
-            <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={styles.headerBtn}>
-              <MaterialIcons name="chevron-left" size={26} color={colors.text2} />
-              <Text style={{ color: colors.text2, fontSize: 15 }}>Geri</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onDelete} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <MaterialIcons name="delete-outline" size={22} color={colors.text3} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Meta bar */}
+          {/* Meta bar (web parity: header sade, butonlar footer'da) */}
           <View style={styles.metaBar}>
             {list && (
               <View style={[styles.listChip, { borderColor: colors.border, backgroundColor: colors.surface }]}>
@@ -235,16 +224,38 @@ export default function TaskEditor() {
             </View>
           </ScrollView>
 
-          {/* Footer */}
+          {/* Footer — 3 buton: Sil | Bitti/Geri Al | Tamam */}
           <View style={[styles.footer, { borderTopColor: colors.border2, backgroundColor: colors.surface }]}>
             <TouchableOpacity
+              onPress={onDelete}
+              style={[styles.footBtn, styles.footBtnDanger, { borderColor: colors.danger }]}
+            >
+              <MaterialIcons name="delete-outline" size={18} color={colors.danger} />
+              <Text style={[styles.footBtnText, { color: colors.danger }]}>Sil</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               onPress={toggleDone}
-              style={[styles.doneBtn, { backgroundColor: task.done ? colors.surface2 : colors.accent, borderColor: task.done ? colors.border : colors.accent }]}
+              style={[
+                styles.footBtn,
+                {
+                  backgroundColor: task.done ? colors.surface2 : colors.accent,
+                  borderColor: task.done ? colors.border : colors.accent,
+                },
+              ]}
             >
               <MaterialIcons name={task.done ? 'replay' : 'check'} size={18} color={task.done ? colors.text2 : '#fff'} />
-              <Text style={{ color: task.done ? colors.text2 : '#fff', fontWeight: '600', fontSize: 15 }}>
-                {task.done ? 'Geri Al' : 'Tamamlandı'}
+              <Text style={[styles.footBtnText, { color: task.done ? colors.text2 : '#fff' }]}>
+                {task.done ? 'Geri Al' : 'Bitti'}
               </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={onClose}
+              style={[styles.footBtn, { backgroundColor: colors.accent, borderColor: colors.accent }]}
+            >
+              <MaterialIcons name="check-circle-outline" size={18} color="#fff" />
+              <Text style={[styles.footBtnText, { color: '#fff' }]}>Tamam</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -274,6 +285,17 @@ const styles = StyleSheet.create({
   linkInput: { borderWidth: 1, borderRadius: 10, padding: 10, fontSize: 14 },
   subAddRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, marginTop: 6 },
   subAddInput: { flex: 1, fontSize: 14, paddingVertical: 8 },
-  footer: { padding: 12, borderTopWidth: 1 },
-  doneBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 12, borderWidth: 1 },
+  footer: { flexDirection: 'row', gap: 8, padding: 12, borderTopWidth: 1 },
+  footBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  footBtnDanger: { backgroundColor: 'transparent' },
+  footBtnText: { fontWeight: '600', fontSize: 14 },
 });
