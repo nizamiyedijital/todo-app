@@ -5,8 +5,21 @@ import {
   DEFAULT_TASK_MINUTES, type BalanceState,
 } from '../theme/balance';
 
+/**
+ * Görünür kök görev kontrolü — UI'larda gösterilebilir mi?
+ * Boş başlıklı kök görevler eski DB artığı (4.D empty-silme yalnızca
+ * yeni kapanışlarda etkili, mevcut data temiz değil); UI'da gizleyerek
+ * defansif davran. BoardView, WeeklyScreen, PomodoroScreen, StatsScreen
+ * ve selectVisibleTasks burayı çağırır.
+ */
+export function isVisibleRootTask(t: Todo): boolean {
+  if (t.parent_id) return false;
+  if (!(t.text ?? '').trim()) return false;
+  return true;
+}
+
 export function selectVisibleTasks(tasks: Todo[], activeListId: string): Todo[] {
-  const roots = tasks.filter(t => !t.parent_id);
+  const roots = tasks.filter(isVisibleRootTask);
   if (activeListId === STARRED_LIST_ID) return roots.filter(t => t.starred);
   if (activeListId === BOARD_LIST_ID)   return roots;
   if (activeListId === WEEKLY_LIST_ID)  return roots;
@@ -48,7 +61,7 @@ export interface BalanceStats {
 
 export function selectBalanceStats(tasks: Todo[], activeListId: string): BalanceStats {
   const items = tasks.filter(t => {
-    if (t.parent_id) return false;
+    if (!isVisibleRootTask(t)) return false;
     if (activeListId === STARRED_LIST_ID) return !!t.starred;
     if (activeListId === BOARD_LIST_ID) return true;
     return t.category === activeListId;

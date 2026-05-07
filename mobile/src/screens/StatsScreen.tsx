@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/ThemeProvider';
 import { useStore } from '../state/store';
 import { dpEvent } from '../lib/posthog';
-import { selectBalanceStats } from '../state/selectors';
+import { selectBalanceStats, isVisibleRootTask } from '../state/selectors';
 import { BALANCE_CATEGORIES } from '../theme/balance';
 import { BOARD_LIST_ID } from '../types/db';
 import type { Todo } from '../types/db';
@@ -175,7 +175,7 @@ function computeStats(tasks: Todo[], range: Range) {
     if (!d) return false;
     return new Date(d).getTime() >= cutoff;
   };
-  const roots = tasks.filter(t => !t.parent_id);
+  const roots = tasks.filter(isVisibleRootTask);
   const completed = roots.filter(t => t.done && inRange(t.created_at));
   const created = roots.filter(t => inRange(t.created_at));
   const starred = roots.filter(t => t.starred && inRange(t.created_at));

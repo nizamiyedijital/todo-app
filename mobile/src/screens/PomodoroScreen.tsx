@@ -22,6 +22,7 @@ import { useStore } from '../state/store';
 import { dpEvent } from '../lib/posthog';
 import { schedulePomoEnd, cancelScheduledPomo, ensurePomoNotifPermission } from '../lib/pomo-notifications';
 import { toggleTaskDone } from '../lib/data';
+import { isVisibleRootTask } from '../state/selectors';
 import type { Todo } from '../types/db';
 
 const WORK_MIN = 25;
@@ -60,7 +61,7 @@ export default function PomodoroScreen() {
     setPomo({ ...pomo, status: 'idle', phase: 'idle', endMs: 0 });
   }, [now, pomo, setPomo]);
 
-  const candidates = tasks.filter(t => !t.parent_id && !t.done);
+  const candidates = tasks.filter(t => isVisibleRootTask(t) && !t.done);
   const starredFirst = [
     ...candidates.filter(t => t.starred),
     ...candidates.filter(t => !t.starred),

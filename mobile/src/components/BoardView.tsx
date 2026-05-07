@@ -8,7 +8,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { useStore } from '../state/store';
 import type { List, Todo } from '../types/db';
 import TaskRow from './TaskRow';
-import { selectSubtasks } from '../state/selectors';
+import { selectSubtasks, isVisibleRootTask } from '../state/selectors';
 import ListIcon from './ListIcon';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -84,7 +84,7 @@ export default function BoardView() {
 
 function Column({ list, tasks }: { list: List; tasks: Todo[] }) {
   const { colors } = useTheme();
-  const colTasks = tasks.filter(t => !t.parent_id && t.category === list.id);
+  const colTasks = tasks.filter(t => isVisibleRootTask(t) && t.category === list.id);
   const pending  = colTasks.filter(t => !t.done);
   const done     = colTasks.filter(t => t.done);
 

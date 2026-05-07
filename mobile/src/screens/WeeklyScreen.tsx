@@ -20,6 +20,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme/ThemeProvider';
 import { useStore } from '../state/store';
 import { toggleTaskDone } from '../lib/data';
+import { isVisibleRootTask } from '../state/selectors';
 import type { Todo } from '../types/db';
 
 const TR_DAY_SHORT = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
@@ -40,7 +41,7 @@ export default function WeeklyScreen() {
 
   // Bu haftaya denk düşen kök görevler (alt-görev hariç) — gün eşleştirmesi için
   const rootsWithDue = useMemo(
-    () => tasks.filter(t => !t.parent_id && t.due_at),
+    () => tasks.filter(t => isVisibleRootTask(t) && t.due_at),
     [tasks],
   );
 
