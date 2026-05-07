@@ -29,7 +29,12 @@ export type Todo = {
  * `_taskLinkArr` helper'ıyla aynı kontrat.
  */
 export function getTaskLinks(task: Pick<Todo, 'links' | 'link'>): string[] {
-  if (Array.isArray(task.links) && task.links.length > 0) return task.links.filter(Boolean);
+  if (Array.isArray(task.links) && task.links.length > 0) {
+    // Dedupe — eski kayıtlarda aynı URL 2 kez yazılmış olabilir
+    // (link → links migration artığı). React duplicate key warning'i
+    // önlemek için Set ile uniq.
+    return Array.from(new Set(task.links.filter(Boolean)));
+  }
   if (task.link) return [task.link];
   return [];
 }
