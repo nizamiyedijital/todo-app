@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import * as Haptics from 'expo-haptics';
@@ -7,7 +7,7 @@ import type { Todo } from '../types/db';
 import { PRIORITIES } from '../theme/priority';
 import { BALANCE_CATEGORIES } from '../theme/balance';
 import { useTheme } from '../theme/ThemeProvider';
-import { toggleTaskDone, toggleTaskStar } from '../lib/data';
+import { toggleTaskDone, toggleTaskStar, patchTask } from '../lib/data';
 import { useStore } from '../state/store';
 
 type Props = { task: Todo; subtaskCount?: number };
@@ -20,9 +20,45 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
   const dueText = task.due_at ? fmtDue(task.due_at) : null;
   const dueOverdue = task.due_at ? isPast(new Date(task.due_at)) && !task.done : false;
 
+  const setDuePreset = (preset: 'today' | 'tomorrow' | 'weekend' | 'clear') => {
+    if (preset === 'clear') {
+      patchTask(task.id, { due_at: null }).catch((e) => Alert.alert('Hata', e?.message ?? 'Güncellenemedi'));
+      return;
+    }
+    const d = new Date();
+    if (preset === 'today') {
+      d.setHours(9, 0, 0, 0);
+    } else if (preset === 'tomorrow') {
+      d.setDate(d.getDate() + 1);
+      d.setHours(9, 0, 0, 0);
+    } else if (preset === 'weekend') {
+      const dow = d.getDay(); // 0=Pazar, 6=Cumartesi
+      let add = 6 - dow;
+      if (add <= 0) add += 7;
+      d.setDate(d.getDate() + add);
+      d.setHours(10, 0, 0, 0);
+    }
+    patchTask(task.id, { due_at: d.toISOString() }).catch((e) => Alert.alert('Hata', e?.message ?? 'Güncellenemedi'));
+  };
+
+  const showDateMenu = () => {
+    Haptics.selectionAsync();
+    const opts: { text: string; style?: 'destructive' | 'cancel'; onPress?: () => void }[] = [
+      { text: 'Bugün 09:00', onPress: () => setDuePreset('today') },
+      { text: 'Yarın 09:00', onPress: () => setDuePreset('tomorrow') },
+      { text: 'Cumartesi 10:00', onPress: () => setDuePreset('weekend') },
+      { text: 'Düzenle (özel)…', onPress: () => openEditor(task.id) },
+    ];
+    if (task.due_at) opts.push({ text: 'Tarihi temizle', style: 'destructive', onPress: () => setDuePreset('clear') });
+    opts.push({ text: 'İptal', style: 'cancel' });
+    Alert.alert('Tarihe ata', undefined, opts);
+  };
+
   return (
     <TouchableOpacity
       onPress={() => openEditor(task.id)}
+      onLongPress={showDateMenu}
+      delayLongPress={400}
       style={[
         styles.row,
         { backgroundColor: colors.surface, borderBottomColor: colors.border2 },

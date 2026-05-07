@@ -76,6 +76,11 @@ export default function ListSidebar(props: DrawerContentComponentProps) {
     props.navigation.navigate('App' as never, { screen: 'Tasks' } as never);
   }
 
+  function openWeekly() {
+    props.navigation.closeDrawer();
+    props.navigation.navigate('App' as never, { screen: 'Weekly' } as never);
+  }
+
   async function addList() {
     const name = newListName.trim();
     if (!name) return;
@@ -111,6 +116,10 @@ export default function ListSidebar(props: DrawerContentComponentProps) {
       <ScrollView style={{ flex: 1 }}>
         <Row id={BOARD_LIST_ID}   icon="dashboard"   label="Tümü"     active={activeListId === BOARD_LIST_ID} />
         <Row id={STARRED_LIST_ID} icon="star-border" label="Yıldızlı" badge={starredCount} active={activeListId === STARRED_LIST_ID} />
+        <TouchableOpacity onPress={openWeekly} style={styles.row}>
+          <MaterialIcons name="event" size={20} color={colors.text3} />
+          <Text style={[styles.rowLabel, { color: colors.text2 }]} numberOfLines={1}>Haftalık Plan</Text>
+        </TouchableOpacity>
 
         <View style={[styles.divider, { backgroundColor: colors.border2 }]} />
 

@@ -85,7 +85,7 @@ export default function DueRow({ value, onChange }: Props) {
         <DateTimePicker value={pending ?? new Date()} mode="date" onChange={onDate} />
       )}
       {showTime && Platform.OS === 'android' && (
-        <DateTimePicker value={pending ?? new Date()} mode="time" onChange={onTime} />
+        <DateTimePicker value={pending ?? new Date()} mode="time" minuteInterval={15} onChange={onTime} />
       )}
       {showDate && Platform.OS === 'ios' && (
         <View style={styles.iosPicker}>
@@ -93,6 +93,7 @@ export default function DueRow({ value, onChange }: Props) {
             value={pending ?? new Date()}
             mode="datetime"
             display="inline"
+            minuteInterval={15}
             onChange={(_, d) => d && setPending(d)}
           />
           <View style={styles.iosBtnRow}>
