@@ -255,13 +255,17 @@ export default function TaskEditor() {
               style={[
                 styles.footBtn,
                 {
-                  backgroundColor: task.done ? colors.surface2 : colors.accent,
+                  backgroundColor: 'transparent',
                   borderColor: task.done ? colors.border : colors.accent,
                 },
               ]}
             >
-              <MaterialIcons name={task.done ? 'replay' : 'check'} size={18} color={task.done ? colors.text2 : '#fff'} />
-              <Text style={[styles.footBtnText, { color: task.done ? colors.text2 : '#fff' }]}>
+              <MaterialIcons
+                name={task.done ? 'replay' : 'check'}
+                size={18}
+                color={task.done ? colors.text2 : colors.accent}
+              />
+              <Text style={[styles.footBtnText, { color: task.done ? colors.text2 : colors.accent }]}>
                 {task.done ? 'Geri Al' : 'Bitti'}
               </Text>
             </TouchableOpacity>
@@ -288,7 +292,7 @@ const styles = StyleSheet.create({
   headerBtn: { flexDirection: 'row', alignItems: 'center' },
   metaBar: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 10, gap: 10,
+    paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10, gap: 10,
   },
   listChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
   listIcon: { fontSize: 14 },
