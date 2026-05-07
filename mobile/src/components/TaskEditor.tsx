@@ -17,6 +17,7 @@ import DueRow from './DueRow';
 import SubtaskRow from './SubtaskRow';
 import BalancePicker from './BalancePicker';
 import LinkRow from './LinkRow';
+import ListIcon from './ListIcon';
 
 export default function TaskEditor() {
   const editingTaskId = useStore(s => s.editingTaskId);
@@ -129,7 +130,7 @@ export default function TaskEditor() {
                 onPress={showListPicker}
                 style={[styles.listChip, { borderColor: colors.border, backgroundColor: colors.surface }]}
               >
-                <Text style={styles.listIcon}>{list.icon ?? '📋'}</Text>
+                <ListIcon icon={list.icon} size={16} color={colors.text2} />
                 <Text style={{ color: colors.text2, fontSize: 13 }}>{list.name}</Text>
                 <MaterialIcons name="arrow-drop-down" size={18} color={colors.text3} />
               </TouchableOpacity>

@@ -9,6 +9,7 @@ import { useStore } from '../state/store';
 import type { List, Todo } from '../types/db';
 import TaskRow from './TaskRow';
 import { selectSubtasks } from '../state/selectors';
+import ListIcon from './ListIcon';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const COL_W  = Math.round(SCREEN_W * 0.88);
@@ -96,7 +97,7 @@ function Column({ list, tasks }: { list: List; tasks: Todo[] }) {
   return (
     <View style={[styles.col, { width: COL_W, backgroundColor: colors.surface2, borderColor: colors.border }]}>
       <View style={[styles.hdr, { borderBottomColor: colors.border2 }]}>
-        <Text style={styles.icon}>{list.icon ?? '📋'}</Text>
+        <ListIcon icon={list.icon} size={18} color={colors.text} />
         <Text numberOfLines={1} style={[styles.title, { color: colors.text }]}>{list.name}</Text>
         <View style={[styles.count, { backgroundColor: colors.accentBg }]}>
           <Text style={[styles.countText, { color: colors.accent }]}>{pending.length}</Text>

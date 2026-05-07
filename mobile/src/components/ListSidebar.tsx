@@ -10,6 +10,7 @@ import { selectListCounts, selectStarredCount } from '../state/selectors';
 import { createList, deleteList, renameList } from '../lib/data';
 import { signOut } from '../lib/auth';
 import type { List } from '../types/db';
+import ListIcon from './ListIcon';
 
 export default function ListSidebar(props: DrawerContentComponentProps) {
   const { colors } = useTheme();
@@ -151,9 +152,13 @@ export default function ListSidebar(props: DrawerContentComponentProps) {
               delayLongPress={400}
               style={[styles.row, activeListId === l.id && { backgroundColor: colors.accentBg }]}
             >
-              <MaterialIcons name="list" size={20} color={activeListId === l.id ? colors.accent : colors.text3} />
+              <ListIcon
+                icon={l.icon}
+                size={20}
+                color={activeListId === l.id ? colors.accent : colors.text3}
+              />
               <Text style={[styles.rowLabel, { color: activeListId === l.id ? colors.accent : colors.text2 }]} numberOfLines={1}>
-                {`${l.icon || '📋'}  ${l.name}`}
+                {l.name}
               </Text>
               {!!(counts[l.id] || 0) && (
                 <View style={[styles.badge, { backgroundColor: activeListId === l.id ? colors.accent : colors.surface2 }]}>
