@@ -7130,11 +7130,15 @@ async function deleteTask(id) {
 }
 
 function scheduleUpdate(task, patch) {
+  // Optimistic update: lokal task'i HEMEN güncelle ki popover kapanırken
+  // çağrılan render()/renderSidebar() en güncel değeri yansıtsın.
+  // Eski akışta Object.assign 700ms timer içindeydi → kullanıcı bu süre
+  // dolmadan popover'ı kapatınca UI eski kalıyordu (sayfa reload'a kadar).
+  Object.assign(task, patch);
   clearTimeout(editTimers[task.id]);
   editTimers[task.id] = setTimeout(async ()=>{
     try {
       await db(`/todos?id=eq.${task.id}`,{method:'PATCH',body:JSON.stringify(patch)});
-      Object.assign(task, patch);
     } catch(e) { console.warn('Auto-save error:', e.message); }
   }, 700);
 }
