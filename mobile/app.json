@@ -31,7 +31,14 @@
     },
     "plugins": [
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
-    ]
+      "@react-native-community/datetimepicker",
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "e1720bd2-ab8a-45bb-a799-62f7b4ca80bd"
+      }
+    },
+    "owner": "disiplan"
   }
 }
