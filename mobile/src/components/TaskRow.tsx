@@ -5,20 +5,27 @@ import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import * as Haptics from 'expo-haptics';
 import type { Todo } from '../types/db';
-import { getTaskLinks } from '../types/db';
+import { getTaskLinks, STARRED_LIST_ID } from '../types/db';
 import { PRIORITIES } from '../theme/priority';
 import { BALANCE_CATEGORIES } from '../theme/balance';
 import { useTheme } from '../theme/ThemeProvider';
 import { toggleTaskDone, toggleTaskStar, patchTask } from '../lib/data';
 import { useStore } from '../state/store';
 import { linkLabel } from './LinkRow';
+import ListIcon from './ListIcon';
 
 type Props = { task: Todo; subtaskCount?: number };
 
 export default function TaskRow({ task, subtaskCount = 0 }: Props) {
   const { colors } = useTheme();
   const openEditor = useStore(s => s.openEditor);
+  const activeListId = useStore(s => s.activeListId);
+  const lists = useStore(s => s.lists);
   const prio = task.priority ? PRIORITIES[task.priority] : null;
+  // Yıldızlı view'de görevin hangi listeye ait olduğu chip ile gösterilsin
+  // (web parity: STARRED_LIST_ID'de tib-listname chip)
+  const showListChip = activeListId === STARRED_LIST_ID;
+  const taskList = showListChip ? lists.find(l => l.id === task.category) : null;
 
   const dueText = task.due_at ? fmtDue(task.due_at) : null;
   const dueOverdue = task.due_at ? isPast(new Date(task.due_at)) && !task.done : false;
@@ -95,8 +102,16 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
         >
           {task.text}
         </Text>
-        {(dueText || subtaskCount > 0 || task.notes || task.balance_category || links.length > 0 || completedDate) && (
+        {(dueText || subtaskCount > 0 || task.notes || task.balance_category || links.length > 0 || completedDate || taskList) && (
           <View style={styles.metaRow}>
+            {taskList && (
+              <View style={styles.chip}>
+                <ListIcon icon={taskList.icon} size={12} color={colors.text3} />
+                <Text style={[styles.chipText, { color: colors.text3 }]} numberOfLines={1}>
+                  {taskList.name}
+                </Text>
+              </View>
+            )}
             {completedDate && (
               <>
                 <View style={styles.chip}>
