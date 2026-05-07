@@ -17,7 +17,7 @@ import DueRow from './DueRow';
 import SubtaskRow from './SubtaskRow';
 import BalancePicker from './BalancePicker';
 import LinkRow from './LinkRow';
-import ListIcon from './ListIcon';
+import ListIcon, { iconToEmoji } from './ListIcon';
 
 export default function TaskEditor() {
   const editingTaskId = useStore(s => s.editingTaskId);
@@ -93,7 +93,7 @@ export default function TaskEditor() {
       return;
     }
     const opts: { text: string; style?: 'destructive' | 'cancel'; onPress?: () => void }[] = others.map(l => ({
-      text: `${l.icon ?? '📋'}  ${l.name}`,
+      text: `${iconToEmoji(l.icon)}  ${l.name}`,
       onPress: () => saveField({ category: l.id }),
     }));
     opts.push({ text: 'İptal', style: 'cancel' });

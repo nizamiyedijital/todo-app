@@ -55,6 +55,18 @@ const EMOJI_FALLBACK: Record<string, string> = {
   book: '📖',
 };
 
+/**
+ * String-only icon temsili — `Alert.alert` gibi React component
+ * render edemeyen yerler için. Emoji ya da varsayılan 📋 döner.
+ * Web'in `notifications`/`menu_book` gibi MaterialIcons name'lerini
+ * görsel emoji'ye çevirir; zaten emoji ise olduğu gibi.
+ */
+export function iconToEmoji(icon: string | null | undefined): string {
+  if (!icon) return '📋';
+  if (!ICON_NAME_RE.test(icon)) return icon; // zaten emoji
+  return EMOJI_FALLBACK[icon] ?? '📋';
+}
+
 export default function ListIcon({ icon, size, color, emojiStyle }: Props) {
   if (icon) {
     const resolved = resolveIconName(icon);
