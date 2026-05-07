@@ -99,17 +99,43 @@ async function lookupUserIdByEmail(email: string): Promise<string | null> {
   return data?.users?.find((u: any) => u.email === email)?.id ?? null;
 }
 
-/** Yeni ticket oluştur veya mevcuda message ekle */
+/**
+ * Yeni ticket oluştur veya mevcuda message ekle.
+ *
+ * - `from='user'`: kullanıcının yazdığı mesaj. Eşleşen ticket yoksa yeni
+ *   ticket açılır; varsa o ticket'a `author_type='user'` ile yazılır.
+ * - `from='operator'`: admin Crisp dashboard'tan yazdığı yanıt. **Sadece
+ *   mevcut ticket'a** yazılır (`author_type='admin'`); eşleşen ticket
+ *   yoksa drop edilir (orphan operator mesajı tutarsız olurdu).
+ */
 async function handleMessageSend(event: CrispEvent): Promise<{ ok: boolean; ticket_id?: string; error?: string }> {
-  if (event.data.from !== 'user' || event.data.type !== 'text') {
-    // Operator mesajları (admin Crisp'ten cevap yazıyor) ya da non-text → atla
-    return { ok: true };
-  }
+  if (event.data.type !== 'text') return { ok: true }; // text dışı (file/animation/...) atla
+  if (event.data.from !== 'user' && event.data.from !== 'operator') return { ok: true };
 
   const sessionId = event.data.session_id;
   const body = typeof event.data.content === 'string' ? event.data.content : '';
   if (!body) return { ok: true };
 
+  // Operator (admin Crisp'ten yanıtladı) — sadece mevcut ticket'a yaz
+  if (event.data.from === 'operator') {
+    const ticket = await findOpenTicket(sessionId);
+    if (!ticket) {
+      console.warn('[crisp-webhook] operator mesajı eşleşen ticket yok, drop:', sessionId);
+      return { ok: true };
+    }
+    const { error: msgErr } = await supabase.from('support_messages').insert({
+      ticket_id: ticket.id,
+      author_id: null,         // Crisp operator'ü Disiplan auth.users'a bağlı değil
+      author_type: 'admin',
+      author_email: null,
+      body,
+      is_internal_note: false,
+    });
+    if (msgErr) return { ok: false, error: msgErr.message };
+    return { ok: true, ticket_id: ticket.id };
+  }
+
+  // User — mevcut akış (yeni ticket aç ya da mevcuda ekle)
   const userEmail = event.data.user?.user_id?.includes('@')
     ? event.data.user.user_id
     : (event.data as any).email_address || event.data.user?.nickname || 'anonymous@crisp';
@@ -119,7 +145,6 @@ async function handleMessageSend(event: CrispEvent): Promise<{ ok: boolean; tick
   let ticket = await findOpenTicket(sessionId);
 
   if (!ticket) {
-    // Yeni ticket aç
     const subject = body.length <= 60 ? body : body.slice(0, 57) + '…';
     const { data, error } = await supabase
       .from('support_tickets')
@@ -140,7 +165,6 @@ async function handleMessageSend(event: CrispEvent): Promise<{ ok: boolean; tick
     ticket = data as { id: string };
   }
 
-  // Message ekle
   const { error: msgErr } = await supabase.from('support_messages').insert({
     ticket_id: ticket.id,
     author_id: userId,
