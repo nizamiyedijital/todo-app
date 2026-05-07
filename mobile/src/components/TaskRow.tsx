@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
+import { tr } from 'date-fns/locale';
 import * as Haptics from 'expo-haptics';
 import type { Todo } from '../types/db';
 import { getTaskLinks } from '../types/db';
@@ -24,6 +25,7 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
   const links = getTaskLinks(task);
   const linksShown = links.slice(0, 3);
   const linksOverflow = links.length - linksShown.length;
+  const completedDate = task.done && task.completed_at ? new Date(task.completed_at) : null;
 
   const setDuePreset = (preset: 'today' | 'tomorrow' | 'weekend' | 'clear') => {
     if (preset === 'clear') {
@@ -93,8 +95,24 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
         >
           {task.text}
         </Text>
-        {(dueText || subtaskCount > 0 || task.notes || task.balance_category || links.length > 0) && (
+        {(dueText || subtaskCount > 0 || task.notes || task.balance_category || links.length > 0 || completedDate) && (
           <View style={styles.metaRow}>
+            {completedDate && (
+              <>
+                <View style={styles.chip}>
+                  <MaterialIcons name="task-alt" size={12} color={colors.text3} />
+                  <Text style={[styles.chipText, { color: colors.text3 }]}>
+                    {format(completedDate, 'd MMM', { locale: tr })}
+                  </Text>
+                </View>
+                <View style={styles.chip}>
+                  <MaterialIcons name="schedule" size={12} color={colors.text3} />
+                  <Text style={[styles.chipText, { color: colors.text3 }]}>
+                    {format(completedDate, 'HH:mm')}
+                  </Text>
+                </View>
+              </>
+            )}
             {task.balance_category && BALANCE_CATEGORIES[task.balance_category] && (
               <View style={styles.chip}>
                 <MaterialIcons
