@@ -117,8 +117,13 @@ export default function TaskEditor() {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['top', 'bottom']}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      onRequestClose={onClose}
+      presentationStyle="pageSheet"
+    >
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['bottom']}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -292,7 +297,7 @@ const styles = StyleSheet.create({
   headerBtn: { flexDirection: 'row', alignItems: 'center' },
   metaBar: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10, gap: 10,
+    paddingHorizontal: 16, paddingTop: 12, paddingBottom: 10, gap: 10,
   },
   listChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
   listIcon: { fontSize: 14 },
