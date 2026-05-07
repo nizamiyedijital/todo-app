@@ -9,6 +9,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../theme/ThemeProvider';
 import { useStore } from '../state/store';
+import { markAutomationSeen } from '../lib/automations';
 
 export default function AutomationBanner() {
   const { colors } = useTheme();
@@ -18,7 +19,15 @@ export default function AutomationBanner() {
 
   if (items.length === 0) return null;
 
-  const handleCta = (deeplink: string | null, presetId: string) => {
+  const handleDismiss = (presetId: string, executionId?: number) => {
+    if (executionId) {
+      // Faz 5.B.2: cron banner — server'a "görüldü" işaretle
+      void markAutomationSeen(executionId);
+    }
+    dismiss(presetId);
+  };
+
+  const handleCta = (deeplink: string | null, presetId: string, executionId?: number) => {
     if (deeplink) {
       if (deeplink.startsWith('/weekly')) {
         nav.navigate('Weekly' as never);
@@ -31,7 +40,7 @@ export default function AutomationBanner() {
         Linking.openURL(deeplink).catch(() => {});
       }
     }
-    dismiss(presetId);
+    handleDismiss(presetId, executionId);
   };
 
   return (
@@ -49,7 +58,7 @@ export default function AutomationBanner() {
               <View style={styles.actions}>
                 <TouchableOpacity
                   style={[styles.cta, { backgroundColor: colors.accent }]}
-                  onPress={() => handleCta(it.deeplink, it.preset.id)}
+                  onPress={() => handleCta(it.deeplink, it.preset.id, it.executionId)}
                 >
                   <Text style={styles.ctaText}>{it.cta}</Text>
                 </TouchableOpacity>
@@ -57,7 +66,7 @@ export default function AutomationBanner() {
             )}
           </View>
           <TouchableOpacity
-            onPress={() => dismiss(it.preset.id)}
+            onPress={() => handleDismiss(it.preset.id, it.executionId)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={styles.dismiss}
           >

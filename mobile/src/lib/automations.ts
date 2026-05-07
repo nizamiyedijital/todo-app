@@ -33,11 +33,13 @@ export type AutomationPreset = {
 };
 
 export type PendingAutomation = {
-  preset: AutomationPreset;
+  preset: { id: string; name: string };
   title: string;
   body: string;
   cta: string | null;
   deeplink: string | null;
+  /** Faz 5.B.2: cron tarafından oluşturulmuş execution log ID; event-based için undefined */
+  executionId?: number;
 };
 
 export type AutomationContext = {
@@ -169,5 +171,69 @@ export async function runEventAutomations(
     }
   } catch (e) {
     console.warn('[automations] runEventAutomations error:', (e as Error).message);
+  }
+}
+
+/**
+ * Faz 5.B.2: cron tarafından oluşturulmuş, kullanıcının henüz görmediği
+ * execution log kayıtlarını çek + banner state'ine ekle.
+ * (DB'den gelen data zaten title/body snapshot içeriyor → placeholder
+ * substitution lazım değil; runner zaten substitute etmiş varsayımı —
+ * ama bu sprintte runner SQL substitution yapmıyor; bir sonraki iyileştirme.
+ * Şimdilik placeholders ham gelir; gerekirse client tarafta interpolate.)
+ */
+export async function fetchPendingCronAutomations(ctx: AutomationContext = {}): Promise<void> {
+  try {
+    const { data, error } = await supabase.rpc('get_pending_automations');
+    if (error) {
+      console.warn('[automations] get_pending_automations:', error.message);
+      return;
+    }
+    type Row = {
+      execution_id: number;
+      preset_id: string;
+      preset_name: string;
+      scheduled_for: string;
+      title: string;
+      body: string;
+      cta: string | null;
+      deeplink: string | null;
+    };
+    const rows = (data ?? []) as Row[];
+    const safeCtx: AutomationContext = {
+      ...ctx,
+      tasks: ctx.tasks ?? useStore.getState().tasks,
+    };
+    const existing = useStore.getState().automationsPending;
+    const newItems: PendingAutomation[] = rows
+      .filter(r => !existing.some(p => p.executionId === r.execution_id))
+      .map(r => ({
+        preset: { id: r.preset_id, name: r.preset_name },
+        title: interpolate(r.title, safeCtx),
+        body: interpolate(r.body, safeCtx),
+        cta: r.cta,
+        deeplink: r.deeplink,
+        executionId: r.execution_id,
+      }));
+    if (newItems.length > 0) {
+      useStore.getState().pushAutomations(newItems);
+    }
+  } catch (e) {
+    console.warn('[automations] fetchPendingCron error:', (e as Error).message);
+  }
+}
+
+/**
+ * Faz 5.B.2: cron banner'ı dismiss edilince server'a "görüldü" işaretle.
+ * Event-based banner'larda executionId yoktur, çağrılmaz.
+ */
+export async function markAutomationSeen(executionId: number): Promise<void> {
+  try {
+    const { error } = await supabase.rpc('mark_automation_seen', {
+      p_execution_id: executionId,
+    });
+    if (error) console.warn('[automations] mark_seen:', error.message);
+  } catch (e) {
+    console.warn('[automations] markSeen error:', (e as Error).message);
   }
 }

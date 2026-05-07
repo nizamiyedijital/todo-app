@@ -11,7 +11,7 @@ import { startRealtime, stopRealtime } from '../lib/realtime';
 import { fetchAndApplySubscription } from '../lib/subscription';
 import { dpIdentify } from '../lib/posthog';
 import { crispIdentify } from '../lib/crisp';
-import { runEventAutomations } from '../lib/automations';
+import { runEventAutomations, fetchPendingCronAutomations } from '../lib/automations';
 
 export default function RootNavigator() {
   const { colors } = useTheme();
@@ -37,7 +37,10 @@ export default function RootNavigator() {
       crispIdentify({ id: session.user.id, email: session.user.email ?? null });
       void fetchAndApplySubscription(session.user.id);
       loadAll()
-        .then(() => runEventAutomations('login', { userId: session.user.id }))
+        .then(async () => {
+          await runEventAutomations('login', { userId: session.user.id });
+          await fetchPendingCronAutomations({ userId: session.user.id });
+        })
         .catch((e) => console.warn('[data] load error', e));
       startRealtime();
       return () => { stopRealtime(); };

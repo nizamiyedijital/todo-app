@@ -4318,6 +4318,7 @@
               body: _interpolate(ac.body, safeCtx),
               cta: ac.cta || null,
               deeplink: ac.deeplink || null,
+              executionId: null, // event-based; cron için doldurulur
             });
             _markShown(p.id, userId);
           }
@@ -4327,7 +4328,82 @@
         }
       }
 
-      return { runEvent, _renderBanners };
+      // Faz 5.B.2: kullanıcı için seen_at=null execution'ları çek + banner'a ekle
+      async function fetchPendingCron() {
+        try {
+          if (typeof db !== 'function') return;
+          const rows = await db('/rpc/get_pending_automations', {
+            method: 'POST',
+            body: JSON.stringify({})
+          });
+          if (!Array.isArray(rows)) return;
+          for (const r of rows) {
+            // Aynı execution_id zaten varsa (önceki çağrıdan) tekrar ekleme
+            if (_pending.some(p => p.executionId === r.execution_id)) continue;
+            _pending.push({
+              preset: { id: r.preset_id, name: r.preset_name },
+              title: r.title || '',
+              body: r.body || '',
+              cta: r.cta || null,
+              deeplink: r.deeplink || null,
+              executionId: r.execution_id,
+            });
+          }
+          _renderBanners();
+        } catch (e) {
+          console.warn('[dpAutomations] fetchPendingCron error:', e?.message || e);
+        }
+      }
+
+      // Override _dismiss: cron banner'lar için RPC mark_seen çağır
+      const _origDismiss = _dismiss;
+      async function _dismissWithRpc(presetId) {
+        const item = _pending.find(x => x.preset.id === presetId);
+        if (item?.executionId) {
+          try {
+            await db('/rpc/mark_automation_seen', {
+              method: 'POST',
+              body: JSON.stringify({ p_execution_id: item.executionId })
+            });
+          } catch (e) { console.warn('[dpAutomations] mark_seen:', e?.message); }
+        }
+        _origDismiss(presetId);
+      }
+      // _renderBanners içinden çağrılan _dismiss referansını güncelle
+      // (orijinal closure'da hardcoded — yeni helper ile dispatch et)
+      const _hostRedispatch = () => {
+        const host = document.getElementById('automationBannerHost');
+        if (!host) return;
+        host.querySelectorAll('.dp-auto-banner').forEach(div => {
+          const presetId = div.dataset.presetId;
+          // X button
+          const dismissBtn = div.querySelector('.ab-dismiss');
+          if (dismissBtn) dismissBtn.onclick = () => _dismissWithRpc(presetId);
+          // CTA button (deeplink + dismiss)
+          const cta = div.querySelector('.ab-cta');
+          if (cta) {
+            const item = _pending.find(x => x.preset.id === presetId);
+            if (item?.deeplink) {
+              cta.onclick = () => {
+                if (item.deeplink.startsWith('/')) {
+                  location.hash = item.deeplink.replace(/^\//, '');
+                } else {
+                  window.open(item.deeplink, '_blank');
+                }
+                _dismissWithRpc(presetId);
+              };
+            }
+          }
+        });
+      };
+      // Render sonrası hook
+      const _origRender = _renderBanners;
+      function _renderBannersWithRpc() {
+        _origRender();
+        _hostRedispatch();
+      }
+
+      return { runEvent, fetchPendingCron, _renderBanners: _renderBannersWithRpc };
     })();
   </script>
 
@@ -5611,8 +5687,10 @@ async function initApp() {
   connectRealtime();
   pomoLoadSettings();
   // Faz 5.B.1: login event automations — Tamamlanmayan Görevler banner'ı vs.
+  // Faz 5.B.2: cron tarafından bırakılan pending execution'ları da çek
   if (window.dpAutomations) {
     window.dpAutomations.runEvent('login', { tasks });
+    window.dpAutomations.fetchPendingCron();
   }
   pomoRestore();
   pomoTickerStart();
