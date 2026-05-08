@@ -35,10 +35,11 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
   const completedDate = task.done && task.completed_at ? new Date(task.completed_at) : null;
 
   // Web parity: alt görev N/M format (tamamlanan/toplam)
-  const subStats = useStore(s => {
-    const subs = s.tasks.filter(t => t.parent_id === task.id);
-    return { total: subs.length, done: subs.filter(t => t.done).length };
-  });
+  // Selector primitive ID alır, hesaplama dışarıda — yeni obje her render'da
+  // zustand'a dönerse infinite re-render olur.
+  const allTasks = useStore(s => s.tasks);
+  const subs = allTasks.filter(t => t.parent_id === task.id);
+  const subStats = { total: subs.length, done: subs.filter(t => t.done).length };
   const notesPreview = task.notes ? task.notes.slice(0, 100).trim() : null;
 
   const setDuePreset = (preset: 'today' | 'tomorrow' | 'weekend' | 'clear') => {
