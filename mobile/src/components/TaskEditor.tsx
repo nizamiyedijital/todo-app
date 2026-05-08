@@ -250,23 +250,89 @@ export default function TaskEditor() {
             </View>
           </ScrollView>
 
-          {/* Icon row — STICKY alt sıra (web addDetail icon-row parity) */}
+          {/* Selected values — icon-row'un altında aktif tarih/denge chip'leri
+              (web parity: 6 May 09:52 chip'i). Priority/link/subtask zaten
+              icon-row'da renk + badge ile görsel olarak işaretlenir. */}
+          {(task.due_at || task.balance_category) && (
+            <View style={[styles.selectedRow, { borderTopColor: colors.border2 }]}>
+              {task.due_at && (
+                <View style={[styles.activeChip, { borderColor: colors.accent }]}>
+                  <MaterialIcons name="schedule" size={14} color={colors.accent} />
+                  <Text style={[styles.activeChipText, { color: colors.accent }]}>
+                    {(() => {
+                      const d = new Date(task.due_at);
+                      return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) +
+                        ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                    })()}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => saveField({ due_at: null })}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <MaterialIcons name="close" size={14} color={colors.accent} />
+                  </TouchableOpacity>
+                </View>
+              )}
+              {task.balance_category && BALANCE_CATEGORIES[task.balance_category] && (
+                <View style={[styles.activeChip, { borderColor: BALANCE_CATEGORIES[task.balance_category].color }]}>
+                  <MaterialIcons
+                    name={BALANCE_CATEGORIES[task.balance_category].icon as any}
+                    size={14}
+                    color={BALANCE_CATEGORIES[task.balance_category].color}
+                  />
+                  <Text style={[styles.activeChipText, { color: BALANCE_CATEGORIES[task.balance_category].color }]}>
+                    {BALANCE_CATEGORIES[task.balance_category].label}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => saveField({ balance_category: null })}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                  >
+                    <MaterialIcons name="close" size={14} color={BALANCE_CATEGORIES[task.balance_category].color} />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Icon row — STICKY alt sıra (web addDetail icon-row parity).
+              Aktif olan field için ana ikon seçilen değerin görsel temsiline
+              dönüşür: priority → symbol (!), balance → kategori ikonu. */}
           <View style={[styles.iconRow, { borderTopColor: colors.border2, backgroundColor: colors.surface }]}>
-            <IconRowBtn
-              icon="flag"
-              active={!!task.priority}
-              activeColor={task.priority ? PRIORITIES[task.priority]?.color : undefined}
-              onPress={() => setOpenPopover('priority')}
-              colors={colors}
-            />
+            {/* Priority — aktifken symbol text */}
+            {task.priority && PRIORITIES[task.priority] ? (
+              <TouchableOpacity
+                onPress={() => setOpenPopover('priority')}
+                style={[
+                  styles.iconBtn,
+                  { backgroundColor: PRIORITIES[task.priority].color + '22', borderWidth: 1, borderColor: PRIORITIES[task.priority].color },
+                ]}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                <Text style={{ color: PRIORITIES[task.priority].color, fontWeight: '800', fontSize: 12 }}>
+                  {PRIORITIES[task.priority].symbol}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <IconRowBtn
+                icon="flag"
+                onPress={() => setOpenPopover('priority')}
+                colors={colors}
+              />
+            )}
+            {/* Tarih — aktifken takvim ikonu accent renkte */}
             <IconRowBtn
               icon="event"
               active={!!task.due_at}
               onPress={() => setOpenPopover('date')}
               colors={colors}
             />
+            {/* Balance — aktifken kategori ikonu (zihin/beden/kalp) */}
             <IconRowBtn
-              icon="self-improvement"
+              icon={
+                task.balance_category
+                  ? BALANCE_CATEGORIES[task.balance_category].icon
+                  : 'self-improvement'
+              }
               active={!!task.balance_category}
               activeColor={
                 task.balance_category
@@ -309,7 +375,6 @@ export default function TaskEditor() {
         {/* Icon-row alt popover'ları (web addDetail içindeki sub-popup parity) */}
         <EditorPopover
           visible={openPopover === 'priority'}
-          title="Öncelik"
           bottomOffset={80}
           onClose={() => setOpenPopover(null)}
         >
@@ -321,8 +386,8 @@ export default function TaskEditor() {
 
         <EditorPopover
           visible={openPopover === 'date'}
-          title="Tarih"
           bottomOffset={80}
+          wide
           onClose={() => setOpenPopover(null)}
         >
           <DueRow
@@ -333,7 +398,6 @@ export default function TaskEditor() {
 
         <EditorPopover
           visible={openPopover === 'balance'}
-          title="Aktif Yaşam Dengesi"
           bottomOffset={80}
           onClose={() => setOpenPopover(null)}
         >
@@ -345,8 +409,8 @@ export default function TaskEditor() {
 
         <EditorPopover
           visible={openPopover === 'link'}
-          title="Bağlantılar"
           bottomOffset={80}
+          wide
           onClose={() => setOpenPopover(null)}
         >
           <LinkRow
@@ -357,8 +421,8 @@ export default function TaskEditor() {
 
         <EditorPopover
           visible={openPopover === 'subtask'}
-          title="Alt görevler"
           bottomOffset={80}
+          wide
           onClose={() => setOpenPopover(null)}
         >
           <View>
@@ -453,6 +517,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
     paddingVertical: 12, borderTopWidth: 1, gap: 4,
   },
+  selectedRow: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 8,
+    paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1,
+  },
+  activeChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderRadius: 999, borderWidth: 1,
+  },
+  activeChipText: { fontSize: 12, fontWeight: '600' },
   iconBtn: {
     width: 44, height: 44, borderRadius: 22,
     alignItems: 'center', justifyContent: 'center', position: 'relative',

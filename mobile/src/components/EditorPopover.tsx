@@ -16,18 +16,19 @@ import { useTheme } from '../theme/ThemeProvider';
 
 type Props = {
   visible: boolean;
-  title: string;
   onClose: () => void;
   /** İkon-row'un üst kenarına olan boşluk (default 60). */
   bottomOffset?: number;
+  /** Daha geniş içerik (link/subtask) için kart genişlik kısıtını kaldır */
+  wide?: boolean;
   children: React.ReactNode;
 };
 
 export default function EditorPopover({
   visible,
-  title,
   onClose,
   bottomOffset = 60,
+  wide = false,
   children,
 }: Props) {
   const { colors } = useTheme();
@@ -36,10 +37,10 @@ export default function EditorPopover({
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       {/* Backdrop — tıklayınca kapatır */}
       <Pressable style={[StyleSheet.absoluteFill, styles.backdrop]} onPress={onClose} />
-      {/* Popover card — icon-row üstünde */}
+      {/* Pill-shaped pop-out card (web parity: icon-row üstünde compact) */}
       <View
         style={[
-          styles.card,
+          wide ? styles.cardWide : styles.cardPill,
           {
             backgroundColor: colors.surface,
             borderColor: colors.border2,
@@ -47,41 +48,41 @@ export default function EditorPopover({
           },
         ]}
       >
-        <View style={[styles.header, { borderBottomColor: colors.border2 }]}>
-          <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-          <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <MaterialIcons name="close" size={20} color={colors.text3} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.body}>{children}</View>
+        {children}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: { backgroundColor: 'rgba(0,0,0,0.18)' },
-  card: {
+  backdrop: { backgroundColor: 'rgba(0,0,0,0.12)' },
+  // Pill — yatay icon-group (priority, balance) için kompakt
+  cardPill: {
+    position: 'absolute',
+    alignSelf: 'center',
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 6,
+  },
+  // Wide — link/subtask gibi input + liste için
+  cardWide: {
     position: 'absolute',
     left: 12,
     right: 12,
     borderRadius: 14,
     borderWidth: 1,
-    maxHeight: '70%',
+    padding: 12,
+    maxHeight: '60%',
     shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: -2 },
-    elevation: 8,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 6,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-  },
-  title: { fontSize: 14, fontWeight: '700' },
-  body: { padding: 12 },
 });
