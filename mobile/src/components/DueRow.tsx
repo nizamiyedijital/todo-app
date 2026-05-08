@@ -88,13 +88,16 @@ export default function DueRow({ value, onChange }: Props) {
         <DateTimePicker value={pending ?? new Date()} mode="time" minuteInterval={15} onChange={onTime} />
       )}
       {showDate && Platform.OS === 'ios' && (
-        <View style={styles.iosPicker}>
+        <View style={[styles.iosPickerSheet, { backgroundColor: colors.surface, borderColor: colors.border2 }]}>
+          {/* iOS 14+ compact mode: button-tarzı picker, tıklayınca popover.
+              Web'in dtp pattern'ine yakın — sayfayı kaplamaz. */}
           <DateTimePicker
             value={pending ?? new Date()}
             mode="datetime"
-            display="inline"
+            display="compact"
             minuteInterval={15}
             onChange={(_, d) => d && setPending(d)}
+            themeVariant={undefined}
           />
           <View style={styles.iosBtnRow}>
             <TouchableOpacity onPress={() => { setShowDate(false); setPending(null); }}>
@@ -122,5 +125,10 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 13 },
   iconBtn: { width: 32, height: 32, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   iosPicker: { marginTop: 8, borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#e0e4ef' },
+  iosPickerSheet: {
+    marginTop: 10, padding: 10, borderRadius: 12, borderWidth: 1,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    flexWrap: 'wrap', gap: 8,
+  },
   iosBtnRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, paddingHorizontal: 12 },
 });
