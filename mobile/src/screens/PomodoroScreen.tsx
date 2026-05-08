@@ -25,7 +25,38 @@ import { schedulePomoEnd, cancelScheduledPomo, ensurePomoNotifPermission } from 
 import { toggleTaskDone } from '../lib/data';
 import { isVisibleRootTask } from '../state/selectors';
 import { runEventAutomations } from '../lib/automations';
+import { supabase } from '../lib/supabase';
 import type { Todo } from '../types/db';
+
+/**
+ * Web parity (index.html:11005-11026 pomoLogSession):
+ * Pomodoro bitince pomo_sessions tablosuna log at. Faz 5.A
+ * automation_user_stats {pomo_minutes_today} placeholder bu tablodan
+ * hesaplar — DB log olmazsa server-side substitution çalışmaz.
+ */
+async function logPomoSession(
+  userId: string,
+  task: Todo | null,
+  phase: 'work' | 'break',
+  durationMin: number,
+  breakMin: number,
+): Promise<void> {
+  try {
+    await supabase.from('pomo_sessions').insert({
+      user_id: userId,
+      task_id: task?.id ?? null,
+      task_text: task?.text ?? null,
+      category: task?.category ?? null,
+      balance_category: task?.balance_category ?? null,
+      duration_min: durationMin,
+      break_min: breakMin,
+      phase,
+      completed_at: new Date().toISOString(),
+    });
+  } catch (e) {
+    console.warn('[pomo] log session:', (e as Error).message);
+  }
+}
 
 function todayKey(): string {
   const d = new Date();
@@ -74,10 +105,17 @@ export default function PomodoroScreen() {
     if (pomo.phase === 'work') {
       const completedDuration = pomo.durationMin;
       const completedTaskId = pomo.taskId;
+      const completedTask = useStore.getState().tasks.find(t => t.id === completedTaskId) ?? null;
+      const userId = useStore.getState().session?.user?.id ?? null;
       dpEvent('pomo_completed', {
         task_id: completedTaskId,
         actual_duration_min: completedDuration,
       });
+      // Faz 5.A bağımlılık: DB'ye log at — automation_user_stats {pomo_minutes_today}
+      // bu tablodan hesaplar (server-side substitution).
+      if (userId) {
+        void logPomoSession(userId, completedTask, 'work', completedDuration, BREAK_MIN);
+      }
       // Faz 5.B.1: pomo_completed event automations
       void incrementDailyPomoMinutes(completedDuration).then(async (totalMin) => {
         const userId = useStore.getState().session?.user?.id ?? null;
