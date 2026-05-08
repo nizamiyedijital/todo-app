@@ -100,6 +100,30 @@ export default function BalanceCard() {
           </View>
         </>
       )}
+
+      {/* Faz 12 web parity (index.html:8754-8781): bugün tamamlanan görevlerin
+          balance kategori bazında dakika toplamı */}
+      {stats.completedTodayTotal > 0 && (
+        <View style={[styles.completedRow, { borderTopColor: colors.border2 }]}>
+          <Text style={[styles.completedLabel, { color: colors.text3 }]}>Bugün tamamlandı</Text>
+          <View style={styles.completedVals}>
+            {(['spiritual', 'physical', 'mental'] as const).map(k => (
+              stats.completedToday[k] > 0 ? (
+                <View key={k} style={styles.completedItem}>
+                  <MaterialIcons
+                    name={BALANCE_CATEGORIES[k].icon as any}
+                    size={11}
+                    color={BALANCE_CATEGORIES[k].color}
+                  />
+                  <Text style={[styles.completedValText, { color: BALANCE_CATEGORIES[k].color }]}>
+                    {stats.completedToday[k]}dk
+                  </Text>
+                </View>
+              ) : null
+            ))}
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -140,4 +164,14 @@ const styles = StyleSheet.create({
   legendRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   legendText: { fontSize: 10, fontWeight: '600' },
+  completedRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginTop: 10, paddingTop: 8, borderTopWidth: 1,
+  },
+  completedLabel: {
+    fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4,
+  },
+  completedVals: { flexDirection: 'row', gap: 10 },
+  completedItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  completedValText: { fontSize: 11, fontWeight: '700' },
 });

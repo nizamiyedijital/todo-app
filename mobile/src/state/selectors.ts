@@ -57,6 +57,10 @@ export interface BalanceStats {
   total: number; // dakika toplamı (kategorize olanlar)
   state: BalanceState;
   stateLabel: string;
+  /** Faz 12 (web parity index.html:8754-8781): bugün done görevlerin
+      balance kategori bazında dakika toplamı */
+  completedToday: Record<BalanceCategory, number>;
+  completedTodayTotal: number;
 }
 
 export function selectBalanceStats(tasks: Todo[], activeListId: string): BalanceStats {
@@ -108,6 +112,24 @@ export function selectBalanceStats(tasks: Todo[], activeListId: string): Balance
     }
   }
 
+  // Faz 12 web parity: bugün done görevlerin balance dakikaları
+  // (sadece bugün due_at olan + done olanlar; aktif liste filtresine uyar)
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+  const completedToday: Record<BalanceCategory, number> = { mental: 0, physical: 0, spiritual: 0 };
+  for (const t of items) {
+    if (!t.done) continue;
+    if (!t.balance_category || !BALANCE_CATEGORIES[t.balance_category]) continue;
+    if (!t.due_at) continue;
+    const d = new Date(t.due_at);
+    if (d < today || d >= tomorrow) continue;
+    const mins = (t.estimated_minutes != null && t.estimated_minutes >= 0)
+      ? t.estimated_minutes
+      : DEFAULT_TASK_MINUTES;
+    completedToday[t.balance_category] += mins;
+  }
+  const completedTodayTotal = completedToday.mental + completedToday.physical + completedToday.spiritual;
+
   return {
     taskCount: active.length,
     totalMinutes,
@@ -117,5 +139,7 @@ export function selectBalanceStats(tasks: Todo[], activeListId: string): Balance
     total,
     state,
     stateLabel,
+    completedToday,
+    completedTodayTotal,
   };
 }
