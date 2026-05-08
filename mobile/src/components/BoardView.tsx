@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, FlatList, Dimensions,
+  View, Text, FlatList, Dimensions, TouchableOpacity,
   StyleSheet, NativeSyntheticEvent, NativeScrollEvent,
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme/ThemeProvider';
 import { useStore } from '../state/store';
 import type { List, Todo } from '../types/db';
+import { NEW_TASK_ID } from '../types/db';
 import TaskRow from './TaskRow';
 import { selectSubtasks, isVisibleRootTask } from '../state/selectors';
 import ListIcon from './ListIcon';
@@ -84,6 +86,12 @@ export default function BoardView() {
 
 function Column({ list, tasks }: { list: List; tasks: Todo[] }) {
   const { colors } = useTheme();
+  const openEditor = useStore(s => s.openEditor);
+  const setBoardColumnId = useStore(s => s.setBoardColumnId);
+  // Web parity (boardDoneStates:6212-6222): "Tamamlananlar" başlığı tıklanınca
+  // genişler/kapanır; default kapalı (alan kazanmak için).
+  const [doneOpen, setDoneOpen] = useState(false);
+
   const colTasks = tasks.filter(t => isVisibleRootTask(t) && t.category === list.id);
   const pending  = colTasks.filter(t => !t.done);
   const done     = colTasks.filter(t => t.done);
@@ -91,8 +99,14 @@ function Column({ list, tasks }: { list: List; tasks: Todo[] }) {
   const data = [
     ...pending,
     ...(done.length > 0 ? [{ __divider: true } as any] : []),
-    ...done,
+    ...(doneOpen ? done : []),
   ];
+
+  const onAddPress = () => {
+    Haptics.selectionAsync();
+    setBoardColumnId(list.id);
+    openEditor(NEW_TASK_ID);
+  };
 
   return (
     <View style={[styles.col, { width: COL_W, backgroundColor: colors.surface2, borderColor: colors.border }]}>
@@ -102,13 +116,39 @@ function Column({ list, tasks }: { list: List; tasks: Todo[] }) {
         <View style={[styles.count, { backgroundColor: colors.accentBg }]}>
           <Text style={[styles.countText, { color: colors.accent }]}>{pending.length}</Text>
         </View>
+        {/* Web parity (index.html:12194-12200): sütun başlığında "+" butonu */}
+        <TouchableOpacity
+          onPress={onAddPress}
+          style={styles.addBtn}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        >
+          <MaterialIcons name="add" size={20} color={colors.accent} />
+        </TouchableOpacity>
       </View>
 
       <FlatList
         data={data}
         keyExtractor={(item: any) => item.__divider ? 'div' : item.id}
         renderItem={({ item }: { item: any }) => {
-          if (item.__divider) return <Text style={[styles.sectionLabel, { color: colors.text4 }]}>Tamamlananlar</Text>;
+          if (item.__divider) {
+            // Web parity: tıklanabilir başlık + chevron + sayı
+            return (
+              <TouchableOpacity
+                onPress={() => setDoneOpen(o => !o)}
+                style={[styles.doneHeader, { borderTopColor: colors.border2 }]}
+                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+              >
+                <Text style={[styles.sectionLabel, { color: colors.text4 }]}>
+                  Tamamlananlar ({done.length})
+                </Text>
+                <MaterialIcons
+                  name={doneOpen ? 'expand-less' : 'expand-more'}
+                  size={20}
+                  color={colors.text3}
+                />
+              </TouchableOpacity>
+            );
+          }
           return <TaskRow task={item} subtaskCount={selectSubtasks(tasks, item.id).length} />;
         }}
         ListEmptyComponent={
@@ -131,7 +171,13 @@ const styles = StyleSheet.create({
   countText: { fontSize: 11, fontWeight: '700' },
   addRow: { paddingHorizontal: 10, paddingVertical: 6, borderBottomWidth: 1 },
   addInput: { fontSize: 13, paddingVertical: 6 },
-  sectionLabel: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, paddingHorizontal: 12, paddingVertical: 8 },
+  sectionLabel: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, flex: 1 },
+  doneHeader: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 12, paddingVertical: 10,
+    borderTopWidth: 1, marginTop: 4,
+  },
+  addBtn: { padding: 4 },
   colEmpty: { paddingVertical: 30, alignItems: 'center' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
   emptyText: { fontSize: 14, textAlign: 'center' },
