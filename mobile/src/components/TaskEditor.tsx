@@ -19,6 +19,9 @@ import BalancePicker from './BalancePicker';
 import LinkRow from './LinkRow';
 import ListIcon from './ListIcon';
 import ListPickerModal from './ListPickerModal';
+import EditorPopover from './EditorPopover';
+import { BALANCE_CATEGORIES } from '../theme/balance';
+import { PRIORITIES } from '../theme/priority';
 
 export default function TaskEditor() {
   const editingTaskId = useStore(s => s.editingTaskId);
@@ -70,6 +73,9 @@ export default function TaskEditor() {
   const [notes, setNotes] = useState('');
   const [subInput, setSubInput] = useState('');
   const [listPickerOpen, setListPickerOpen] = useState(false);
+  const [openPopover, setOpenPopover] = useState<
+    'priority' | 'date' | 'balance' | 'link' | 'subtask' | null
+  >(null);
   const subInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
@@ -213,98 +219,71 @@ export default function TaskEditor() {
           </View>
 
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-            {/* Title */}
+            {/* Title — borderless input, görev başlığı */}
             <TextInput
               value={title}
               onChangeText={setTitle}
               onBlur={() => title !== task.text && saveField({ text: title.trim() })}
-              style={[styles.title, { color: colors.text, borderBottomColor: colors.border2 }]}
+              style={[styles.title, { color: colors.text }]}
               multiline
-              placeholder="Görev başlığı"
+              placeholder="Yeni görev…"
               placeholderTextColor={colors.text4}
+              autoFocus={isNew}
             />
 
-            {/* Notes */}
-            <View style={styles.section}>
-              <View style={styles.sectionLabel}>
-                <MaterialIcons name="notes" size={16} color={colors.text3} />
-                <Text style={[styles.sectionLabelText, { color: colors.text3 }]}>Notlar</Text>
-              </View>
+            {/* Notes — borderless, başlığın altında */}
+            <View style={styles.notesRow}>
+              <MaterialIcons name="notes" size={16} color={colors.text3} style={{ marginTop: 10 }} />
               <TextInput
                 value={notes}
                 onChangeText={setNotes}
                 onBlur={() => notes !== (task.notes ?? '') && saveField({ notes })}
-                style={[styles.notes, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border2 }]}
+                style={[styles.notesInput, { color: colors.text }]}
                 multiline
-                placeholder="Not ekle…"
+                placeholder="Notlar…"
                 placeholderTextColor={colors.text4}
               />
             </View>
 
-            {/* Priority */}
-            <View style={styles.section}>
-              <View style={styles.sectionLabel}>
-                <MaterialIcons name="flag" size={16} color={colors.text3} />
-                <Text style={[styles.sectionLabelText, { color: colors.text3 }]}>Öncelik</Text>
-              </View>
-              <PrioritySelector value={task.priority} onChange={(p) => saveField({ priority: p })} />
-            </View>
-
-            {/* Balance category — Aktif Yaşam Dengesi */}
-            <View style={styles.section}>
-              <View style={styles.sectionLabel}>
-                <MaterialIcons name="self-improvement" size={16} color={colors.text3} />
-                <Text style={[styles.sectionLabelText, { color: colors.text3 }]}>Denge</Text>
-              </View>
-              <BalancePicker
-                value={task.balance_category ?? null}
-                onChange={(c) => saveField({ balance_category: c })}
+            {/* Icon row — web addDetail icon-row parity (priority/date/balance/link/subtask) */}
+            <View style={[styles.iconRow, { borderTopColor: colors.border2 }]}>
+              <IconRowBtn
+                icon="flag"
+                active={!!task.priority}
+                activeColor={task.priority ? PRIORITIES[task.priority]?.color : undefined}
+                onPress={() => setOpenPopover('priority')}
+                colors={colors}
               />
-            </View>
-
-            {/* Due date */}
-            <View style={styles.section}>
-              <View style={styles.sectionLabel}>
-                <MaterialIcons name="event" size={16} color={colors.text3} />
-                <Text style={[styles.sectionLabelText, { color: colors.text3 }]}>Tarih</Text>
-              </View>
-              <DueRow value={task.due_at} onChange={(iso) => saveField({ due_at: iso })} />
-            </View>
-
-            {/* Subtasks */}
-            <View style={styles.section}>
-              <View style={styles.sectionLabel}>
-                <MaterialIcons name="check-box" size={16} color={colors.text3} />
-                <Text style={[styles.sectionLabelText, { color: colors.text3 }]}>Alt görevler</Text>
-              </View>
-              {subtasks.map((s) => (
-                <SubtaskRow key={s.id} task={s} />
-              ))}
-              <View style={[styles.subAddRow, { borderColor: colors.border2 }]}>
-                <MaterialIcons name="add" size={18} color={colors.accent} />
-                <TextInput
-                  ref={subInputRef}
-                  value={subInput}
-                  onChangeText={setSubInput}
-                  onSubmitEditing={addSub}
-                  blurOnSubmit={false}
-                  returnKeyType="done"
-                  placeholder="Alt görev ekle"
-                  placeholderTextColor={colors.text4}
-                  style={[styles.subAddInput, { color: colors.text }]}
-                />
-              </View>
-            </View>
-
-            {/* Bağlantılar (web parity: links array + chip listesi) */}
-            <View style={styles.section}>
-              <View style={styles.sectionLabel}>
-                <MaterialIcons name="link" size={16} color={colors.text3} />
-                <Text style={[styles.sectionLabelText, { color: colors.text3 }]}>Bağlantılar</Text>
-              </View>
-              <LinkRow
-                value={getTaskLinks(task)}
-                onChange={(next) => saveField({ links: next, link: null })}
+              <IconRowBtn
+                icon="event"
+                active={!!task.due_at}
+                onPress={() => setOpenPopover('date')}
+                colors={colors}
+              />
+              <IconRowBtn
+                icon="self-improvement"
+                active={!!task.balance_category}
+                activeColor={
+                  task.balance_category
+                    ? BALANCE_CATEGORIES[task.balance_category].color
+                    : undefined
+                }
+                onPress={() => setOpenPopover('balance')}
+                colors={colors}
+              />
+              <IconRowBtn
+                icon="link"
+                active={getTaskLinks(task).length > 0}
+                badge={getTaskLinks(task).length}
+                onPress={() => setOpenPopover('link')}
+                colors={colors}
+              />
+              <IconRowBtn
+                icon="checklist"
+                active={subtasks.length > 0}
+                badge={subtasks.length}
+                onPress={() => setOpenPopover('subtask')}
+                colors={colors}
               />
             </View>
           </ScrollView>
@@ -322,8 +301,118 @@ export default function TaskEditor() {
           onPick={(id) => saveField({ category: id })}
           onClose={() => setListPickerOpen(false)}
         />
+
+        {/* Icon-row alt popover'ları (web addDetail içindeki sub-popup parity) */}
+        <EditorPopover
+          visible={openPopover === 'priority'}
+          title="Öncelik"
+          onClose={() => setOpenPopover(null)}
+        >
+          <PrioritySelector
+            value={task.priority}
+            onChange={(p) => { saveField({ priority: p }); setOpenPopover(null); }}
+          />
+        </EditorPopover>
+
+        <EditorPopover
+          visible={openPopover === 'date'}
+          title="Tarih"
+          onClose={() => setOpenPopover(null)}
+        >
+          <DueRow
+            value={task.due_at}
+            onChange={(iso) => saveField({ due_at: iso })}
+          />
+        </EditorPopover>
+
+        <EditorPopover
+          visible={openPopover === 'balance'}
+          title="Aktif Yaşam Dengesi"
+          onClose={() => setOpenPopover(null)}
+        >
+          <BalancePicker
+            value={task.balance_category ?? null}
+            onChange={(c) => { saveField({ balance_category: c }); setOpenPopover(null); }}
+          />
+        </EditorPopover>
+
+        <EditorPopover
+          visible={openPopover === 'link'}
+          title="Bağlantılar"
+          onClose={() => setOpenPopover(null)}
+        >
+          <LinkRow
+            value={getTaskLinks(task)}
+            onChange={(next) => saveField({ links: next, link: null })}
+          />
+        </EditorPopover>
+
+        <EditorPopover
+          visible={openPopover === 'subtask'}
+          title="Alt görevler"
+          onClose={() => setOpenPopover(null)}
+        >
+          <View>
+            {subtasks.map((s) => (
+              <SubtaskRow key={s.id} task={s} />
+            ))}
+            <View style={[styles.subAddRow, { borderColor: colors.border2, marginTop: 8 }]}>
+              <MaterialIcons name="add" size={18} color={colors.accent} />
+              <TextInput
+                ref={subInputRef}
+                value={subInput}
+                onChangeText={setSubInput}
+                onSubmitEditing={addSub}
+                blurOnSubmit={false}
+                returnKeyType="done"
+                placeholder="Alt görev ekle"
+                placeholderTextColor={colors.text4}
+                style={[styles.subAddInput, { color: colors.text }]}
+              />
+            </View>
+          </View>
+        </EditorPopover>
       </SafeAreaView>
     </Modal>
+  );
+}
+
+/**
+ * Icon row buton — TaskEditor'da priority/date/balance/link/subtask ikonları.
+ * Aktif state göstergesi: başka renk + light bg dolgu (web stili).
+ */
+function IconRowBtn({
+  icon,
+  active,
+  activeColor,
+  onPress,
+  badge,
+  colors,
+}: {
+  icon: string;
+  active?: boolean;
+  activeColor?: string;
+  onPress: () => void;
+  badge?: number;
+  colors: any;
+}) {
+  const tint = active ? (activeColor ?? colors.accent) : colors.text3;
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[
+        styles.iconBtn,
+        active && { backgroundColor: (activeColor ?? colors.accent) + '22' },
+      ]}
+      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+    >
+      <MaterialIcons name={icon as any} size={22} color={tint} />
+      {!!badge && badge > 0 && (
+        <View style={[styles.badge, { backgroundColor: tint }]}>
+          <Text style={styles.badgeText}>{badge}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
   );
 }
 
@@ -348,12 +437,24 @@ const styles = StyleSheet.create({
     width: 36, height: 36, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center',
   },
-  title: { fontSize: 20, fontWeight: '600', paddingVertical: 8, borderBottomWidth: 1 },
-  section: { marginTop: 18 },
-  sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
-  sectionLabelText: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  notes: { minHeight: 70, borderWidth: 1, borderRadius: 10, padding: 10, textAlignVertical: 'top', fontSize: 14 },
-  linkInput: { borderWidth: 1, borderRadius: 10, padding: 10, fontSize: 14 },
+  title: { fontSize: 20, fontWeight: '600', paddingVertical: 6 },
+  notesRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 8 },
+  notesInput: { flex: 1, fontSize: 14, paddingVertical: 8, lineHeight: 20 },
+  iconRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
+    paddingVertical: 16, marginTop: 16, borderTopWidth: 1, gap: 4,
+  },
+  iconBtn: {
+    width: 44, height: 44, borderRadius: 22,
+    alignItems: 'center', justifyContent: 'center', position: 'relative',
+  },
+  badge: {
+    position: 'absolute', top: 0, right: 0,
+    minWidth: 18, height: 18, borderRadius: 9,
+    paddingHorizontal: 4,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
   subAddRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, marginTop: 6 },
   subAddInput: { flex: 1, fontSize: 14, paddingVertical: 8 },
   footer: { flexDirection: 'row', gap: 8, padding: 12, borderTopWidth: 1 },
