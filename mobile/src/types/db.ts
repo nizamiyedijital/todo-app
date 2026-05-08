@@ -53,6 +53,14 @@ export const STARRED_LIST_ID = '__starred__';
 export const BOARD_LIST_ID   = '__board__';
 export const WEEKLY_LIST_ID  = '__weekly__';
 
+/**
+ * TaskEditor "yeni görev" modu için özel id (Sprint X).
+ * useStore.openEditor(NEW_TASK_ID) çağrılırsa editor boş alanlarla açılır;
+ * kullanıcı text girip blur edince first-save → createTask çalışır,
+ * ardından editingTaskId gerçek id ile değişir (düzenleme moduna geçer).
+ */
+export const NEW_TASK_ID = '__new__';
+
 export function isSpecialListId(id: string): boolean {
   return id === STARRED_LIST_ID || id === BOARD_LIST_ID || id === WEEKLY_LIST_ID;
 }

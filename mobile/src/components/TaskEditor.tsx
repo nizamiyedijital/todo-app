@@ -10,7 +10,7 @@ import { useStore } from '../state/store';
 import { useTheme } from '../theme/ThemeProvider';
 import { selectSubtasks } from '../state/selectors';
 import type { Todo, PriorityKey } from '../types/db';
-import { getTaskLinks } from '../types/db';
+import { getTaskLinks, NEW_TASK_ID, isSpecialListId } from '../types/db';
 import { patchTask, deleteTask, createTask, toggleTaskDone, isTaskFullyEmpty } from '../lib/data';
 import PrioritySelector from './PrioritySelector';
 import DueRow from './DueRow';
@@ -25,10 +25,46 @@ export default function TaskEditor() {
   const closeEditor = useStore(s => s.closeEditor);
   const tasks = useStore(s => s.tasks);
   const lists = useStore(s => s.lists);
+  const activeListId = useStore(s => s.activeListId);
+  const boardColumnId = useStore(s => s.boardColumnId);
   const { colors } = useTheme();
 
+  const isNew = editingTaskId === NEW_TASK_ID;
   const task = tasks.find(t => t.id === editingTaskId) ?? null;
-  const visible = !!task;
+  const visible = isNew || !!task;
+
+  // Yeni mod için hedef liste — aktif liste meta ise ilk gerçek liste / board col
+  const newTargetListId = isSpecialListId(activeListId)
+    ? (boardColumnId ?? lists[0]?.id ?? null)
+    : activeListId;
+
+  /**
+   * "Yeni görev" modu açılınca bir defalık boş taslak oluştur ve
+   * editingTaskId'yi gerçek id ile değiştir. Sonrası mevcut düzenleme akışı:
+   * patchTask onChange/onBlur, empty silme onClose'da. Web'in
+   * createDraftAndSwitchToEdit pattern'i.
+   */
+  useEffect(() => {
+    if (!isNew) return;
+    if (!newTargetListId) {
+      Alert.alert('Liste yok', 'Önce yan panelden bir liste oluştur.');
+      closeEditor();
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const created = await createTask({ text: '', category: newTargetListId });
+        if (!cancelled && created?.id) {
+          useStore.setState({ editingTaskId: created.id });
+        }
+      } catch (e) {
+        console.warn('[editor] new draft', e);
+        if (!cancelled) closeEditor();
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isNew, newTargetListId]);
 
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
@@ -44,11 +80,13 @@ export default function TaskEditor() {
     }
   }, [task?.id]);
 
-  if (!task) return (
-    <Modal visible={false} transparent animationType="slide" onRequestClose={closeEditor}>
-      <View />
-    </Modal>
-  );
+  if (!visible || !task) {
+    return (
+      <Modal visible={false} transparent animationType="slide" onRequestClose={closeEditor}>
+        <View />
+      </Modal>
+    );
+  }
 
   const list = lists.find(l => l.id === task.category);
   const subtasks = selectSubtasks(tasks, task.id);

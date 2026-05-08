@@ -8,7 +8,6 @@ import { useStore } from '../state/store';
 import { STARRED_LIST_ID, BOARD_LIST_ID } from '../types/db';
 import TaskList from '../components/TaskList';
 import AddBar from '../components/AddBar';
-import TaskEditor from '../components/TaskEditor';
 import BoardView from '../components/BoardView';
 import BalanceCard from '../components/BalanceCard';
 import AutomationBanner from '../components/AutomationBanner';
@@ -85,7 +84,7 @@ export default function TasksScreen() {
         </View>
         <AddBar />
       </KeyboardAvoidingView>
-      <TaskEditor />
+      {/* TaskEditor AppDrawer'da global mount'lu — burada tekrar yok */}
     </SafeAreaView>
   );
 }
