@@ -4028,6 +4028,19 @@
     .srow-label { font-size:.87rem; color:var(--text); font-weight:500; }
     .srow-desc { font-size:.75rem; color:var(--text3); margin-top:2px; }
     .srow-ctrl { flex-shrink:0; }
+    /* KVKK status dashboard (Faz 4.C — mobile parity) */
+    .kvkk-status {
+      padding:8px 0 12px; display:flex; align-items:center; gap:10px;
+      flex-wrap:wrap; font-size:.78rem;
+    }
+    .kvkk-pill {
+      padding:3px 10px; border-radius:999px; font-size:.7rem;
+      font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+    }
+    .kvkk-meta { color:var(--text3); }
+    .kvkk-dl { color:var(--accent); font-weight:600; cursor:pointer; }
+    .kvkk-cancel { color:var(--text3); cursor:pointer; text-decoration:underline; }
+    .kvkk-cancel:hover { color:var(--text); }
     /* Toggle switch */
     .stoggle { position:relative; width:40px; height:22px; cursor:pointer; }
     .stoggle input { opacity:0; width:0; height:0; }
@@ -5364,6 +5377,7 @@
             </div>
             <button class="sbtn" onclick="requestKvkkExport()" id="kvkkExportBtn">Talep Et</button>
           </div>
+          <div id="kvkkExportStatus" class="kvkk-status" style="display:none"></div>
           <div class="srow">
             <div class="srow-info">
               <div class="srow-label">Hesabımı Sil</div>
@@ -5371,6 +5385,7 @@
             </div>
             <button class="sbtn danger" onclick="requestKvkkDeletion()" id="kvkkDeleteBtn">Sil</button>
           </div>
+          <div id="kvkkDeletionStatus" class="kvkk-status" style="display:none"></div>
         </div>
         <div class="sgroup">
           <div class="sgroup-title">Entegrasyonlar <span style="font-size:.7rem;color:#aaa;font-weight:400;margin-left:6px;">(Yakında)</span></div>
@@ -13135,6 +13150,95 @@ async function submitSupportForm(e) {
 
 // KVKK self-service — Madde 11 (veri ihracı) + silme talebi.
 // Talepler /admin/kvkk panelinde işlenir, 30 gün yasal süre.
+// KVKK status pill'leri (Mobile parity)
+const KVKK_STATUS_PILLS = {
+  pending:    { label: 'Beklemede',     bg: '#FEF3C7', fg: '#92400E' },
+  processing: { label: 'Hazırlanıyor',  bg: '#DBEAFE', fg: '#1E40AF' },
+  ready:      { label: 'Hazır',         bg: '#D1FAE5', fg: '#065F46' },
+  delivered:  { label: 'Teslim edildi', bg: '#E5E7EB', fg: '#374151' },
+  expired:    { label: 'Süresi doldu',  bg: '#FEE2E2', fg: '#991B1B' },
+  cancelled:  { label: 'İptal',         bg: '#E5E7EB', fg: '#374151' },
+  review:     { label: 'İnceleniyor',   bg: '#EDE9FE', fg: '#5B21B6' },
+  approved:   { label: 'Onaylandı',     bg: '#D1FAE5', fg: '#065F46' },
+  completed:  { label: 'Tamamlandı',    bg: '#E5E7EB', fg: '#374151' },
+  rejected:   { label: 'Reddedildi',    bg: '#FEE2E2', fg: '#991B1B' },
+};
+const KVKK_ACTIVE_EXPORT   = ['pending', 'processing', 'ready'];
+const KVKK_ACTIVE_DELETION = ['pending', 'review', 'approved'];
+
+function kvkkDaysLeft(iso) {
+  return Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000));
+}
+
+function renderKvkkStatus(row, kind) {
+  const elId = kind === 'export' ? 'kvkkExportStatus' : 'kvkkDeletionStatus';
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!row) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const pill = KVKK_STATUS_PILLS[row.status] || { label: row.status, bg: '#E5E7EB', fg: '#374151' };
+  const activeStatuses = kind === 'export' ? KVKK_ACTIVE_EXPORT : KVKK_ACTIVE_DELETION;
+  const active = activeStatuses.includes(row.status);
+  let html = `<span class="kvkk-pill" style="background:${pill.bg};color:${pill.fg}">${escapeHtml(pill.label)}</span>`;
+  if (active) {
+    if (kind === 'export') {
+      html += ` <span class="kvkk-meta">Yasal süre: ${kvkkDaysLeft(row.due_at)} gün kaldı</span>`;
+    } else if (row.cooling_off_until) {
+      html += ` <span class="kvkk-meta">Cayma süresi: ${kvkkDaysLeft(row.cooling_off_until)} gün kaldı</span>`;
+    }
+  }
+  if (kind === 'export' && row.status === 'ready' && row.download_url) {
+    html += ` <a class="kvkk-dl" href="${row.download_url}" target="_blank" rel="noopener">İndir (${row.format || 'json'})</a>`;
+  }
+  if (kind === 'deletion' && active) {
+    html += ` <a class="kvkk-cancel" onclick="cancelKvkkDeletion('${row.id}')">Talebi iptal et</a>`;
+  }
+  el.innerHTML = html;
+  el.style.display = '';
+}
+
+async function loadKvkkStatuses() {
+  if (!session?.user?.id) return;
+  try {
+    const [exp, del] = await Promise.all([
+      db(`/data_export_requests?user_id=eq.${session.user.id}&select=id,status,requested_at,due_at,delivered_at,download_url,format&order=requested_at.desc&limit=1`),
+      db(`/data_deletion_requests?user_id=eq.${session.user.id}&select=id,status,requested_at,due_at,cooling_off_until&order=requested_at.desc&limit=1`),
+    ]);
+    const expRow = (exp || [])[0] || null;
+    const delRow = (del || [])[0] || null;
+    renderKvkkStatus(expRow, 'export');
+    renderKvkkStatus(delRow, 'deletion');
+    // Aktif talep varsa butonları disabled
+    const expBtn = document.getElementById('kvkkExportBtn');
+    if (expBtn) {
+      const active = expRow && KVKK_ACTIVE_EXPORT.includes(expRow.status);
+      expBtn.disabled = active;
+      expBtn.textContent = active ? 'Aktif talep var' : 'Talep Et';
+    }
+    const delBtn = document.getElementById('kvkkDeleteBtn');
+    if (delBtn) {
+      const active = delRow && KVKK_ACTIVE_DELETION.includes(delRow.status);
+      delBtn.disabled = active;
+      delBtn.textContent = active ? 'Aktif talep var' : 'Sil';
+    }
+  } catch (e) {
+    console.warn('loadKvkkStatuses:', e?.message || e);
+  }
+}
+
+async function cancelKvkkDeletion(id) {
+  if (!confirm('Silme talebini iptal etmek istiyor musun?')) return;
+  try {
+    await db(`/data_deletion_requests?id=eq.${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'cancelled' }),
+    });
+    showToast('Silme talebi iptal edildi');
+    await loadKvkkStatuses();
+  } catch (e) {
+    showToast('Hata: ' + (e.message || 'iptal edilemedi'));
+  }
+}
+
 async function requestKvkkExport() {
   const uid = session?.user?.id;
   const email = session?.user?.email;
@@ -13148,7 +13252,7 @@ async function requestKvkkExport() {
       body: JSON.stringify({ user_id: uid, user_email: email, format: 'json', status: 'pending' }),
     });
     showToast('Talep alındı — 30 gün içinde e-postanla iletilecek');
-    btn.textContent = 'Talep edildi'; btn.disabled = true;
+    await loadKvkkStatuses();
   } catch (e) {
     showToast('Hata: ' + (e.message || 'talep gönderilemedi'));
     btn.disabled = false; btn.textContent = 'Talep Et';
@@ -13174,7 +13278,7 @@ async function requestKvkkDeletion() {
       }),
     });
     showToast('Talep alındı — 7 gün cayma süresi başladı');
-    btn.textContent = 'Talep edildi'; btn.disabled = true;
+    await loadKvkkStatuses();
   } catch (e) {
     showToast('Hata: ' + (e.message || 'talep gönderilemedi'));
     btn.disabled = false; btn.textContent = 'Sil';
@@ -13665,6 +13769,7 @@ function openSettings() {
   modal.classList.add('open');
   populateSettings();
   loadTfaStatus();
+  loadKvkkStatuses();
   // Wire live-preview for visual settings
   document.getElementById('sTheme').onchange = e => applyTheme(e.target.value, false);
   document.getElementById('sFontSize').onchange = e => applyFontSize(e.target.value, false);

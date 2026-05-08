@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Linking, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -7,6 +7,44 @@ import { useTheme } from '../theme/ThemeProvider';
 import { useStore } from '../state/store';
 import { supabase } from '../lib/supabase';
 import type { ThemePref } from '../state/store';
+
+// KVKK status enum → UI label + renk (web parity için aynı renk paleti)
+const STATUS_PILLS: Record<string, { label: string; bg: string; fg: string }> = {
+  pending:    { label: 'Beklemede',     bg: '#FEF3C7', fg: '#92400E' },
+  processing: { label: 'Hazırlanıyor',  bg: '#DBEAFE', fg: '#1E40AF' },
+  ready:      { label: 'Hazır',         bg: '#D1FAE5', fg: '#065F46' },
+  delivered:  { label: 'Teslim edildi', bg: '#E5E7EB', fg: '#374151' },
+  expired:    { label: 'Süresi doldu',  bg: '#FEE2E2', fg: '#991B1B' },
+  cancelled:  { label: 'İptal',         bg: '#E5E7EB', fg: '#374151' },
+  review:     { label: 'İnceleniyor',   bg: '#EDE9FE', fg: '#5B21B6' },
+  approved:   { label: 'Onaylandı',     bg: '#D1FAE5', fg: '#065F46' },
+  completed:  { label: 'Tamamlandı',    bg: '#E5E7EB', fg: '#374151' },
+  rejected:   { label: 'Reddedildi',    bg: '#FEE2E2', fg: '#991B1B' },
+};
+
+const ACTIVE_EXPORT_STATUSES   = ['pending', 'processing', 'ready'];
+const ACTIVE_DELETION_STATUSES = ['pending', 'review', 'approved'];
+
+type ExportRow = {
+  id: string;
+  status: string;
+  requested_at: string;
+  due_at: string;
+  delivered_at: string | null;
+  download_url: string | null;
+  format: string;
+};
+type DeletionRow = {
+  id: string;
+  status: string;
+  requested_at: string;
+  due_at: string;
+  cooling_off_until: string | null;
+};
+
+function daysLeft(iso: string): number {
+  return Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000));
+}
 
 const PRO_CHECKOUT_URL = 'https://nizamiyedijital.github.io/todo-app/landing/checkout.html?plan=pro_monthly_try';
 
@@ -24,8 +62,37 @@ export default function SettingsScreen() {
     { key: 'dark',   label: 'Koyu' },
   ];
 
-  const [exportRequested, setExportRequested] = useState(false);
-  const [deleteRequested, setDeleteRequested] = useState(false);
+  const [exportRow, setExportRow] = useState<ExportRow | null>(null);
+  const [deletionRow, setDeletionRow] = useState<DeletionRow | null>(null);
+
+  // Web parity: kullanıcının en son export + deletion taleplerini çek; aktif
+  // talep varsa "Talep et" butonu disabled, status pill ve countdown göster.
+  const loadKvkkRequests = useCallback(async () => {
+    if (!session?.user?.id) return;
+    const [{ data: exp }, { data: del }] = await Promise.all([
+      supabase
+        .from('data_export_requests')
+        .select('id, status, requested_at, due_at, delivered_at, download_url, format')
+        .eq('user_id', session.user.id)
+        .order('requested_at', { ascending: false })
+        .limit(1),
+      supabase
+        .from('data_deletion_requests')
+        .select('id, status, requested_at, due_at, cooling_off_until')
+        .eq('user_id', session.user.id)
+        .order('requested_at', { ascending: false })
+        .limit(1),
+    ]);
+    setExportRow(((exp ?? []) as ExportRow[])[0] ?? null);
+    setDeletionRow(((del ?? []) as DeletionRow[])[0] ?? null);
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    void loadKvkkRequests();
+  }, [loadKvkkRequests]);
+
+  const exportActive   = !!exportRow   && ACTIVE_EXPORT_STATUSES.includes(exportRow.status);
+  const deletionActive = !!deletionRow && ACTIVE_DELETION_STATUSES.includes(deletionRow.status);
 
   async function requestKvkkExport() {
     if (!session?.user?.id) return;
@@ -37,7 +104,6 @@ export default function SettingsScreen() {
         {
           text: 'Talep et',
           onPress: async () => {
-            setExportRequested(true);
             const { error } = await supabase.from('data_export_requests').insert({
               user_id: session.user.id,
               user_email: session.user.email,
@@ -45,8 +111,9 @@ export default function SettingsScreen() {
               status: 'pending',
             });
             if (error) {
-              setExportRequested(false);
               Alert.alert('Hata', error.message);
+            } else {
+              await loadKvkkRequests();
             }
           },
         },
@@ -64,16 +131,38 @@ export default function SettingsScreen() {
         {
           text: 'Talep et', style: 'destructive',
           onPress: async () => {
-            setDeleteRequested(true);
             const { error } = await supabase.from('data_deletion_requests').insert({
               user_id: session.user.id,
               user_email: session.user.email,
               status: 'pending',
             });
             if (error) {
-              setDeleteRequested(false);
               Alert.alert('Hata', error.message);
+            } else {
+              await loadKvkkRequests();
             }
+          },
+        },
+      ],
+    );
+  }
+
+  async function cancelKvkkDeletion() {
+    if (!deletionRow) return;
+    Alert.alert(
+      'Silme talebini iptal et',
+      'Cayma süresinde silme talebini iptal edebilirsin. Devam?',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        {
+          text: 'İptal et',
+          onPress: async () => {
+            const { error } = await supabase
+              .from('data_deletion_requests')
+              .update({ status: 'cancelled' })
+              .eq('id', deletionRow.id);
+            if (error) Alert.alert('Hata', error.message);
+            else await loadKvkkRequests();
           },
         },
       ],
@@ -177,9 +266,10 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* KVKK Hakları */}
+        {/* KVKK Hakları + status dashboard (web parity Faz 4.C) */}
         <Text style={[styles.section, { color: colors.text3, marginTop: 24 }]}>KVKK Hakları</Text>
         <View style={[styles.kvkkCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          {/* VERI IHRACI */}
           <View style={styles.kvkkRow}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.kvkkLabel, { color: colors.text }]}>Verilerimi resmî talep et</Text>
@@ -187,15 +277,40 @@ export default function SettingsScreen() {
             </View>
             <TouchableOpacity
               onPress={requestKvkkExport}
-              disabled={exportRequested}
-              style={[styles.kvkkBtn, { borderColor: colors.border }, exportRequested && { opacity: 0.5 }]}
+              disabled={exportActive}
+              style={[styles.kvkkBtn, { borderColor: colors.border }, exportActive && { opacity: 0.5 }]}
             >
               <Text style={[styles.kvkkBtnText, { color: colors.text2 }]}>
-                {exportRequested ? 'Talep edildi' : 'Talep et'}
+                {exportActive ? 'Aktif talep var' : 'Talep et'}
               </Text>
             </TouchableOpacity>
           </View>
+          {exportRow && (
+            <View style={[styles.statusBox, { borderTopColor: colors.border2 }]}>
+              <View style={styles.statusRow}>
+                <View style={[styles.pill, { backgroundColor: STATUS_PILLS[exportRow.status]?.bg ?? colors.surface2 }]}>
+                  <Text style={[styles.pillText, { color: STATUS_PILLS[exportRow.status]?.fg ?? colors.text2 }]}>
+                    {STATUS_PILLS[exportRow.status]?.label ?? exportRow.status}
+                  </Text>
+                </View>
+                {exportActive && (
+                  <Text style={[styles.statusMeta, { color: colors.text3 }]}>
+                    Yasal süre: {daysLeft(exportRow.due_at)} gün kaldı
+                  </Text>
+                )}
+              </View>
+              {exportRow.status === 'ready' && exportRow.download_url && (
+                <TouchableOpacity onPress={() => Linking.openURL(exportRow.download_url!)} style={styles.dlLink}>
+                  <MaterialIcons name="download" size={14} color={colors.accent} />
+                  <Text style={[styles.dlText, { color: colors.accent }]}>İndir ({exportRow.format})</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
           <View style={[styles.divider, { backgroundColor: colors.border2 }]} />
+
+          {/* HESAP SILME */}
           <View style={styles.kvkkRow}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.kvkkLabel, { color: colors.text }]}>Hesabımı sil</Text>
@@ -203,14 +318,36 @@ export default function SettingsScreen() {
             </View>
             <TouchableOpacity
               onPress={requestKvkkDeletion}
-              disabled={deleteRequested}
-              style={[styles.kvkkBtn, { borderColor: '#dc2626' }, deleteRequested && { opacity: 0.5 }]}
+              disabled={deletionActive}
+              style={[styles.kvkkBtn, { borderColor: '#dc2626' }, deletionActive && { opacity: 0.5 }]}
             >
               <Text style={[styles.kvkkBtnText, { color: '#dc2626' }]}>
-                {deleteRequested ? 'Talep edildi' : 'Sil'}
+                {deletionActive ? 'Aktif talep var' : 'Sil'}
               </Text>
             </TouchableOpacity>
           </View>
+          {deletionRow && (
+            <View style={[styles.statusBox, { borderTopColor: colors.border2 }]}>
+              <View style={styles.statusRow}>
+                <View style={[styles.pill, { backgroundColor: STATUS_PILLS[deletionRow.status]?.bg ?? colors.surface2 }]}>
+                  <Text style={[styles.pillText, { color: STATUS_PILLS[deletionRow.status]?.fg ?? colors.text2 }]}>
+                    {STATUS_PILLS[deletionRow.status]?.label ?? deletionRow.status}
+                  </Text>
+                </View>
+                {deletionActive && deletionRow.cooling_off_until && (
+                  <Text style={[styles.statusMeta, { color: colors.text3 }]}>
+                    Cayma süresi: {daysLeft(deletionRow.cooling_off_until)} gün kaldı
+                  </Text>
+                )}
+              </View>
+              {deletionActive && (
+                <TouchableOpacity onPress={cancelKvkkDeletion} style={styles.cancelLink}>
+                  <MaterialIcons name="undo" size={14} color={colors.text3} />
+                  <Text style={[styles.cancelText, { color: colors.text3 }]}>Talebi iptal et</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -238,4 +375,14 @@ const styles = StyleSheet.create({
   kvkkBtn: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 8, borderWidth: 1 },
   kvkkBtnText: { fontSize: 12, fontWeight: '600' },
   divider: { height: 1, marginHorizontal: 14 },
+  // KVKK status dashboard
+  statusBox: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 12, borderTopWidth: 1, gap: 8 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
+  pill: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
+  pillText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
+  statusMeta: { fontSize: 11, fontWeight: '500' },
+  dlLink: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  dlText: { fontSize: 13, fontWeight: '600' },
+  cancelLink: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  cancelText: { fontSize: 12, fontWeight: '500' },
 });
