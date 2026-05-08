@@ -116,6 +116,17 @@ export default function TaskEditor() {
     closeEditor();
   };
 
+  // Web parity: header'da artık footer butonları yok; "more" menüsünden
+  // Tamamlandı + Sil seçenekleri açılır (web'de sağ-tık menü; mobile'da Alert).
+  const showActionMenu = () => {
+    Haptics.selectionAsync();
+    Alert.alert('Görev', undefined, [
+      { text: task.done ? 'Tamamlandıyı geri al' : 'Tamamlandı işaretle', onPress: toggleDone },
+      { text: 'Sil', style: 'destructive', onPress: onDelete },
+      { text: 'İptal', style: 'cancel' },
+    ]);
+  };
+
   return (
     <Modal
       visible={visible}
@@ -128,7 +139,7 @@ export default function TaskEditor() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          {/* Meta bar (web parity: header sade, butonlar footer'da) */}
+          {/* Meta bar (web parity: liste chip + yıldız + more menü; footer YOK) */}
           <View style={styles.metaBar}>
             {list && (
               <TouchableOpacity
@@ -140,15 +151,29 @@ export default function TaskEditor() {
                 <MaterialIcons name="arrow-drop-down" size={18} color={colors.text3} />
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={toggleStar} style={[styles.mitBtn, { borderColor: task.starred ? '#f59e0b' : colors.border }]}>
-              <MaterialIcons name={task.starred ? 'star' : 'star-outline'} size={18} color={task.starred ? '#f59e0b' : colors.text3} />
-              <Text style={{ color: task.starred ? '#f59e0b' : colors.text3, fontSize: 13, fontWeight: '600' }}>
-                Günün En Önemli Görevi
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.metaRight}>
+              <TouchableOpacity
+                onPress={toggleStar}
+                style={[styles.starBtn, { borderColor: task.starred ? '#f59e0b' : colors.border }]}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                <MaterialIcons
+                  name={task.starred ? 'star' : 'star-outline'}
+                  size={20}
+                  color={task.starred ? '#f59e0b' : colors.text3}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={showActionMenu}
+                style={styles.moreBtn}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                <MaterialIcons name="more-vert" size={22} color={colors.text2} />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
             {/* Title */}
             <TextInput
               value={title}
@@ -244,45 +269,9 @@ export default function TaskEditor() {
               />
             </View>
           </ScrollView>
-
-          {/* Footer — 3 buton: Sil | Bitti/Geri Al | Tamam */}
-          <View style={[styles.footer, { borderTopColor: colors.border2, backgroundColor: colors.surface }]}>
-            <TouchableOpacity
-              onPress={onDelete}
-              style={[styles.footBtn, styles.footBtnDanger, { borderColor: colors.danger }]}
-            >
-              <MaterialIcons name="delete-outline" size={18} color={colors.danger} />
-              <Text style={[styles.footBtnText, { color: colors.danger }]}>Sil</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={toggleDone}
-              style={[
-                styles.footBtn,
-                {
-                  backgroundColor: 'transparent',
-                  borderColor: task.done ? colors.border : colors.accent,
-                },
-              ]}
-            >
-              <MaterialIcons
-                name={task.done ? 'replay' : 'check'}
-                size={18}
-                color={task.done ? colors.text2 : colors.accent}
-              />
-              <Text style={[styles.footBtnText, { color: task.done ? colors.text2 : colors.accent }]}>
-                {task.done ? 'Geri Al' : 'Bitti'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={onClose}
-              style={[styles.footBtn, { backgroundColor: colors.accent, borderColor: colors.accent }]}
-            >
-              <MaterialIcons name="check-circle-outline" size={18} color="#fff" />
-              <Text style={[styles.footBtnText, { color: '#fff' }]}>Tamam</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Web parity: footer YOK. Kaydet otomatik (saveField onChange/onBlur);
+              kapatma → swipe-down (iOS pageSheet) veya Android back tuşu;
+              tamamlandı/sil → header sağ üstteki "more" menüden. */}
         </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
@@ -301,7 +290,15 @@ const styles = StyleSheet.create({
   },
   listChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
   listIcon: { fontSize: 14 },
-  mitBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
+  metaRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  starBtn: {
+    width: 36, height: 36, borderRadius: 10, borderWidth: 1,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  moreBtn: {
+    width: 36, height: 36, borderRadius: 10,
+    alignItems: 'center', justifyContent: 'center',
+  },
   title: { fontSize: 20, fontWeight: '600', paddingVertical: 8, borderBottomWidth: 1 },
   section: { marginTop: 18 },
   sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },

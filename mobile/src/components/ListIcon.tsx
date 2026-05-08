@@ -1,50 +1,71 @@
 /**
- * Liste icon render — l.icon ya MaterialIcons name ('notifications',
- * 'menu_book', 'soup_kitchen') ya da emoji ('📋', '⭐') olabilir.
+ * Liste icon render — web pattern'ine birebir port (index.html:6258, 8434).
  *
- * Web tarafında material-icons font ile her ikisi de doğal render edilir;
- * mobile RN'de MaterialIcons component vs Text ayrı yollar gerektiriyor.
- * Bu component string'i regex ile tespit edip uygun render eder.
+ * Web'de `mi('icon_name', size)` Material Icons font ile **tek renk**
+ * (theme'e bağlı: aktif → accent, pasif → text3) render ediyor; emoji yok.
+ * Mobile'da emoji fallback kullanmayız — sadece MaterialIcons + tema rengi.
  *
- * Reuse: ListSidebar (drawer + liste başlık card'ı), TaskEditor (liste chip).
+ * Bazı icon adları (`menu_book`, `soup_kitchen`) RN MaterialIcons setinde
+ * yok; underscore→tire normalize ile resolve edilir; o da yoksa varsayılan
+ * 'folder' icon'u kullanılır (web'in default'u).
  */
 import React from 'react';
-import { Text, StyleProp, TextStyle } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 type Props = {
   icon: string | null | undefined;
   size: number;
   color: string;
-  emojiStyle?: StyleProp<TextStyle>;
 };
 
-/**
- * MaterialIcons paketinin tanıdığı icon adlarının glyph map'i.
- * Web'in Material Symbols font'undaki bazı isimler (örn. "menu_book",
- * "soup_kitchen") burada yok → emoji fallback'e düş.
- */
 const ICON_NAME_RE = /^[a-z][a-z0-9_]*$/;
 const GLYPH_MAP = (MaterialIcons as any).glyphMap as Record<string, number> | undefined;
+const FALLBACK_ICON = 'folder';
+
+/**
+ * RN MaterialIcons setinde olmayan adlar için yakın eşdeğer.
+ * Web'de Material Symbols font tüm adları destekliyor; vector-icons
+ * bir subset. Burada admin'in seçtiği adın görsel anlamını koruyan
+ * MaterialIcons name'i mapliyoruz.
+ */
+const ALIASES: Record<string, string> = {
+  menu_book: 'menu-book',
+  soup_kitchen: 'restaurant',
+  yard: 'yard',
+  draw: 'draw',
+};
 
 function resolveIconName(s: string): string | null {
   if (!ICON_NAME_RE.test(s)) return null;
-  if (GLYPH_MAP) {
-    if (GLYPH_MAP[s] !== undefined) return s;
-    // Bazı icon'lar vector-icons'ta tire ile: "menu_book" → "menu-book"
-    const dashed = s.replace(/_/g, '-');
-    if (GLYPH_MAP[dashed] !== undefined) return dashed;
-    return null;
-  }
-  return s;
+  if (!GLYPH_MAP) return s;
+
+  // 1. Direkt eşleşme
+  if (GLYPH_MAP[s] !== undefined) return s;
+
+  // 2. Underscore → tire varyantı (snake → kebab)
+  const dashed = s.replace(/_/g, '-');
+  if (GLYPH_MAP[dashed] !== undefined) return dashed;
+
+  // 3. Alias map
+  const alias = ALIASES[s];
+  if (alias && GLYPH_MAP[alias] !== undefined) return alias;
+
+  return null;
+}
+
+export default function ListIcon({ icon, size, color }: Props) {
+  const resolved = icon ? resolveIconName(icon) : null;
+  const finalName = (resolved ?? FALLBACK_ICON) as never;
+  return <MaterialIcons name={finalName} size={size} color={color} />;
 }
 
 /**
- * Web tarafındaki Material Symbols font'una karşılık olarak hangi
- * emoji'nin gösterileceğine dair eşleme — RN MaterialIcons setinde
- * olmayan ikon adları için fallback. Eksik kalırsa 📋 gösterilir.
+ * String-only icon temsili — Alert.alert gibi React component render
+ * edemeyen yerler için. Web'in `mi()` helper'ı yok, mobile'da Alert
+ * native UI; emoji string en iyi gösterim. Yine de kullanıcının ham icon
+ * adını yazmasını istemiyoruz.
  */
-const EMOJI_FALLBACK: Record<string, string> = {
+const EMOJI_FOR_ICON: Record<string, string> = {
   menu_book: '📚',
   soup_kitchen: '🍲',
   notifications: '🔔',
@@ -53,37 +74,11 @@ const EMOJI_FALLBACK: Record<string, string> = {
   yard: '🌿',
   draw: '✏️',
   book: '📖',
+  folder: '📁',
 };
 
-/**
- * String-only icon temsili — `Alert.alert` gibi React component
- * render edemeyen yerler için. Emoji ya da varsayılan 📋 döner.
- * Web'in `notifications`/`menu_book` gibi MaterialIcons name'lerini
- * görsel emoji'ye çevirir; zaten emoji ise olduğu gibi.
- */
 export function iconToEmoji(icon: string | null | undefined): string {
-  if (!icon) return '📋';
+  if (!icon) return '📁';
   if (!ICON_NAME_RE.test(icon)) return icon; // zaten emoji
-  return EMOJI_FALLBACK[icon] ?? '📋';
-}
-
-export default function ListIcon({ icon, size, color, emojiStyle }: Props) {
-  if (icon) {
-    const resolved = resolveIconName(icon);
-    if (resolved) {
-      return <MaterialIcons name={resolved as any} size={size} color={color} />;
-    }
-    if (EMOJI_FALLBACK[icon]) {
-      return (
-        <Text style={[{ fontSize: size * 0.85, color }, emojiStyle]}>
-          {EMOJI_FALLBACK[icon]}
-        </Text>
-      );
-    }
-  }
-  return (
-    <Text style={[{ fontSize: size * 0.85, color }, emojiStyle]}>
-      {icon && !ICON_NAME_RE.test(icon) ? icon : '📋'}
-    </Text>
-  );
+  return EMOJI_FOR_ICON[icon] ?? '📁';
 }
