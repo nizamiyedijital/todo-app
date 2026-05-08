@@ -20,6 +20,7 @@ import LinkRow from './LinkRow';
 import ListIcon from './ListIcon';
 import ListPickerModal from './ListPickerModal';
 import EditorPopover from './EditorPopover';
+import DateTimeSheet from './DateTimeSheet';
 import { BALANCE_CATEGORIES } from '../theme/balance';
 import { PRIORITIES } from '../theme/priority';
 
@@ -390,9 +391,11 @@ export default function TaskEditor() {
           wide
           onClose={() => setOpenPopover(null)}
         >
-          <DueRow
+          <DateTimeSheet
             value={task.due_at}
-            onChange={(iso) => saveField({ due_at: iso })}
+            durationValue={task.estimated_minutes}
+            onConfirm={(iso, dur) => saveField({ due_at: iso, estimated_minutes: dur })}
+            onClose={() => setOpenPopover(null)}
           />
         </EditorPopover>
 
