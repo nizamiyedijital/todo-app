@@ -17,7 +17,8 @@ import DueRow from './DueRow';
 import SubtaskRow from './SubtaskRow';
 import BalancePicker from './BalancePicker';
 import LinkRow from './LinkRow';
-import ListIcon, { iconToEmoji } from './ListIcon';
+import ListIcon from './ListIcon';
+import ListPickerModal from './ListPickerModal';
 
 export default function TaskEditor() {
   const editingTaskId = useStore(s => s.editingTaskId);
@@ -32,6 +33,7 @@ export default function TaskEditor() {
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [subInput, setSubInput] = useState('');
+  const [listPickerOpen, setListPickerOpen] = useState(false);
   const subInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
@@ -92,13 +94,12 @@ export default function TaskEditor() {
       Alert.alert('Liste yok', 'Taşımak için başka liste yok.');
       return;
     }
-    const opts: { text: string; style?: 'destructive' | 'cancel'; onPress?: () => void }[] = others.map(l => ({
-      text: `${iconToEmoji(l.icon)}  ${l.name}`,
-      onPress: () => saveField({ category: l.id }),
-    }));
-    opts.push({ text: 'İptal', style: 'cancel' });
-    Alert.alert('Listeyi taşı', list ? `Şu an: ${list.name}` : undefined, opts);
+    setListPickerOpen(true);
   };
+
+  const listOptions = lists
+    .filter(l => l.id !== task.category)
+    .map(l => ({ id: l.id, label: l.name, icon: l.icon }));
 
   const addSub = async () => {
     const t = subInput.trim();
@@ -273,6 +274,16 @@ export default function TaskEditor() {
               kapatma → swipe-down (iOS pageSheet) veya Android back tuşu;
               tamamlandı/sil → header sağ üstteki "more" menüden. */}
         </KeyboardAvoidingView>
+
+        {/* Liste seçim picker — Alert yerine custom Modal (web Material Icons parity) */}
+        <ListPickerModal
+          visible={listPickerOpen}
+          title="Listeyi taşı"
+          subtitle={list ? `Şu an: ${list.name}` : undefined}
+          options={listOptions}
+          onPick={(id) => saveField({ category: id })}
+          onClose={() => setListPickerOpen(false)}
+        />
       </SafeAreaView>
     </Modal>
   );
