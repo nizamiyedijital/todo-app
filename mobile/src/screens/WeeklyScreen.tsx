@@ -21,7 +21,9 @@ import { useTheme } from '../theme/ThemeProvider';
 import { useStore } from '../state/store';
 import { toggleTaskDone } from '../lib/data';
 import { isVisibleRootTask } from '../state/selectors';
-import type { Todo } from '../types/db';
+import { supabase } from '../lib/supabase';
+import ListIcon from '../components/ListIcon';
+import type { Todo, DayMeta } from '../types/db';
 
 const TR_DAY_SHORT = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
@@ -29,10 +31,31 @@ export default function WeeklyScreen() {
   const nav = useNavigation();
   const { colors } = useTheme();
   const tasks = useStore(s => s.tasks);
+  const lists = useStore(s => s.lists);
   const openEditor = useStore(s => s.openEditor);
 
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedDay, setSelectedDay] = useState<Date>(() => new Date());
+  const [dayMeta, setDayMeta] = useState<Record<string, DayMeta>>({});
+
+  // Web parity (index.html:8906): day_meta tablosundan tema/odak çek
+  React.useEffect(() => {
+    const from = format(weekStart, 'yyyy-MM-dd');
+    const to = format(addDays(weekStart, 6), 'yyyy-MM-dd');
+    let cancelled = false;
+    void (async () => {
+      const { data, error } = await supabase
+        .from('day_meta')
+        .select('date, theme_list_id, focus_task_id')
+        .gte('date', from)
+        .lte('date', to);
+      if (cancelled || error) return;
+      const map: Record<string, DayMeta> = {};
+      for (const r of (data ?? []) as DayMeta[]) map[r.date] = r;
+      setDayMeta(map);
+    })();
+    return () => { cancelled = true; };
+  }, [weekStart]);
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
@@ -146,6 +169,50 @@ export default function WeeklyScreen() {
         </Text>
       </View>
 
+      {/* Web parity (index.html:9103/9133): GÜNÜN TEMASI + GÜNÜN ODAĞI pill'leri */}
+      {(() => {
+        const dateKey = format(selectedDay, 'yyyy-MM-dd');
+        const meta = dayMeta[dateKey];
+        const themeList = meta?.theme_list_id
+          ? lists.find(l => l.id === meta.theme_list_id)
+          : null;
+        // Otomatik öneri: focus seçilmediyse o günün starred görevi
+        let focusTask: Todo | null = null;
+        if (meta?.focus_task_id) {
+          focusTask = tasks.find(t => t.id === meta.focus_task_id) ?? null;
+        } else {
+          const dayStart = new Date(selectedDay); dayStart.setHours(0, 0, 0, 0);
+          const dayEnd = new Date(dayStart); dayEnd.setDate(dayEnd.getDate() + 1);
+          focusTask = tasks.find(
+            t => !t.parent_id && t.starred && t.due_at &&
+              new Date(t.due_at) >= dayStart && new Date(t.due_at) < dayEnd
+          ) ?? null;
+        }
+        if (!themeList && !focusTask) return null;
+        return (
+          <View style={styles.metaRow}>
+            {themeList && (
+              <View style={[styles.metaPill, { borderColor: colors.border }]}>
+                <Text style={[styles.metaLabel, { color: colors.text4 }]}>TEMA</Text>
+                <ListIcon icon={themeList.icon} size={12} color={colors.text2} />
+                <Text style={[styles.metaText, { color: colors.text2 }]} numberOfLines={1}>
+                  {themeList.name}
+                </Text>
+              </View>
+            )}
+            {focusTask && (
+              <View style={[styles.metaPill, { borderColor: colors.border }]}>
+                <Text style={[styles.metaLabel, { color: colors.text4 }]}>ODAK</Text>
+                <MaterialIcons name="star" size={12} color="#f59e0b" />
+                <Text style={[styles.metaText, { color: colors.text2 }]} numberOfLines={1}>
+                  {focusTask.text}
+                </Text>
+              </View>
+            )}
+          </View>
+        );
+      })()}
+
       {/* Görev listesi (gün için) */}
       {tasksForDay.length === 0 ? (
         <ScrollView contentContainerStyle={styles.emptyWrap}>
@@ -258,6 +325,21 @@ const styles = StyleSheet.create({
   },
   dayHeaderTitle: { fontSize: 16, fontWeight: '700' },
   dayHeaderCount: { fontSize: 12 },
+  metaRow: {
+    flexDirection: 'row', gap: 8, flexWrap: 'wrap',
+    paddingHorizontal: 16, paddingBottom: 8,
+  },
+  metaPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 10, paddingVertical: 5,
+    borderRadius: 999, borderWidth: 1,
+    maxWidth: '100%',
+  },
+  metaLabel: {
+    fontSize: 9, fontWeight: '700',
+    textTransform: 'uppercase', letterSpacing: 0.5,
+  },
+  metaText: { fontSize: 12, fontWeight: '600', maxWidth: 200 },
 
   emptyWrap: { alignItems: 'center', justifyContent: 'center', padding: 40, gap: 8 },
   emptyText: { fontSize: 14, fontWeight: '600', marginTop: 8 },

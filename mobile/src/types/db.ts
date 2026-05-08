@@ -61,6 +61,17 @@ export const WEEKLY_LIST_ID  = '__weekly__';
  */
 export const NEW_TASK_ID = '__new__';
 
+/**
+ * Web parity (index.html:8906): day_meta — günün teması (liste) ve günün
+ * odağı (görev). Haftalık planda gün başlığında pill olarak gösterilir.
+ */
+export type DayMeta = {
+  date: string;                       // 'YYYY-MM-DD'
+  theme_list_id: string | null;
+  focus_task_id: string | null;
+  user_id?: string;
+};
+
 export function isSpecialListId(id: string): boolean {
   return id === STARRED_LIST_ID || id === BOARD_LIST_ID || id === WEEKLY_LIST_ID;
 }
