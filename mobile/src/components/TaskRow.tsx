@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { useAppSettings } from '../lib/appSettings';
 import { MaterialIcons } from '@expo/vector-icons';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import { formatTime, formatDateShort } from '../lib/format';
 import * as Haptics from 'expo-haptics';
 import type { Todo } from '../types/db';
 import { getTaskLinks, STARRED_LIST_ID } from '../types/db';
@@ -16,8 +19,17 @@ import ListIcon from './ListIcon';
 
 type Props = { task: Todo; subtaskCount?: number };
 
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
 export default function TaskRow({ task, subtaskCount = 0 }: Props) {
-  const { colors } = useTheme();
+  const { colors, fs, spacing } = useTheme();
+  const styles = useMemo(() => makeStyles(fs, spacing), [fs, spacing]);
+  const settings = useAppSettings();
+  const animStyle = useAnimatedStyle(() => ({
+    opacity: settings.completionAnim
+      ? withTiming(task.done ? 0.55 : 1, { duration: 220 })
+      : (task.done ? 0.55 : 1),
+  }));
   const openEditor = useStore(s => s.openEditor);
   const activeListId = useStore(s => s.activeListId);
   const lists = useStore(s => s.lists);
@@ -77,7 +89,7 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
   };
 
   return (
-    <TouchableOpacity
+    <AnimatedTouchable
       onPress={() => openEditor(task.id)}
       onLongPress={showDateMenu}
       delayLongPress={400}
@@ -85,6 +97,7 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
         styles.row,
         { backgroundColor: colors.surface, borderBottomColor: colors.border2 },
         prio && { borderLeftColor: prio.color, borderLeftWidth: 3 },
+        animStyle,
       ]}
     >
       <TouchableOpacity
@@ -131,13 +144,13 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
                 <View style={styles.chip}>
                   <MaterialIcons name="task-alt" size={12} color={colors.text3} />
                   <Text style={[styles.chipText, { color: colors.text3 }]}>
-                    {format(completedDate, 'd MMM', { locale: tr })}
+                    {formatDateShort(completedDate)}
                   </Text>
                 </View>
                 <View style={styles.chip}>
                   <MaterialIcons name="schedule" size={12} color={colors.text3} />
                   <Text style={[styles.chipText, { color: colors.text3 }]}>
-                    {format(completedDate, 'HH:mm')}
+                    {formatTime(completedDate)}
                   </Text>
                 </View>
               </>
@@ -223,29 +236,33 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
           color={task.starred ? '#f59e0b' : colors.text4}
         />
       </TouchableOpacity>
-    </TouchableOpacity>
+    </AnimatedTouchable>
   );
 }
 
 function fmtDue(iso: string): string {
   const d = new Date(iso);
-  if (isToday(d))    return 'Bugün ' + format(d, 'HH:mm');
-  if (isTomorrow(d)) return 'Yarın ' + format(d, 'HH:mm');
-  return format(d, 'd MMM HH:mm');
+  if (isToday(d))    return 'Bugün ' + formatTime(d);
+  if (isTomorrow(d)) return 'Yarın ' + formatTime(d);
+  return `${formatDateShort(d)} ${formatTime(d)}`;
 }
 
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
-  check: { width: 22, height: 22, borderWidth: 1.5, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 15, fontWeight: '500' },
-  metaRow: { flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'wrap' },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  chipText: { fontSize: 11, fontWeight: '500' },
-  prioChip: {
-    borderWidth: 1, borderRadius: 4,
-    paddingHorizontal: 5, paddingVertical: 1,
-    minWidth: 26, alignItems: 'center', justifyContent: 'center',
-  },
-  prioText: { fontSize: 10, fontWeight: '700' },
-  notesPreview: { fontSize: 12, marginTop: 4, lineHeight: 16 },
-});
+type Fs = (n: number) => number;
+type Spacing = ReturnType<typeof useTheme>['spacing'];
+function makeStyles(fs: Fs, spacing: Spacing) {
+  return StyleSheet.create({
+    row: { flexDirection: 'row', alignItems: 'center', gap: spacing.s12, paddingHorizontal: spacing.s16, paddingVertical: spacing.s12, borderBottomWidth: 1 },
+    check: { width: 22, height: 22, borderWidth: 1.5, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+    title: { fontSize: fs(15), fontWeight: '500' },
+    metaRow: { flexDirection: 'row', gap: spacing.s10, marginTop: spacing.s4, flexWrap: 'wrap' },
+    chip: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+    chipText: { fontSize: fs(11), fontWeight: '500' },
+    prioChip: {
+      borderWidth: 1, borderRadius: 4,
+      paddingHorizontal: 5, paddingVertical: 1,
+      minWidth: 26, alignItems: 'center', justifyContent: 'center',
+    },
+    prioText: { fontSize: fs(10), fontWeight: '700' },
+    notesPreview: { fontSize: fs(12), marginTop: spacing.s4, lineHeight: fs(16) },
+  });
+}

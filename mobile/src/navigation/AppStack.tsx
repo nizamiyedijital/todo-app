@@ -8,6 +8,9 @@ import NotificationsScreen from '../screens/NotificationsScreen';
 import StatsScreen from '../screens/StatsScreen';
 import PomodoroScreen from '../screens/PomodoroScreen';
 import WeeklyScreen from '../screens/WeeklyScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import TfaScreen from '../screens/TfaScreen';
+import PreferencesScreen from '../screens/PreferencesScreen';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 
@@ -21,6 +24,9 @@ export default function AppStack() {
       <Stack.Screen name="Stats" component={StatsScreen} />
       <Stack.Screen name="Pomodoro" component={PomodoroScreen} />
       <Stack.Screen name="Weekly" component={WeeklyScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="Tfa" component={TfaScreen} />
+      <Stack.Screen name="Preferences" component={PreferencesScreen} />
     </Stack.Navigator>
   );
 }

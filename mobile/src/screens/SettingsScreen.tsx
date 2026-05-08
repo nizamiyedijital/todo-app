@@ -210,6 +210,46 @@ export default function SettingsScreen() {
           )}
         </View>
 
+        {/* Hesap & Güvenlik — Profil + 2FA (web parity: app_settings.displayName + auth.mfa) */}
+        <Text style={[styles.section, { color: colors.text3, marginTop: 24 }]}>Hesap & Güvenlik</Text>
+        <View style={[styles.kvkkCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <TouchableOpacity
+            onPress={() => nav.navigate('Profile' as never)}
+            style={styles.kvkkRow}
+          >
+            <MaterialIcons name="person" size={20} color={colors.accent} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.kvkkLabel, { color: colors.text }]}>Profil</Text>
+              <Text style={[styles.kvkkDesc, { color: colors.text3 }]}>Görünen ad, e-posta</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={22} color={colors.text3} />
+          </TouchableOpacity>
+          <View style={[styles.divider, { backgroundColor: colors.border2 }]} />
+          <TouchableOpacity
+            onPress={() => nav.navigate('Tfa' as never)}
+            style={styles.kvkkRow}
+          >
+            <MaterialIcons name="security" size={20} color={colors.accent} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.kvkkLabel, { color: colors.text }]}>İki Adımlı Doğrulama</Text>
+              <Text style={[styles.kvkkDesc, { color: colors.text3 }]}>TOTP authenticator app ile koru</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={22} color={colors.text3} />
+          </TouchableOpacity>
+          <View style={[styles.divider, { backgroundColor: colors.border2 }]} />
+          <TouchableOpacity
+            onPress={() => nav.navigate('Preferences' as never)}
+            style={styles.kvkkRow}
+          >
+            <MaterialIcons name="tune" size={20} color={colors.accent} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.kvkkLabel, { color: colors.text }]}>Tercihler</Text>
+              <Text style={[styles.kvkkDesc, { color: colors.text3 }]}>Görünüm, görev varsayılanları, bildirim, bölge</Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={22} color={colors.text3} />
+          </TouchableOpacity>
+        </View>
+
         <Text style={[styles.section, { color: colors.text3, marginTop: 24 }]}>Tema</Text>
         <View style={[styles.segment, { backgroundColor: colors.surface2, borderColor: colors.border }]}>
           {prefs.map(p => (

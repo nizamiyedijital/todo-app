@@ -10,10 +10,12 @@ import RootNavigator from './src/navigation/RootNavigator';
 import { initPostHog } from './src/lib/posthog';
 import { configureCrisp } from './src/lib/crisp';
 import { handleNotificationDeeplink } from './src/lib/deeplink';
+import { loadAppSettings } from './src/lib/appSettings';
 
 export default function App() {
   // PostHog + Crisp'i uygulama mount'ta tek seferlik init et
   useEffect(() => {
+    void loadAppSettings();
     initPostHog();
     configureCrisp();
 

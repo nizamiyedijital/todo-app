@@ -23,6 +23,8 @@ import { toggleTaskDone } from '../lib/data';
 import { isVisibleRootTask } from '../state/selectors';
 import { supabase } from '../lib/supabase';
 import ListIcon from '../components/ListIcon';
+import { formatTime } from '../lib/format';
+import { useAppSettings } from '../lib/appSettings';
 import type { Todo, DayMeta } from '../types/db';
 
 const TR_DAY_SHORT = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
@@ -33,10 +35,19 @@ export default function WeeklyScreen() {
   const tasks = useStore(s => s.tasks);
   const lists = useStore(s => s.lists);
   const openEditor = useStore(s => s.openEditor);
+  const settings = useAppSettings();
+  const wso: 0 | 1 = settings.weekStart === 'sunday' ? 0 : 1;
 
-  const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: wso }));
   const [selectedDay, setSelectedDay] = useState<Date>(() => new Date());
   const [dayMeta, setDayMeta] = useState<Record<string, DayMeta>>({});
+
+  // Kullanıcı Tercihler'de weekStart'i değiştirirse mevcut görünen haftayı
+  // yeni başlangıç gününe göre rotate et — Pzt→Paz değişince selectedDay
+  // pencerede kalsın diye startOfWeek'i selectedDay üzerinden hesapla.
+  React.useEffect(() => {
+    setWeekStart(startOfWeek(selectedDay, { weekStartsOn: wso }));
+  }, [wso]);
 
   // Web parity (index.html:8906): day_meta tablosundan tema/odak çek
   React.useEffect(() => {
@@ -79,7 +90,7 @@ export default function WeeklyScreen() {
   const goToday = () => {
     Haptics.selectionAsync();
     const today = new Date();
-    setWeekStart(startOfWeek(today, { weekStartsOn: 1 }));
+    setWeekStart(startOfWeek(today, { weekStartsOn: wso }));
     setSelectedDay(today);
   };
 
@@ -253,7 +264,7 @@ function PlanRow({
     >
       <View style={styles.timeCol}>
         <Text style={[styles.timeText, { color: overdue ? colors.danger : colors.text2, fontWeight: '700' }]}>
-          {format(due, 'HH:mm')}
+          {formatTime(due)}
         </Text>
         {task.estimated_minutes && task.estimated_minutes > 0 ? (
           <Text style={[styles.durText, { color: colors.text4 }]}>

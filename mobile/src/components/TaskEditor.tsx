@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal, View, Text, TextInput, TouchableOpacity, ScrollView,
   StyleSheet, KeyboardAvoidingView, Platform, Alert, Keyboard,
@@ -23,6 +23,8 @@ import EditorPopover from './EditorPopover';
 import DateTimeSheet from './DateTimeSheet';
 import { BALANCE_CATEGORIES } from '../theme/balance';
 import { PRIORITIES } from '../theme/priority';
+import { formatTime, formatDateShort } from '../lib/format';
+import { getAppSettings } from '../lib/appSettings';
 
 export default function TaskEditor() {
   const editingTaskId = useStore(s => s.editingTaskId);
@@ -31,7 +33,8 @@ export default function TaskEditor() {
   const lists = useStore(s => s.lists);
   const activeListId = useStore(s => s.activeListId);
   const boardColumnId = useStore(s => s.boardColumnId);
-  const { colors } = useTheme();
+  const { colors, fs, spacing } = useTheme();
+  const styles = useMemo(() => makeStyles(fs, spacing), [fs, spacing]);
 
   const isNew = editingTaskId === NEW_TASK_ID;
   const task = tasks.find(t => t.id === editingTaskId) ?? null;
@@ -58,7 +61,13 @@ export default function TaskEditor() {
     let cancelled = false;
     void (async () => {
       try {
-        const created = await createTask({ text: '', category: newTargetListId });
+        const defaultPriority = getAppSettings().defaultPriority;
+        const draftPayload: Parameters<typeof createTask>[0] = {
+          text: '',
+          category: newTargetListId,
+          ...(defaultPriority ? { priority: defaultPriority } : {}),
+        };
+        const created = await createTask(draftPayload);
         if (!cancelled && created?.id) {
           useStore.setState({ editingTaskId: created.id });
         }
@@ -260,11 +269,7 @@ export default function TaskEditor() {
                 <View style={[styles.activeChip, { borderColor: colors.accent }]}>
                   <MaterialIcons name="schedule" size={14} color={colors.accent} />
                   <Text style={[styles.activeChipText, { color: colors.accent }]}>
-                    {(() => {
-                      const d = new Date(task.due_at);
-                      return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) +
-                        ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-                    })()}
+                    {`${formatDateShort(task.due_at)} ${formatTime(task.due_at)}`}
                   </Text>
                   <TouchableOpacity
                     onPress={() => saveField({ due_at: null })}
@@ -472,6 +477,8 @@ function IconRowBtn({
   badge?: number;
   colors: any;
 }) {
+  const { fs, spacing } = useTheme();
+  const styles = useMemo(() => makeStyles(fs, spacing), [fs, spacing]);
   const tint = active ? (activeColor ?? colors.accent) : colors.text3;
   return (
     <TouchableOpacity
@@ -492,68 +499,72 @@ function IconRowBtn({
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1,
-  },
-  headerBtn: { flexDirection: 'row', alignItems: 'center' },
-  metaBar: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 12, paddingBottom: 10, gap: 10,
-  },
-  listChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
-  listIcon: { fontSize: 14 },
-  metaRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  starBtn: {
-    width: 36, height: 36, borderRadius: 10, borderWidth: 1,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  moreBtn: {
-    width: 36, height: 36, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  title: { fontSize: 20, fontWeight: '600', paddingVertical: 6 },
-  notesRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 8 },
-  notesInput: { flex: 1, fontSize: 14, paddingVertical: 8, lineHeight: 20 },
-  iconRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
-    paddingVertical: 12, borderTopWidth: 1, gap: 4,
-  },
-  selectedRow: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: 8,
-    paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1,
-  },
-  activeChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 10, paddingVertical: 4,
-    borderRadius: 999, borderWidth: 1,
-  },
-  activeChipText: { fontSize: 12, fontWeight: '600' },
-  iconBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    alignItems: 'center', justifyContent: 'center', position: 'relative',
-  },
-  badge: {
-    position: 'absolute', top: 0, right: 0,
-    minWidth: 18, height: 18, borderRadius: 9,
-    paddingHorizontal: 4,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
-  subAddRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4, marginTop: 6 },
-  subAddInput: { flex: 1, fontSize: 14, paddingVertical: 8 },
-  footer: { flexDirection: 'row', gap: 8, padding: 12, borderTopWidth: 1 },
-  footBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  footBtnDanger: { backgroundColor: 'transparent' },
-  footBtnText: { fontWeight: '600', fontSize: 14 },
-});
+type Fs = (n: number) => number;
+type Spacing = ReturnType<typeof useTheme>['spacing'];
+function makeStyles(fs: Fs, spacing: Spacing) {
+  return StyleSheet.create({
+    header: {
+      flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+      paddingHorizontal: spacing.s12, paddingVertical: spacing.s10, borderBottomWidth: 1,
+    },
+    headerBtn: { flexDirection: 'row', alignItems: 'center' },
+    metaBar: {
+      flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+      paddingHorizontal: spacing.s16, paddingTop: spacing.s12, paddingBottom: spacing.s10, gap: spacing.s10,
+    },
+    listChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.s6, paddingHorizontal: spacing.s10, paddingVertical: spacing.s6, borderRadius: 10, borderWidth: 1 },
+    listIcon: { fontSize: fs(14) },
+    metaRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.s6 },
+    starBtn: {
+      width: 36, height: 36, borderRadius: 10, borderWidth: 1,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    moreBtn: {
+      width: 36, height: 36, borderRadius: 10,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    title: { fontSize: fs(20), fontWeight: '600', paddingVertical: spacing.s6 },
+    notesRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.s8, marginTop: spacing.s8 },
+    notesInput: { flex: 1, fontSize: fs(14), paddingVertical: spacing.s8, lineHeight: fs(20) },
+    iconRow: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
+      paddingVertical: spacing.s12, borderTopWidth: 1, gap: spacing.s4,
+    },
+    selectedRow: {
+      flexDirection: 'row', flexWrap: 'wrap', gap: spacing.s8,
+      paddingHorizontal: spacing.s12, paddingVertical: spacing.s8, borderTopWidth: 1,
+    },
+    activeChip: {
+      flexDirection: 'row', alignItems: 'center', gap: spacing.s4,
+      paddingHorizontal: spacing.s10, paddingVertical: spacing.s4,
+      borderRadius: 999, borderWidth: 1,
+    },
+    activeChipText: { fontSize: fs(12), fontWeight: '600' },
+    iconBtn: {
+      width: 44, height: 44, borderRadius: 22,
+      alignItems: 'center', justifyContent: 'center', position: 'relative',
+    },
+    badge: {
+      position: 'absolute', top: 0, right: 0,
+      minWidth: 18, height: 18, borderRadius: 9,
+      paddingHorizontal: spacing.s4,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    badgeText: { color: '#fff', fontSize: fs(10), fontWeight: '700' },
+    subAddRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.s8, borderWidth: 1, borderRadius: 10, paddingHorizontal: spacing.s10, paddingVertical: spacing.s4, marginTop: spacing.s6 },
+    subAddInput: { flex: 1, fontSize: fs(14), paddingVertical: spacing.s8 },
+    footer: { flexDirection: 'row', gap: spacing.s8, padding: spacing.s12, borderTopWidth: 1 },
+    footBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.s6,
+      paddingVertical: spacing.s12,
+      borderRadius: 12,
+      borderWidth: 1,
+    },
+    footBtnDanger: { backgroundColor: 'transparent' },
+    footBtnText: { fontWeight: '600', fontSize: fs(14) },
+  });
+}

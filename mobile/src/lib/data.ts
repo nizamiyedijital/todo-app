@@ -4,6 +4,7 @@ import { useStore } from '../state/store';
 import { dpEvent } from './posthog';
 import type { Todo, List } from '../types/db';
 import { getTaskLinks } from '../types/db';
+import { syncDueReminder, cancelDueReminder } from './dueReminders';
 
 /**
  * Görev tamamen boş mu — web'in `isTaskFullyEmpty` (index.html:9427) ile
@@ -99,6 +100,8 @@ export async function toggleTaskDone(task: Todo) {
   } else {
     dpEvent('task_uncompleted', { task_id: task.id, list_id: task.category });
   }
+  // Tamamlanan görev hatırlatılmaz; geri alındıysa due_at hala varsa yeniden schedule
+  void syncDueReminder(task.id, task.due_at, nowDone, task.text);
 }
 
 /**
@@ -125,13 +128,15 @@ export async function deleteTask(id: string) {
     useStore.getState().upsertTask(prev);
     throw error;
   }
+  void cancelDueReminder(id);
   dpEvent('task_deleted', { task_id: id, was_completed: !!prev?.done });
 }
 
 export async function patchTask(id: string, patch: Partial<Todo>) {
   const prev = useStore.getState().tasks.find(t => t.id === id);
   if (!prev) return;
-  useStore.getState().upsertTask({ ...prev, ...patch });
+  const next = { ...prev, ...patch };
+  useStore.getState().upsertTask(next);
   const { error } = await supabase.from('todos').update(patch).eq('id', id);
   if (error) {
     useStore.getState().upsertTask(prev);
@@ -144,6 +149,10 @@ export async function patchTask(id: string, patch: Partial<Todo>) {
     new Date(patch.due_at as string).getTime() > new Date(prev.due_at).getTime()
   ) {
     dpEvent('task_postponed', { task_id: id });
+  }
+  // due_at veya done değiştiyse hatırlatıcıyı senkronla
+  if ('due_at' in patch || 'done' in patch || 'text' in patch) {
+    void syncDueReminder(id, next.due_at, !!next.done, next.text);
   }
 }
 
@@ -173,6 +182,8 @@ export async function createTask(payload: Partial<Todo> & { text: string; catego
       const userId = useStore.getState().session?.user?.id ?? t.user_id ?? null;
       void maybeFireFirstTask(t.id, userId);
     }
+    // Yeni görev için hatırlatıcıyı schedule et (due_at varsa + ayarlar uyuyorsa)
+    void syncDueReminder(t.id, t.due_at, !!t.done, t.text);
   }
   return data as Todo;
 }

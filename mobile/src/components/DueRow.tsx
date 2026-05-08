@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import { useTheme } from '../theme/ThemeProvider';
+import { formatTime, formatDateShort } from '../lib/format';
 
 type Props = {
   value: string | null;
@@ -114,9 +115,9 @@ export default function DueRow({ value, onChange }: Props) {
 }
 
 function fmt(d: Date): string {
-  if (isToday(d))    return 'Bugün ' + format(d, 'HH:mm');
-  if (isTomorrow(d)) return 'Yarın ' + format(d, 'HH:mm');
-  return format(d, 'd MMM HH:mm');
+  if (isToday(d))    return 'Bugün ' + formatTime(d);
+  if (isTomorrow(d)) return 'Yarın ' + formatTime(d);
+  return `${formatDateShort(d)} ${formatTime(d)}`;
 }
 
 const styles = StyleSheet.create({

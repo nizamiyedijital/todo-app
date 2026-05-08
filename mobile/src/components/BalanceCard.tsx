@@ -7,7 +7,7 @@
  *   2) Stat row (görev sayısı, toplam dakika, yıldızlı sayısı)
  *   3) Kategori stack-bar (Zihin/Beden/Kalp oranları)
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useStore } from '../state/store';
@@ -17,7 +17,8 @@ import { BALANCE_CATEGORIES } from '../theme/balance';
 import { STARRED_LIST_ID, BOARD_LIST_ID } from '../types/db';
 
 export default function BalanceCard() {
-  const { colors } = useTheme();
+  const { colors, fs, spacing } = useTheme();
+  const styles = useMemo(() => makeStyles(fs, spacing), [fs, spacing]);
   const tasks = useStore(s => s.tasks);
   const lists = useStore(s => s.lists);
   const activeListId = useStore(s => s.activeListId);
@@ -129,6 +130,8 @@ export default function BalanceCard() {
 }
 
 function Stat({ label, value, colors }: { label: string; value: string; colors: any }) {
+  const { fs, spacing } = useTheme();
+  const styles = useMemo(() => makeStyles(fs, spacing), [fs, spacing]);
   return (
     <View style={styles.stat}>
       <Text style={[styles.statValue, { color: colors.text }]}>{value}</Text>
@@ -144,34 +147,38 @@ function formatMinutes(min: number): string {
   return m === 0 ? `${h}sa` : `${h}sa ${m}dk`;
 }
 
-const styles = StyleSheet.create({
-  card: {
-    margin: 12, marginBottom: 4,
-    padding: 12,
-    borderWidth: 1,
-    borderLeftWidth: 4,
-    borderRadius: 12,
-  },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  title: { fontSize: 14, fontWeight: '700', flex: 1, marginRight: 8 },
-  statePill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
-  stateText: { fontSize: 9, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  statsRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 10 },
-  stat: { alignItems: 'center', minWidth: 0 },
-  statValue: { fontSize: 17, fontWeight: '700' },
-  statLabel: { fontSize: 10, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 2 },
-  stackBar: { height: 8, borderRadius: 4, overflow: 'hidden', flexDirection: 'row' },
-  legendRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  legendText: { fontSize: 10, fontWeight: '600' },
-  completedRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginTop: 10, paddingTop: 8, borderTopWidth: 1,
-  },
-  completedLabel: {
-    fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4,
-  },
-  completedVals: { flexDirection: 'row', gap: 10 },
-  completedItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  completedValText: { fontSize: 11, fontWeight: '700' },
-});
+type Fs = (n: number) => number;
+type Spacing = ReturnType<typeof useTheme>['spacing'];
+function makeStyles(fs: Fs, spacing: Spacing) {
+  return StyleSheet.create({
+    card: {
+      margin: spacing.s12, marginBottom: spacing.s4,
+      padding: spacing.s12,
+      borderWidth: 1,
+      borderLeftWidth: 4,
+      borderRadius: 12,
+    },
+    headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.s10 },
+    title: { fontSize: fs(14), fontWeight: '700', flex: 1, marginRight: spacing.s8 },
+    statePill: { paddingHorizontal: spacing.s8, paddingVertical: 3, borderRadius: 4 },
+    stateText: { fontSize: fs(9), fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+    statsRow: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: spacing.s10 },
+    stat: { alignItems: 'center', minWidth: 0 },
+    statValue: { fontSize: fs(17), fontWeight: '700' },
+    statLabel: { fontSize: fs(10), fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 2 },
+    stackBar: { height: 8, borderRadius: 4, overflow: 'hidden', flexDirection: 'row' },
+    legendRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.s6 },
+    legendItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+    legendText: { fontSize: fs(10), fontWeight: '600' },
+    completedRow: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      marginTop: spacing.s10, paddingTop: spacing.s8, borderTopWidth: 1,
+    },
+    completedLabel: {
+      fontSize: fs(10), fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4,
+    },
+    completedVals: { flexDirection: 'row', gap: spacing.s10 },
+    completedItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+    completedValText: { fontSize: fs(11), fontWeight: '700' },
+  });
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, FlatList, Dimensions, TouchableOpacity,
   StyleSheet, NativeSyntheticEvent, NativeScrollEvent,
@@ -12,6 +12,7 @@ import { NEW_TASK_ID } from '../types/db';
 import TaskRow from './TaskRow';
 import { selectSubtasks, isVisibleRootTask } from '../state/selectors';
 import ListIcon from './ListIcon';
+import { useAppSettings } from '../lib/appSettings';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const COL_W  = Math.round(SCREEN_W * 0.88);
@@ -20,7 +21,8 @@ const STEP = COL_W + COL_GAP;
 const SIDE_PAD = (SCREEN_W - COL_W) / 2;
 
 export default function BoardView() {
-  const { colors } = useTheme();
+  const { colors, fs, spacing } = useTheme();
+  const styles = useMemo(() => makeStyles(fs, spacing), [fs, spacing]);
   const lists = useStore(s => s.lists);
   const tasks = useStore(s => s.tasks);
   const setBoardColumnId = useStore(s => s.setBoardColumnId);
@@ -85,12 +87,15 @@ export default function BoardView() {
 }
 
 function Column({ list, tasks }: { list: List; tasks: Todo[] }) {
-  const { colors } = useTheme();
+  const { colors, fs, spacing } = useTheme();
+  const styles = useMemo(() => makeStyles(fs, spacing), [fs, spacing]);
   const openEditor = useStore(s => s.openEditor);
   const setBoardColumnId = useStore(s => s.setBoardColumnId);
-  // Web parity (boardDoneStates:6212-6222): "Tamamlananlar" başlığı tıklanınca
-  // genişler/kapanır; default kapalı (alan kazanmak için).
-  const [doneOpen, setDoneOpen] = useState(false);
+  const settings = useAppSettings();
+  // autoHide=true → tamamlananlar default kapalı; false → default açık.
+  // Kullanıcı manuel toggle'ladıktan sonra autoHide ayarını değiştirirse
+  // mevcut state korunur — ayar gelecekteki sütunları etkiler.
+  const [doneOpen, setDoneOpen] = useState(!settings.autoHide);
 
   const colTasks = tasks.filter(t => isVisibleRootTask(t) && t.category === list.id);
   const pending  = colTasks.filter(t => !t.done);
@@ -162,28 +167,32 @@ function Column({ list, tasks }: { list: List; tasks: Todo[] }) {
   );
 }
 
-const styles = StyleSheet.create({
-  col: { borderWidth: 1, borderRadius: 14, overflow: 'hidden' },
-  hdr: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1 },
-  icon: { fontSize: 16 },
-  title: { flex: 1, fontSize: 14, fontWeight: '700' },
-  count: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
-  countText: { fontSize: 11, fontWeight: '700' },
-  addRow: { paddingHorizontal: 10, paddingVertical: 6, borderBottomWidth: 1 },
-  addInput: { fontSize: 13, paddingVertical: 6 },
-  sectionLabel: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, flex: 1 },
-  doneHeader: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 12, paddingVertical: 10,
-    borderTopWidth: 1, marginTop: 4,
-  },
-  addBtn: { padding: 4 },
-  colEmpty: { paddingVertical: 30, alignItems: 'center' },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
-  emptyText: { fontSize: 14, textAlign: 'center' },
-  dots: {
-    flexDirection: 'row', justifyContent: 'center', gap: 6,
-    paddingVertical: 10,
-  },
-  dot: { width: 6, height: 6, borderRadius: 3 },
-});
+type Fs = (n: number) => number;
+type Spacing = ReturnType<typeof useTheme>['spacing'];
+function makeStyles(fs: Fs, spacing: Spacing) {
+  return StyleSheet.create({
+    col: { borderWidth: 1, borderRadius: 14, overflow: 'hidden' },
+    hdr: { flexDirection: 'row', alignItems: 'center', gap: spacing.s8, paddingHorizontal: spacing.s12, paddingVertical: spacing.s10, borderBottomWidth: 1 },
+    icon: { fontSize: fs(16) },
+    title: { flex: 1, fontSize: fs(14), fontWeight: '700' },
+    count: { paddingHorizontal: spacing.s8, paddingVertical: 2, borderRadius: 10 },
+    countText: { fontSize: fs(11), fontWeight: '700' },
+    addRow: { paddingHorizontal: spacing.s10, paddingVertical: spacing.s6, borderBottomWidth: 1 },
+    addInput: { fontSize: fs(13), paddingVertical: spacing.s6 },
+    sectionLabel: { fontSize: fs(10), fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, flex: 1 },
+    doneHeader: {
+      flexDirection: 'row', alignItems: 'center',
+      paddingHorizontal: spacing.s12, paddingVertical: spacing.s10,
+      borderTopWidth: 1, marginTop: spacing.s4,
+    },
+    addBtn: { padding: spacing.s4 },
+    colEmpty: { paddingVertical: 30, alignItems: 'center' },
+    empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.s16 + spacing.s8 },
+    emptyText: { fontSize: fs(14), textAlign: 'center' },
+    dots: {
+      flexDirection: 'row', justifyContent: 'center', gap: spacing.s6,
+      paddingVertical: spacing.s10,
+    },
+    dot: { width: 6, height: 6, borderRadius: 3 },
+  });
+}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -13,7 +13,8 @@ import type { List } from '../types/db';
 import ListIcon from './ListIcon';
 
 export default function ListSidebar(props: DrawerContentComponentProps) {
-  const { colors } = useTheme();
+  const { colors, fs, spacing } = useTheme();
+  const styles = useMemo(() => makeStyles(fs, spacing), [fs, spacing]);
   const lists = useStore(s => s.lists);
   const tasks = useStore(s => s.tasks);
   const activeListId = useStore(s => s.activeListId);
@@ -204,18 +205,22 @@ export default function ListSidebar(props: DrawerContentComponentProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  header: { paddingHorizontal: 16, paddingVertical: 18 },
-  appTitle: { fontSize: 20, fontWeight: '700' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 16 },
-  rowLabel: { flex: 1, fontSize: 15, fontWeight: '500' },
-  badge: { minWidth: 22, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10, alignItems: 'center' },
-  badgeText: { fontSize: 11, fontWeight: '700' },
-  divider: { height: 1, marginVertical: 8, marginHorizontal: 16 },
-  addListWrap: { paddingHorizontal: 16, paddingTop: 8 },
-  addListInput: { borderBottomWidth: 1, paddingVertical: 10, fontSize: 14 },
-  footer: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingVertical: 14, borderTopWidth: 1 },
-  footBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingRight: 12 },
-  footText: { fontSize: 14, fontWeight: '500' },
-});
+type Fs = (n: number) => number;
+type Spacing = ReturnType<typeof useTheme>['spacing'];
+function makeStyles(fs: Fs, spacing: Spacing) {
+  return StyleSheet.create({
+    root: { flex: 1 },
+    header: { paddingHorizontal: spacing.s16, paddingVertical: 18 },
+    appTitle: { fontSize: fs(20), fontWeight: '700' },
+    row: { flexDirection: 'row', alignItems: 'center', gap: spacing.s10, paddingVertical: spacing.s12, paddingHorizontal: spacing.s16 },
+    rowLabel: { flex: 1, fontSize: fs(15), fontWeight: '500' },
+    badge: { minWidth: 22, paddingHorizontal: spacing.s6, paddingVertical: 2, borderRadius: 10, alignItems: 'center' },
+    badgeText: { fontSize: fs(11), fontWeight: '700' },
+    divider: { height: 1, marginVertical: spacing.s8, marginHorizontal: spacing.s16 },
+    addListWrap: { paddingHorizontal: spacing.s16, paddingTop: spacing.s8 },
+    addListInput: { borderBottomWidth: 1, paddingVertical: spacing.s10, fontSize: fs(14) },
+    footer: { flexDirection: 'row', gap: spacing.s12, paddingHorizontal: spacing.s16, paddingVertical: spacing.s14, borderTopWidth: 1 },
+    footBtn: { flexDirection: 'row', alignItems: 'center', gap: spacing.s6, paddingVertical: spacing.s6, paddingRight: spacing.s12 },
+    footText: { fontSize: fs(14), fontWeight: '500' },
+  });
+}
