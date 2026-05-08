@@ -218,7 +218,11 @@ export default function TaskEditor() {
             </View>
           </View>
 
-          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+            style={{ flex: 1 }}
+          >
             {/* Title — borderless input, görev başlığı */}
             <TextInput
               value={title}
@@ -244,49 +248,49 @@ export default function TaskEditor() {
                 placeholderTextColor={colors.text4}
               />
             </View>
-
-            {/* Icon row — web addDetail icon-row parity (priority/date/balance/link/subtask) */}
-            <View style={[styles.iconRow, { borderTopColor: colors.border2 }]}>
-              <IconRowBtn
-                icon="flag"
-                active={!!task.priority}
-                activeColor={task.priority ? PRIORITIES[task.priority]?.color : undefined}
-                onPress={() => setOpenPopover('priority')}
-                colors={colors}
-              />
-              <IconRowBtn
-                icon="event"
-                active={!!task.due_at}
-                onPress={() => setOpenPopover('date')}
-                colors={colors}
-              />
-              <IconRowBtn
-                icon="self-improvement"
-                active={!!task.balance_category}
-                activeColor={
-                  task.balance_category
-                    ? BALANCE_CATEGORIES[task.balance_category].color
-                    : undefined
-                }
-                onPress={() => setOpenPopover('balance')}
-                colors={colors}
-              />
-              <IconRowBtn
-                icon="link"
-                active={getTaskLinks(task).length > 0}
-                badge={getTaskLinks(task).length}
-                onPress={() => setOpenPopover('link')}
-                colors={colors}
-              />
-              <IconRowBtn
-                icon="checklist"
-                active={subtasks.length > 0}
-                badge={subtasks.length}
-                onPress={() => setOpenPopover('subtask')}
-                colors={colors}
-              />
-            </View>
           </ScrollView>
+
+          {/* Icon row — STICKY alt sıra (web addDetail icon-row parity) */}
+          <View style={[styles.iconRow, { borderTopColor: colors.border2, backgroundColor: colors.surface }]}>
+            <IconRowBtn
+              icon="flag"
+              active={!!task.priority}
+              activeColor={task.priority ? PRIORITIES[task.priority]?.color : undefined}
+              onPress={() => setOpenPopover('priority')}
+              colors={colors}
+            />
+            <IconRowBtn
+              icon="event"
+              active={!!task.due_at}
+              onPress={() => setOpenPopover('date')}
+              colors={colors}
+            />
+            <IconRowBtn
+              icon="self-improvement"
+              active={!!task.balance_category}
+              activeColor={
+                task.balance_category
+                  ? BALANCE_CATEGORIES[task.balance_category].color
+                  : undefined
+              }
+              onPress={() => setOpenPopover('balance')}
+              colors={colors}
+            />
+            <IconRowBtn
+              icon="link"
+              active={getTaskLinks(task).length > 0}
+              badge={getTaskLinks(task).length}
+              onPress={() => setOpenPopover('link')}
+              colors={colors}
+            />
+            <IconRowBtn
+              icon="checklist"
+              active={subtasks.length > 0}
+              badge={subtasks.length}
+              onPress={() => setOpenPopover('subtask')}
+              colors={colors}
+            />
+          </View>
           {/* Web parity: footer YOK. Kaydet otomatik (saveField onChange/onBlur);
               kapatma → swipe-down (iOS pageSheet) veya Android back tuşu;
               tamamlandı/sil → header sağ üstteki "more" menüden. */}
@@ -306,6 +310,7 @@ export default function TaskEditor() {
         <EditorPopover
           visible={openPopover === 'priority'}
           title="Öncelik"
+          bottomOffset={80}
           onClose={() => setOpenPopover(null)}
         >
           <PrioritySelector
@@ -317,6 +322,7 @@ export default function TaskEditor() {
         <EditorPopover
           visible={openPopover === 'date'}
           title="Tarih"
+          bottomOffset={80}
           onClose={() => setOpenPopover(null)}
         >
           <DueRow
@@ -328,6 +334,7 @@ export default function TaskEditor() {
         <EditorPopover
           visible={openPopover === 'balance'}
           title="Aktif Yaşam Dengesi"
+          bottomOffset={80}
           onClose={() => setOpenPopover(null)}
         >
           <BalancePicker
@@ -339,6 +346,7 @@ export default function TaskEditor() {
         <EditorPopover
           visible={openPopover === 'link'}
           title="Bağlantılar"
+          bottomOffset={80}
           onClose={() => setOpenPopover(null)}
         >
           <LinkRow
@@ -350,6 +358,7 @@ export default function TaskEditor() {
         <EditorPopover
           visible={openPopover === 'subtask'}
           title="Alt görevler"
+          bottomOffset={80}
           onClose={() => setOpenPopover(null)}
         >
           <View>
@@ -442,7 +451,7 @@ const styles = StyleSheet.create({
   notesInput: { flex: 1, fontSize: 14, paddingVertical: 8, lineHeight: 20 },
   iconRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
-    paddingVertical: 16, marginTop: 16, borderTopWidth: 1, gap: 4,
+    paddingVertical: 12, borderTopWidth: 1, gap: 4,
   },
   iconBtn: {
     width: 44, height: 44, borderRadius: 22,

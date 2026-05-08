@@ -34,6 +34,13 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
   const linksOverflow = links.length - linksShown.length;
   const completedDate = task.done && task.completed_at ? new Date(task.completed_at) : null;
 
+  // Web parity: alt görev N/M format (tamamlanan/toplam)
+  const subStats = useStore(s => {
+    const subs = s.tasks.filter(t => t.parent_id === task.id);
+    return { total: subs.length, done: subs.filter(t => t.done).length };
+  });
+  const notesPreview = task.notes ? task.notes.slice(0, 100).trim() : null;
+
   const setDuePreset = (preset: 'today' | 'tomorrow' | 'weekend' | 'clear') => {
     if (preset === 'clear') {
       patchTask(task.id, { due_at: null }).catch((e) => Alert.alert('Hata', e?.message ?? 'Güncellenemedi'));
@@ -102,7 +109,7 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
         >
           {task.text}
         </Text>
-        {(dueText || subtaskCount > 0 || task.notes || task.balance_category || links.length > 0 || completedDate || taskList) && (
+        {(dueText || subStats.total > 0 || task.balance_category || links.length > 0 || completedDate || taskList || prio || (!task.balance_category && task.estimated_minutes)) && (
           <View style={styles.metaRow}>
             {taskList && (
               <View style={styles.chip}>
@@ -110,6 +117,12 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
                 <Text style={[styles.chipText, { color: colors.text3 }]} numberOfLines={1}>
                   {taskList.name}
                 </Text>
+              </View>
+            )}
+            {/* Priority symbol chip (web parity: 5dk/!!!/!!/!/zzz renkli) */}
+            {prio && (
+              <View style={[styles.prioChip, { borderColor: prio.color }]}>
+                <Text style={[styles.prioText, { color: prio.color }]}>{prio.symbol}</Text>
               </View>
             )}
             {completedDate && (
@@ -137,12 +150,22 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
                 />
                 <Text style={[styles.chipText, { color: BALANCE_CATEGORIES[task.balance_category].color }]}>
                   {BALANCE_CATEGORIES[task.balance_category].label}
+                  {task.estimated_minutes ? ` · ${task.estimated_minutes}dk` : ''}
                 </Text>
               </View>
             )}
+            {/* Süre chip — balance yoksa standalone (web parity) */}
+            {!task.balance_category && task.estimated_minutes ? (
+              <View style={styles.chip}>
+                <MaterialIcons name="schedule" size={12} color={colors.text3} />
+                <Text style={[styles.chipText, { color: colors.text3 }]}>
+                  {task.estimated_minutes}dk
+                </Text>
+              </View>
+            ) : null}
             {dueText && (
               <View style={styles.chip}>
-                <MaterialIcons name="schedule" size={12} color={dueOverdue ? colors.danger : colors.text3} />
+                <MaterialIcons name="event" size={12} color={dueOverdue ? colors.danger : colors.text3} />
                 <Text style={[styles.chipText, { color: dueOverdue ? colors.danger : colors.text3 }]}>{dueText}</Text>
               </View>
             )}
@@ -166,19 +189,22 @@ export default function TaskRow({ task, subtaskCount = 0 }: Props) {
                 <Text style={[styles.chipText, { color: colors.text3 }]}>+{linksOverflow}</Text>
               </View>
             )}
-            {subtaskCount > 0 && (
+            {/* Alt görev chip — N/M format (web parity) */}
+            {subStats.total > 0 && (
               <View style={styles.chip}>
-                <MaterialIcons name="check-box" size={12} color={colors.text3} />
-                <Text style={[styles.chipText, { color: colors.text3 }]}>{subtaskCount}</Text>
-              </View>
-            )}
-            {!!task.notes && (
-              <View style={styles.chip}>
-                <MaterialIcons name="notes" size={12} color={colors.text3} />
-                <Text numberOfLines={1} style={[styles.chipText, { color: colors.text3, maxWidth: 160 }]}>{task.notes}</Text>
+                <MaterialIcons name="checklist" size={12} color={colors.text3} />
+                <Text style={[styles.chipText, { color: colors.text3 }]}>
+                  {subStats.done}/{subStats.total}
+                </Text>
               </View>
             )}
           </View>
+        )}
+        {/* Notes preview — alt satırda 100 char (web parity, kart genişletilmiş hâlde) */}
+        {!!notesPreview && (
+          <Text numberOfLines={2} style={[styles.notesPreview, { color: colors.text3 }]}>
+            {notesPreview}
+          </Text>
         )}
       </View>
 
@@ -214,4 +240,11 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'wrap' },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   chipText: { fontSize: 11, fontWeight: '500' },
+  prioChip: {
+    borderWidth: 1, borderRadius: 4,
+    paddingHorizontal: 5, paddingVertical: 1,
+    minWidth: 26, alignItems: 'center', justifyContent: 'center',
+  },
+  prioText: { fontSize: 10, fontWeight: '700' },
+  notesPreview: { fontSize: 12, marginTop: 4, lineHeight: 16 },
 });
