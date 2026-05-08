@@ -64,6 +64,13 @@ export default function LoginScreen({ navigation }: Props) {
               : <Text style={styles.btnText}>Giriş Yap</Text>}
           </TouchableOpacity>
 
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ForgotPassword')}
+            style={styles.forgot}
+          >
+            <Text style={{ color: colors.accent, fontSize: 13 }}>Şifremi unuttum</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity onPress={() => navigation.navigate('Signup')} style={styles.switch}>
             <Text style={{ color: colors.accent }}>Hesabın yok mu? Kayıt ol</Text>
           </TouchableOpacity>
@@ -85,4 +92,5 @@ const styles = StyleSheet.create({
   btnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   err:     { fontSize: 13, marginBottom: 8 },
   switch:  { marginTop: 16, alignItems: 'center' },
+  forgot:  { marginTop: 12, alignItems: 'center' },
 });

@@ -4517,6 +4517,7 @@
         onkeydown="if(event.key==='Enter')submitAuth()">
     </div>
     <button class="btn-primary" id="authBtn" onclick="submitAuth()">Giriş Yap</button>
+    <div class="auth-switch" id="authForgotRow"><a onclick="openForgotPasswordPrompt()" style="font-size:.85em">Şifremi unuttum</a></div>
     <div class="auth-switch">Hesabın yok mu? <a onclick="toggleMode()">Kayıt Ol</a></div>
   </div>
 </div>
@@ -5575,10 +5576,43 @@ function toggleMode() {
   isRegMode = !isRegMode;
   document.getElementById('authTitle').textContent = isRegMode?'Kayıt Ol':'Giriş Yap';
   document.getElementById('authBtn').textContent   = isRegMode?'Kayıt Ol':'Giriş Yap';
-  document.querySelector('.auth-switch').innerHTML = isRegMode
+  // İkinci .auth-switch (kayıt link'i) — birinci forgot row, atlama
+  const authSwitches = document.querySelectorAll('.auth-switch');
+  const switchRow = authSwitches[authSwitches.length - 1];
+  switchRow.innerHTML = isRegMode
     ? 'Zaten hesabın var mı? <a onclick="toggleMode()">Giriş Yap</a>'
     : 'Hesabın yok mu? <a onclick="toggleMode()">Kayıt Ol</a>';
+  // Forgot satırı sadece Giriş modunda görünsün
+  const forgotRow = document.getElementById('authForgotRow');
+  if (forgotRow) forgotRow.style.display = isRegMode ? 'none' : '';
   document.getElementById('authMsg').className = 'msg';
+}
+
+/**
+ * Şifremi unuttum — Supabase auth.resetPasswordForEmail.
+ * Email'deki link reset-password.html'e götürür (token query'siyle).
+ */
+async function openForgotPasswordPrompt() {
+  const prefill = document.getElementById('authEmail').value.trim();
+  const email = window.prompt('Şifre sıfırlama bağlantısı için e-posta:', prefill);
+  if (!email) return;
+  const trimmed = email.trim();
+  if (!trimmed.includes('@')) { setMsg('Geçerli bir e-posta gir.', 'error'); return; }
+  try {
+    const redirectTo = location.origin + location.pathname.replace(/[^/]*$/, '') + 'reset-password.html';
+    const res = await fetch(`${SB}/auth/v1/recover`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': ANON },
+      body: JSON.stringify({ email: trimmed, redirect_to: redirectTo }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error_description || err.msg || `HTTP ${res.status}`);
+    }
+    setMsg(`${trimmed} adresine sıfırlama bağlantısı gönderildi.`, 'success');
+  } catch (e) {
+    setMsg('Bağlantı gönderilemedi: ' + (e?.message || e), 'error');
+  }
 }
 async function submitAuth() {
   const email = document.getElementById('authEmail').value.trim();
